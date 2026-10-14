@@ -1,11 +1,11 @@
-Quick Guide - myTowerDef v1.1.2
+Quick Guide - myTowerDef v1.2.0
 
 1. Run it
 Save files in same folder. Open index.html in browser.
 If local files blocked, use VS Code Live Server.
 
 2. How to play
-- Tap Build · 50, then tap a green spot to place tower.
+- Tap Build  50, then tap a green spot to place tower.
 - Tap Start Wave to begin.
 - Defend base. Survive all 8 enemies to win (+30 coins).
 - Restart to play again.
