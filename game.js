@@ -32,6 +32,7 @@ const spots = [
 
 let coins, lives, towers, enemies, shots;
 let spawned, spawnTimer, mode, buildMode;
+let selectedTower = null;
 let lastTime = 0;
 
 function distance(a, b) {
@@ -115,7 +116,9 @@ function placeTower(x, y) {
     y: spot.y,
     range: 85,
     damage: 20,
-    cooldown: 0
+    cooldown: 0,
+    level: 1,
+    upgradeCost: 80
   });
 
   coins -= TOWER_COST;
@@ -322,6 +325,21 @@ function draw() {
   }
 }
 
+
+function upgradeTower(){
+  if(!selectedTower || mode === "won" || mode === "lost") return;
+  if(selectedTower.level >= 3) return;
+  if(coins < selectedTower.upgradeCost) return;
+  coins -= selectedTower.upgradeCost;
+  selectedTower.level++;
+  selectedTower.range += 20;
+  selectedTower.damage += 10;
+  selectedTower.cooldown = Math.max(0.3, selectedTower.cooldown - 0.05);
+  selectedTower.upgradeCost = Math.floor(selectedTower.upgradeCost * 1.5);
+  $("status").textContent = "Tower upgraded to L"+selectedTower.level+"!";
+  updateUI();
+}
+
 function loop(time) {
   const dt = Math.min((time - lastTime) / 1000 || 0, 0.05);
   lastTime = time;
@@ -355,3 +373,5 @@ canvas.addEventListener("pointerdown", event => {
 
 reset();
 requestAnimationFrame(loop);
+
+$("upgradeBtn").addEventListener("click", upgradeTower);
