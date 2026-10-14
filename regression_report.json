@@ -1,10 +1,10 @@
 {
-  "ts": "2026-10-14T21:52:34.048Z",
+  "ts": "2026-10-14T21:57:01.987Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 1492
+      "size": 1542
     },
     {
       "name": "game.js",
@@ -24,12 +24,12 @@
     {
       "name": "sw.js",
       "exists": true,
-      "size": 495
+      "size": 498
     },
     {
       "name": "quick_Guide.txt",
       "exists": true,
-      "size": 427
+      "size": 426
     },
     {
       "name": "README.md",
