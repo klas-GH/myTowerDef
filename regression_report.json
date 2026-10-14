@@ -53,7 +53,7 @@
     },
     {
       "name": "html_v120",
-      "ok": false
+      "ok": true
     },
     {
       "name": "html_manifest_link",
@@ -69,11 +69,11 @@
     },
     {
       "name": "manifest_v120",
-      "ok": false
+      "ok": true
     },
     {
       "name": "sw_v120",
-      "ok": false
+      "ok": true
     },
     {
       "name": "sw_has_cache",
@@ -105,12 +105,12 @@
     },
     {
       "name": "docs_v120",
-      "ok": false
+      "ok": true
     }
   ],
   "summary": {
-    "allOk": false,
+    "allOk": true,
     "total": 16,
-    "passed": 12
+    "passed": 16
   }
 }
