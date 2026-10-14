@@ -1,7 +1,10 @@
-@version: 1.1.1
-@release: v1.1.1
-@status: stability, bug fixes, polish
-@scope: incremental upgrade of existing game
+@version: 1.1.2
+@release: v1.1.2
+@status: maintenance, verification, polish
+@scope: incremental maintenance of existing game
+
+=== v 1.1.1 =====
+- Added manifest, SW, updated docs/metadata; fixed initial UI state; restored emoji icons
 
 === v 1.1.0 =====
 
