@@ -1,0 +1,35 @@
+=== v 1.0.0 =====
+
+1. Minimum features for version 1
+Mobile-first UI: works with touch controls and mouse.
+
+One map: a fixed path that enemies follow.
+
+Enemies: walk toward your base.
+
+Tower placement: tap an empty build spot to place a tower.
+
+Automatic attacks: towers shoot enemies in range.
+
+Game economy: earn coins by defeating enemies.
+
+One level: survive a few waves to win; lose if too many enemies reach your base.
+
+Restart: replay the same level.
+
+2. Create the project
+For a lightweight web-based mini-game, I'd start with HTML, CSS and vanilla JavaScript using Canvas. It's a good fit for a small game that should run in a mobile browser without installing a framework. 
+
+GitHub
++1
+
+text
+myTowerDef/
+├── index.html
+├── style.css
+└── game.js
+
+==========laters ipdated/fixing ====
+==========================
+=== v 1.1.0 =====
+
