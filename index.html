@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101827">
   <title>myTowerDef</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,22 +14,22 @@
     <header class="header">
       <div>
         <h1>myTowerDef</h1>
-        <p>LEVEL 01 · FIRST DEFENSE</p>
+        <p>LEVEL 01 � FIRST DEFENSE � v1.1.1</p>
       </div>
       <div class="stats">
-        <span>💰 <b id="coins">60</b></span>
-        <span>❤️ <b id="lives">10</b></span>
+        <span>?? <b id="coins">60</b></span>
+        <span>?? <b id="lives">10</b></span>
       </div>
     </header>
 
-    <div id="status" class="status">🏆 Level 1 complete! +30 coins</div>
+    <div id="status" class="status">Build your defense!</div>
 
     <canvas id="game" aria-label="Tower defense game" width="300" height="360"></canvas>
 
     <section class="controls">
-      <button id="buildBtn" disabled>🗼 Build · 50</button>
-      <button id="startBtn" disabled>⚔ Wave in progress</button>
-      <button id="restartBtn" class="secondary">↻ Restart</button>
+      <button id="buildBtn" disabled>?? Build � 50</button>
+      <button id="startBtn" disabled>? Start Wave</button>
+      <button id="restartBtn" class="secondary">? Restart</button>
     </section>
 
     <p class="hint">
@@ -39,7 +39,12 @@
   </main>
 
   <script src="game.js"></script>
-
-
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(()=>{});
+      });
+    }
+  </script>
 </body>
 </html>

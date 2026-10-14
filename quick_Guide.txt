@@ -1,25 +1,15 @@
+Quick Guide - myTowerDef v1.1.1
+
 1. Run it
-Save the three files in the same folder.
+Save files in same folder. Open index.html in browser.
+If local files blocked, use VS Code Live Server.
 
-Open index.html in your browser.
+2. How to play
+- Tap Build · 50, then tap a green spot to place tower.
+- Tap Start Wave to begin.
+- Defend base. Survive all 8 enemies to win (+30 coins).
+- Restart to play again.
 
-Tap Build Â· 50, then tap a green spot.
-
-Tap Start Wave and defend the base.
-
-If your browser restricts local files, use VS Code with the Live Server extension to run it locally.
-
-2. Current scope
-One level and one enemy type.
-
-One basic tower type.
-
-Six build locations.
-
-Eight enemies per wave.
-
-Coins, lives, victory, defeat, and restart.
-
-Responsive mobile layout and touch input.
-
-The next sensible step is to separate the game logic from rendering and add a small myTowerDef configuration object, so you can later introduce new levels, tower types, and enemies without rewriting the core game.
+3. Notes
+- Mobile-first responsive layout with touch input.
+- Offline-capable via service worker.
