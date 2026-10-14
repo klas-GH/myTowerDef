@@ -1,0 +1,116 @@
+{
+  "ts": "2026-10-14T14:12:40.779Z",
+  "files": [
+    {
+      "name": "index.html",
+      "exists": true,
+      "size": 1434
+    },
+    {
+      "name": "game.js",
+      "exists": true,
+      "size": 7252
+    },
+    {
+      "name": "style.css",
+      "exists": true,
+      "size": 1840
+    },
+    {
+      "name": "manifest.json",
+      "exists": true,
+      "size": 223
+    },
+    {
+      "name": "sw.js",
+      "exists": true,
+      "size": 495
+    },
+    {
+      "name": "quick_Guide.txt",
+      "exists": true,
+      "size": 427
+    },
+    {
+      "name": "README.md",
+      "exists": true,
+      "size": 281
+    },
+    {
+      "name": "icon.svg",
+      "exists": true,
+      "size": 1231
+    }
+  ],
+  "checks": [
+    {
+      "name": "html_has_ids",
+      "ok": true
+    },
+    {
+      "name": "html_utf8_emojis",
+      "ok": true
+    },
+    {
+      "name": "html_v111",
+      "ok": true
+    },
+    {
+      "name": "html_manifest_link",
+      "ok": true
+    },
+    {
+      "name": "html_sw_register",
+      "ok": true
+    },
+    {
+      "name": "manifest_valid_json",
+      "ok": true
+    },
+    {
+      "name": "manifest_v111",
+      "ok": true
+    },
+    {
+      "name": "sw_v111",
+      "ok": true
+    },
+    {
+      "name": "sw_has_cache",
+      "ok": true
+    },
+    {
+      "name": "js_syntax",
+      "ok": true
+    },
+    {
+      "name": "js_has_reset",
+      "ok": true
+    },
+    {
+      "name": "js_has_loop",
+      "ok": true
+    },
+    {
+      "name": "js_pointerdown",
+      "ok": true
+    },
+    {
+      "name": "css_touch_action",
+      "ok": true
+    },
+    {
+      "name": "css_canvas_resp",
+      "ok": true
+    },
+    {
+      "name": "docs_v111",
+      "ok": true
+    }
+  ],
+  "summary": {
+    "allOk": true,
+    "total": 16,
+    "passed": 16
+  }
+}
