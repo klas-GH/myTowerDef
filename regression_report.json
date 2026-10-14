@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-14T14:12:40.779Z",
+  "ts": "2026-10-14T16:01:16.574Z",
   "files": [
     {
       "name": "index.html",
@@ -19,7 +19,7 @@
     {
       "name": "manifest.json",
       "exists": true,
-      "size": 223
+      "size": 423
     },
     {
       "name": "sw.js",
@@ -34,7 +34,7 @@
     {
       "name": "README.md",
       "exists": true,
-      "size": 281
+      "size": 289
     },
     {
       "name": "icon.svg",
@@ -69,7 +69,7 @@
     },
     {
       "name": "manifest_v111",
-      "ok": true
+      "ok": false
     },
     {
       "name": "sw_v111",
@@ -104,13 +104,13 @@
       "ok": true
     },
     {
-      "name": "docs_v111",
+      "name": "docs_v112",
       "ok": true
     }
   ],
   "summary": {
-    "allOk": true,
+    "allOk": false,
     "total": 16,
-    "passed": 16
+    "passed": 15
   }
 }
