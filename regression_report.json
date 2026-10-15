@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-15T12:51:48.805Z",
+  "ts": "2026-10-15T13:46:37.225Z",
   "files": [
     {
       "name": "index.html",
@@ -9,7 +9,7 @@
     {
       "name": "game.js",
       "exists": true,
-      "size": 15874
+      "size": 18559
     },
     {
       "name": "style.css",
@@ -29,12 +29,12 @@
     {
       "name": "quick_Guide.txt",
       "exists": true,
-      "size": 562
+      "size": 629
     },
     {
       "name": "README.md",
       "exists": true,
-      "size": 399
+      "size": 510
     },
     {
       "name": "icon.svg",
@@ -52,19 +52,19 @@
       "ok": true
     },
     {
-      "name": "html_v150",
+      "name": "html_v160",
       "ok": true
     },
     {
-      "name": "manifest_v150",
+      "name": "manifest_v160",
       "ok": true
     },
     {
-      "name": "sw_v150",
+      "name": "sw_v160",
       "ok": true
     },
     {
-      "name": "docs_v150",
+      "name": "docs_v160",
       "ok": true
     },
     {
@@ -102,11 +102,39 @@
     {
       "name": "restart_resets_wave",
       "ok": true
+    },
+    {
+      "name": "enemy_types_valid",
+      "ok": true
+    },
+    {
+      "name": "enemy_baseline_preserved",
+      "ok": true
+    },
+    {
+      "name": "enemy_unknown_falls_back",
+      "ok": true
+    },
+    {
+      "name": "wave_compositions_deterministic",
+      "ok": true
+    },
+    {
+      "name": "spawn_queue_authoritative",
+      "ok": true
+    },
+    {
+      "name": "per_type_reward",
+      "ok": true
+    },
+    {
+      "name": "preview_per_type_composition",
+      "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 15,
-    "passed": 15
+    "total": 22,
+    "passed": 22
   }
 }

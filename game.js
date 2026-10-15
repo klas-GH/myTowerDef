@@ -7,10 +7,37 @@ const W = 300;
 const H = 360;
 const TOWER_COST = 50;
 const TOTAL_ENEMIES = 8;
+
+// Distinct enemy archetypes. Every gameplay stat (hp, speed, reward) and
+// visual identity lives here so spawning, combat, rendering, and the wave
+// preview all derive from a single authoritative source.
+const ENEMY_TYPES = {
+  standard: { id: "standard", name: "Standard", hp: 35, speed: 28, reward: 10, color: "#ef4444", glyph: "●" },
+  runner:   { id: "runner",   name: "Runner",   hp: 22, speed: 40, reward: 14, color: "#f59e0b", glyph: "◆" },
+  armored:  { id: "armored",  name: "Armored",  hp: 70, speed: 20, reward: 18, color: "#64748b", glyph: "⬢" }
+};
+function getEnemyType(id) {
+  return ENEMY_TYPES[id] || ENEMY_TYPES.standard;
+}
+
+// Each wave specifies an explicit, deterministic composition of enemy types.
+// The legacy `enemies`/`enemyHp`/`enemySpeed` fields are derived from the
+// composition for backward compatibility; `composition` is authoritative.
+function buildWaveDef(composition, reward) {
+  const enemies = composition.reduce((sum, entry) => sum + entry.count, 0);
+  return {
+    composition: composition,
+    enemies: enemies,
+    enemyHp: ENEMY_TYPES.standard.hp,
+    enemySpeed: ENEMY_TYPES.standard.speed,
+    reward: reward
+  };
+}
+
 const WAVE_DEFS = [
-  { enemies: 8, enemyHp: 35, enemySpeed: 28, reward: 30 },
-  { enemies: 10, enemyHp: 45, enemySpeed: 32, reward: 40 },
-  { enemies: 12, enemyHp: 60, enemySpeed: 36, reward: 60 }
+  buildWaveDef([{ type: "standard", count: 8 }], 30),
+  buildWaveDef([{ type: "standard", count: 6 }, { type: "runner", count: 4 }], 40),
+  buildWaveDef([{ type: "standard", count: 4 }, { type: "armored", count: 4 }, { type: "runner", count: 4 }], 60)
 ];
 const MAX_WAVE = WAVE_DEFS.length;
 
@@ -38,6 +65,7 @@ const spots = [
 
 let coins, lives, towers, enemies, shots;
 let spawned, spawnTimer, mode, buildMode;
+let spawnQueue = []; // flattened, deterministic order of enemy types for the active wave
 let selectedTower = null;
 let lastTime = 0;
 let currentWave = 0; // 0 means not started yet
@@ -57,6 +85,7 @@ function reset() {
   shots = [];
   spawned = 0;
   spawnTimer = 0;
+  spawnQueue = [];
   mode = "ready";
   buildMode = false;
   selectedTower = null;
@@ -101,6 +130,15 @@ function startWave() {
   enemySpeed = w.enemySpeed;
   waveReward = w.reward;
 
+  // Flatten the deterministic composition into an ordered spawn queue so
+  // each spawned enemy carries its authoritative type attributes.
+  spawnQueue = [];
+  for (const entry of w.composition) {
+    for (let i = 0; i < entry.count; i++) {
+      spawnQueue.push(entry.type);
+    }
+  }
+
   mode = "playing";
   waveActive = true;
   buildMode = false;
@@ -114,15 +152,22 @@ function startWave() {
 }
 
 function addEnemy() {
-  const hp = 35;
+  // Pick the next enemy type from the authoritative spawn queue. Fall back
+  // to the standard archetype if the queue is empty or malformed.
+  const typeKey = spawnQueue[spawned] || "standard";
+  const t = getEnemyType(typeKey);
 
   enemies.push({
     x: path[0].x,
     y: path[0].y,
     point: 1,
-    hp: enemyHp,
-    maxHp: enemyHp,
-    speed: enemySpeed
+    type: typeKey,
+    hp: t.hp,
+    maxHp: t.hp,
+    speed: t.speed,
+    reward: t.reward,
+    color: t.color,
+    glyph: t.glyph
   });
 }
 
@@ -252,7 +297,7 @@ function update(dt) {
 
       if (target.hp <= 0) {
         target.dead = true;
-        coins += 10;
+        coins += target.reward;
       }
     } else if (d > 0) {
       shot.x += (target.x - shot.x) / d * step;
@@ -364,8 +409,20 @@ function draw() {
   for (const enemy of enemies) {
     ctx.beginPath();
     ctx.arc(enemy.x, enemy.y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = "#ef4444";
+    ctx.fillStyle = enemy.color || "#ef4444";
     ctx.fill();
+    ctx.strokeStyle = "rgba(15,23,42,0.55)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Type glyph distinguishes archetypes without relying on color alone.
+    if (enemy.glyph) {
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(enemy.glyph, enemy.x, enemy.y + 1);
+    }
 
     ctx.fillStyle = "#451a1a";
     ctx.fillRect(enemy.x - 10, enemy.y - 15, 20, 3);
@@ -554,10 +611,16 @@ function updateWavePreview() {
   if (lastPreviewWave === nextW) return;
   lastPreviewWave = nextW;
 
+  // Per-type composition lines, derived from the authoritative composition.
+  const typeLines = w.composition.map(entry => {
+    const t = getEnemyType(entry.type);
+    return '<span class="preview-line" style="color:' + t.color + '">' + t.glyph + ' ' + t.name + ' ' + entry.count + '</span>';
+  }).join('');
+
   previewEl.innerHTML =
-    '<span class="preview-title">Next: Wave ' + nextW + '/' + MAX_WAVE + '</span>' +
-    '<span class="preview-line">❤️ ' + w.enemyHp + ' HP · ⚡ ' + w.enemySpeed + ' · 🎯 ' + w.enemies + '</span>' +
-    '<span class="preview-line">💰 Reward ' + w.reward + '</span>';
+    '<span class="preview-title">Next: Wave ' + nextW + '/' + MAX_WAVE + ' (' + w.enemies + ')</span>' +
+    typeLines +
+    '<span class="preview-line">❤️ ' + w.enemyHp + ' HP · ⚡ ' + w.enemySpeed + ' · 💰 Reward ' + w.reward + '</span>';
 }
 
 $("buildBtn").addEventListener("click", () => {

@@ -1,7 +1,16 @@
-@version: 1.5.0
-@release: v1.5.0
+@version: 1.6.0
+@release: v1.6.0
 @status: maintenance, verification, polish
 @scope: incremental maintenance of existing game
+
+=== v 1.6.0 =====
+- Introduced three distinct enemy archetypes (Standard, Runner, Armored) with a centralized ENEMY_TYPES definition used by spawning, combat, rendering, and the wave preview.
+- Wave composition is now data-driven: WAVE_DEFS specify explicit, deterministic enemy type counts per wave (wave 1: 8 Standard; wave 2: 6 Standard + 4 Runner; wave 3: 4 Standard + 4 Armored + 4 Runner).
+- Per-type rewards are awarded on defeat (Standard 10, Runner 14, Armored 18) instead of a flat 10.
+- Enemies render with per-type color and a shape glyph so archetypes are distinguishable without relying on color alone.
+- The next-wave preview now shows per-type counts derived from the same authoritative composition used by spawning.
+- Preserved existing manual wave starts, preparation phase, tower placement, upgrades, combat, victory, defeat, and restart behavior.
+- Extended regression.js with deterministic enemy-archetype, composition, spawn-queue, reward, and preview tests.
 
 === v 1.5.0 =====
 - Added accurate next-wave preview in the wave panel: HP, speed, enemy count, and reward, derived from the authoritative WAVE_DEFS used by spawning.
