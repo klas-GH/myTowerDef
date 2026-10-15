@@ -1,5 +1,5 @@
 @version: 1.1.2
-@release: v1.2.0
+@release: v1.3.0
 @status: maintenance, verification, polish
 @scope: incremental maintenance of existing game
 

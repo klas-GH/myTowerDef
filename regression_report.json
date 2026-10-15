@@ -1,20 +1,20 @@
 {
-  "ts": "2026-10-14T21:59:32.610Z",
+  "ts": "2026-10-15T05:51:01.617Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 1542
+      "size": 2619
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 8272
+      "size": 11459
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 1840
+      "size": 2621
     },
     {
       "name": "manifest.json",
@@ -52,65 +52,25 @@
       "ok": true
     },
     {
-      "name": "html_v120",
+      "name": "html_v130",
       "ok": true
     },
     {
-      "name": "html_manifest_link",
+      "name": "manifest_v130",
       "ok": true
     },
     {
-      "name": "html_sw_register",
+      "name": "sw_v130",
       "ok": true
     },
     {
-      "name": "manifest_valid_json",
-      "ok": true
-    },
-    {
-      "name": "manifest_v120",
-      "ok": true
-    },
-    {
-      "name": "sw_v120",
-      "ok": true
-    },
-    {
-      "name": "sw_has_cache",
-      "ok": true
-    },
-    {
-      "name": "js_syntax",
-      "ok": true
-    },
-    {
-      "name": "js_has_reset",
-      "ok": true
-    },
-    {
-      "name": "js_has_loop",
-      "ok": true
-    },
-    {
-      "name": "js_pointerdown",
-      "ok": true
-    },
-    {
-      "name": "css_touch_action",
-      "ok": true
-    },
-    {
-      "name": "css_canvas_resp",
-      "ok": true
-    },
-    {
-      "name": "docs_v120",
+      "name": "docs_v130",
       "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 16,
-    "passed": 16
+    "total": 6,
+    "passed": 6
   }
 }

@@ -49,12 +49,14 @@ function reset() {
   spawnTimer = 0;
   mode = "ready";
   buildMode = false;
+  selectedTower = null;
 
   $("status").textContent = "Build your defense!";
   $("startBtn").disabled = false;
   $("startBtn").textContent = "▶ Start Wave";
 
   updateUI();
+  updateUpgradePanel();
 }
 
 function updateUI() {
@@ -62,6 +64,7 @@ function updateUI() {
   $("lives").textContent = lives;
   $("buildBtn").disabled =
     coins < TOWER_COST || mode === "won" || mode === "lost";
+  updateUpgradePanel();
 }
 
 function startWave() {
@@ -174,6 +177,7 @@ function update(dt) {
     mode = "lost";
     $("status").textContent = "💥 Base destroyed! Try again.";
     $("startBtn").disabled = true;
+    updateUpgradePanel();
     return;
   }
 
@@ -232,6 +236,7 @@ function update(dt) {
     mode = "won";
     coins += 30;
     updateUI();
+    updateUpgradePanel();
 
     $("status").textContent = "🏆 Level 1 complete! +30 coins";
     $("startBtn").disabled = true;
@@ -286,14 +291,28 @@ function draw() {
     ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(96,165,250,0.07)";
     ctx.fill();
+    
+    if (selectedTower === tower) {
+      ctx.beginPath();
+      ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(96,165,250,0.4)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
 
     ctx.beginPath();
     ctx.arc(tower.x, tower.y, 12, 0, Math.PI * 2);
     ctx.fillStyle = "#60a5fa";
     ctx.fill();
-    ctx.strokeStyle = "#dbeafe";
+    ctx.strokeStyle = selectedTower === tower ? "#fef08a" : "#dbeafe";
     ctx.lineWidth = 2;
     ctx.stroke();
+    if (tower.level > 1) {
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(tower.level, tower.x, tower.y + 3);
+    }
   }
 
   // Enemies and health bars
@@ -337,7 +356,78 @@ function upgradeTower(){
   selectedTower.cooldown = Math.max(0.3, selectedTower.cooldown - 0.05);
   selectedTower.upgradeCost = Math.floor(selectedTower.upgradeCost * 1.5);
   $("status").textContent = "Tower upgraded to L"+selectedTower.level+"!";
+  const msgEl = $("upgradeMsg");
+  if (msgEl) msgEl.textContent = "Upgrade successful!";
   updateUI();
+  updateUpgradePanel();
+}
+
+function updateUpgradePanel() {
+  const upgradeBtn = $("upgradeBtn");
+  const title = $("towerTitle");
+  const levelPill = $("towerLevel");
+  const curDmg = $("curDamage");
+  const nextDmg = $("nextDamage");
+  const curRng = $("curRange");
+  const nextRng = $("nextRange");
+  const curCd = $("curCooldown");
+  const nextCd = $("nextCooldown");
+  const nextCost = $("nextCost");
+  const msg = $("upgradeMsg");
+
+  if (!selectedTower) {
+    title.textContent = "No tower selected";
+    levelPill.textContent = "";
+    curDmg.textContent = "-";
+    nextDmg.textContent = "-";
+    curRng.textContent = "-";
+    nextRng.textContent = "-";
+    curCd.textContent = "-";
+    nextCd.textContent = "-";
+    nextCost.textContent = "-";
+    upgradeBtn.disabled = true;
+    if (msg) msg.textContent = "";
+    return;
+  }
+
+  const t = selectedTower;
+  const maxLevel = 3;
+  title.textContent = `Tower (Lv ${t.level})`;
+  levelPill.textContent = `Lv ${t.level}/${maxLevel}`;
+
+  curDmg.textContent = Math.round(t.damage);
+  curRng.textContent = Math.round(t.range);
+  curCd.textContent = t.cooldown.toFixed(2);
+
+  if (t.level >= maxLevel) {
+    nextDmg.textContent = "-";
+    nextRng.textContent = "-";
+    nextCd.textContent = "-";
+    nextCost.textContent = "MAX";
+    upgradeBtn.disabled = true;
+    if (msg) msg.textContent = "Maximum level reached.";
+    return;
+  }
+
+  nextDmg.textContent = Math.round(t.damage + 10);
+  nextRng.textContent = Math.round(t.range + 20);
+  const nextCdVal = Math.max(0.3, t.cooldown - 0.05);
+  nextCd.textContent = nextCdVal.toFixed(2);
+  nextCost.textContent = t.upgradeCost;
+
+  const canUpgrade = mode !== "won" && mode !== "lost" && coins >= t.upgradeCost;
+  upgradeBtn.disabled = !canUpgrade;
+  if (msg) {
+    if (mode === "won" || mode === "lost") {
+      msg.textContent = "Game ended.";
+    } else if (coins < t.upgradeCost) {
+      msg.textContent = "Not enough coins for upgrade.";
+    } else if (t.level >= maxLevel) {
+      msg.textContent = "Maximum level reached.";
+    } else {
+      msg.textContent = "Upgrade available.";
+    }
+  }
 }
 
 function loop(time) {
@@ -364,10 +454,20 @@ $("restartBtn").addEventListener("click", reset);
 
 canvas.addEventListener("pointerdown", event => {
   const rect = canvas.getBoundingClientRect();
-
   const x = (event.clientX - rect.left) * W / rect.width;
   const y = (event.clientY - rect.top) * H / rect.height;
 
+  const clickedTower = towers.find(t => distance(t, { x, y }) < 15);
+  if (clickedTower) {
+    selectedTower = clickedTower;
+    buildMode = false;
+    updateUpgradePanel();
+    $("status").textContent = `Tower Lv ${clickedTower.level} selected.`;
+    return;
+  }
+
+  selectedTower = null;
+  updateUpgradePanel();
   placeTower(x, y);
 });
 

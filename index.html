@@ -14,7 +14,7 @@
     <header class="header">
       <div>
         <h1>myTowerDef</h1>
-        <p>LEVEL 01 · FIRST DEFENSE · v1.2.0</p>
+        <p>LEVEL 01 · FIRST DEFENSE · v1.3.0</p>
       </div>
       <div class="stats">
         <span>💰 <b id="coins">60</b></span>
@@ -26,9 +26,35 @@
 
     <canvas id="game" aria-label="Tower defense game" width="300" height="360"></canvas>
 
+    <section id="upgradePanel" class="upgrade-panel" aria-live="polite">
+      <div class="upgrade-header">
+        <h2 id="towerTitle">No tower selected</h2>
+        <span id="towerLevel" class="level-pill"></span>
+      </div>
+      <div class="upgrade-stats">
+        <div class="stat">
+          <span class="label">Damage</span>
+          <span class="value"><span id="curDamage">-</span> → <span id="nextDamage">-</span></span>
+        </div>
+        <div class="stat">
+          <span class="label">Range</span>
+          <span class="value"><span id="curRange">-</span> → <span id="nextRange">-</span></span>
+        </div>
+        <div class="stat">
+          <span class="label">Cooldown</span>
+          <span class="value"><span id="curCooldown">-</span>s → <span id="nextCooldown">-</span>s</span>
+        </div>
+        <div class="stat">
+          <span class="label">Next Cost</span>
+          <span class="value" id="nextCost">-</span>
+        </div>
+      </div>
+      <button id="upgradeBtn" disabled>⬆ Upgrade</button>
+      <div id="upgradeMsg" class="upgrade-msg"></div>
+    </section>
+
     <section class="controls">
       <button id="buildBtn" disabled>🗼 Build · 50</button>
-      <button id="upgradeBtn" disabled>⬆ Upgrade</button>
       <button id="startBtn" disabled>▶ Start Wave</button>
       <button id="restartBtn" class="secondary">↻ Restart</button>
     </section>
