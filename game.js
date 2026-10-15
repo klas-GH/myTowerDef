@@ -64,8 +64,8 @@ const spots = [
 ];
 
 let coins, lives, towers, enemies, shots;
-let spawned, spawnTimer, mode, buildMode;
-let spawnQueue = []; // flattened, deterministic order of enemy types for the active wave
+let spawned, spawnTimer, mode;
+let pointerPos = null; // last canvas pointer position, used for placement preview
 let selectedTower = null;
 let lastTime = 0;
 let currentWave = 0; // 0 means not started yet
@@ -86,8 +86,8 @@ function reset() {
   spawned = 0;
   spawnTimer = 0;
   spawnQueue = [];
+  pointerPos = null;
   mode = "ready";
-  buildMode = false;
   selectedTower = null;
   currentWave = 0;
   waveActive = false;
@@ -108,8 +108,6 @@ function reset() {
 function updateUI() {
   $("coins").textContent = coins;
   $("lives").textContent = lives;
-  $("buildBtn").disabled =
-    coins < TOWER_COST || mode === "won" || mode === "lost" || waveActive;
   updateUpgradePanel();
   updateWaveInfo();
 }
@@ -172,7 +170,7 @@ function addEnemy() {
 }
 
 function placeTower(x, y) {
-  if (!buildMode || mode === "won" || mode === "lost") return;
+  if (mode === "won" || mode === "lost" || waveActive) return;
 
   const spot = spots.find(s => distance(s, { x, y }) < 20);
 
@@ -202,7 +200,6 @@ function placeTower(x, y) {
   });
 
   coins -= TOWER_COST;
-  buildMode = false;
   $("status").textContent = "Tower built! Ready to defend.";
   updateUI();
 }
@@ -372,6 +369,36 @@ function draw() {
       ctx.font = "bold 16px sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("+", spot.x, spot.y + 5);
+    }
+  }
+
+  // Lightweight placement preview: a ghost tower drawn at the pointer on the
+  // nearest valid empty spot. Green = placeable, red = blocked (occupied or
+  // unaffordable). Derived from the actual placement rules, never bypasses
+  // them, and is skipped during active waves / game over.
+  if (pointerPos && mode !== "won" && mode !== "lost" && !waveActive) {
+    const p = pointerPos;
+    const spot = spots.find(s => distance(s, p) < 20);
+    if (spot) {
+      const occupied = towers.some(t => distance(t, spot) < 1);
+      const affordable = coins >= TOWER_COST;
+      const ok = !occupied && affordable;
+      const ghostColor = ok ? "rgba(96,165,250,0.55)" : "rgba(239,68,68,0.55)";
+
+      ctx.beginPath();
+      ctx.arc(spot.x, spot.y, 13, 0, Math.PI * 2);
+      ctx.fillStyle = ghostColor;
+      ctx.fill();
+      ctx.strokeStyle = ok ? "#4ade80" : "#f87171";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      if (!ok) {
+        ctx.fillStyle = "#fca5a5";
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(occupied ? "occupied" : "need " + TOWER_COST, spot.x, spot.y + 17);
+      }
     }
   }
 
@@ -623,15 +650,6 @@ function updateWavePreview() {
     '<span class="preview-line">❤️ ' + w.enemyHp + ' HP · ⚡ ' + w.enemySpeed + ' · 💰 Reward ' + w.reward + '</span>';
 }
 
-$("buildBtn").addEventListener("click", () => {
-  if (mode === "won" || mode === "lost") return;
-
-  buildMode = !buildMode;
-  $("status").textContent = buildMode
-    ? "Tap a green spot to build."
-    : "Build your defense!";
-});
-
 $("startBtn").addEventListener("click", startWave);
 $("restartBtn").addEventListener("click", reset);
 
@@ -640,18 +658,30 @@ canvas.addEventListener("pointerdown", event => {
   const x = (event.clientX - rect.left) * W / rect.width;
   const y = (event.clientY - rect.top) * H / rect.height;
 
+  // Tapping an existing tower selects it for inspection and upgrade.
+  // It must never trigger a new placement.
   const clickedTower = towers.find(t => distance(t, { x, y }) < 15);
   if (clickedTower) {
     selectedTower = clickedTower;
-    buildMode = false;
     updateUpgradePanel();
     $("status").textContent = `Tower Lv ${clickedTower.level} selected.`;
     return;
   }
 
+  // Tapping empty canvas places a tower directly on a valid green spot.
   selectedTower = null;
   updateUpgradePanel();
   placeTower(x, y);
+});
+
+// Track the pointer so the placement preview stays synchronized with the
+// actual canvas coordinates at any viewport size.
+canvas.addEventListener("pointermove", event => {
+  const rect = canvas.getBoundingClientRect();
+  pointerPos = {
+    x: (event.clientX - rect.left) * W / rect.width,
+    y: (event.clientY - rect.top) * H / rect.height
+  };
 });
 
 reset();

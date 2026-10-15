@@ -1,20 +1,20 @@
 {
-  "ts": "2026-10-15T13:46:37.225Z",
+  "ts": "2026-10-15T14:38:38.350Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 2887
+      "size": 2896
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 18559
+      "size": 19887
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 3248
+      "size": 3232
     },
     {
       "name": "manifest.json",
@@ -29,12 +29,12 @@
     {
       "name": "quick_Guide.txt",
       "exists": true,
-      "size": 629
+      "size": 685
     },
     {
       "name": "README.md",
       "exists": true,
-      "size": 510
+      "size": 524
     },
     {
       "name": "icon.svg",
@@ -52,19 +52,19 @@
       "ok": true
     },
     {
-      "name": "html_v160",
+      "name": "html_v170",
       "ok": true
     },
     {
-      "name": "manifest_v160",
+      "name": "manifest_v170",
       "ok": true
     },
     {
-      "name": "sw_v160",
+      "name": "sw_v170",
       "ok": true
     },
     {
-      "name": "docs_v160",
+      "name": "docs_v170",
       "ok": true
     },
     {
@@ -104,6 +104,42 @@
       "ok": true
     },
     {
+      "name": "placement_succeeds",
+      "ok": true
+    },
+    {
+      "name": "placement_deducts_currency",
+      "ok": true
+    },
+    {
+      "name": "occupied_spot_rejected",
+      "ok": true
+    },
+    {
+      "name": "insufficient_funds_rejected",
+      "ok": true
+    },
+    {
+      "name": "off_spot_rejected",
+      "ok": true
+    },
+    {
+      "name": "placement_rejected_during_wave",
+      "ok": true
+    },
+    {
+      "name": "placement_rejected_victory_defeat",
+      "ok": true
+    },
+    {
+      "name": "selecting_tower_does_not_place",
+      "ok": true
+    },
+    {
+      "name": "restart_clears_placement",
+      "ok": true
+    },
+    {
       "name": "enemy_types_valid",
       "ok": true
     },
@@ -134,7 +170,7 @@
   ],
   "summary": {
     "allOk": true,
-    "total": 22,
-    "passed": 22
+    "total": 31,
+    "passed": 31
   }
 }

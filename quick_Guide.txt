@@ -1,11 +1,12 @@
-Quick Guide - myTowerDef v1.6.0
+Quick Guide - myTowerDef v1.7.0
 
 1. Run it
 Save files in same folder. Open index.html in browser.
 If local files blocked, use VS Code Live Server.
 
 2. How to play
-- Tap Build  50, then tap a green spot to place tower.
+- Tap a green spot on the field to place a tower (50 coins).
+- Tap an existing tower to select and upgrade it.
 - Tap Start Wave to begin.
 - The wave panel shows the next wave's enemy types and counts before you start it.
 - Enemy types: Standard (red), Runner (fast, low HP), Armored (slow, high HP).

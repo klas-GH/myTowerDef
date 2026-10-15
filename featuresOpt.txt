@@ -1,7 +1,14 @@
-@version: 1.6.0
-@release: v1.6.0
+@version: 1.7.0
+@release: v1.7.0
 @status: maintenance, verification, polish
 @scope: incremental maintenance of existing game
+
+=== v 1.7.0 =====
+- Streamlined tower placement: removed the separate Build button. Tapping a green spot now places a tower directly (validated: not wave-active, not game-over, not occupied, coins sufficient). Tapping an existing tower still selects it for upgrade.
+- Only Start Wave and Restart remain as controls; the control panel is now a vertical two-button layout.
+- Added a lightweight placement preview (ghost tower on the nearest valid spot; green = placeable, red = blocked) derived from the actual placement rules.
+- Currency is deducted exactly once per successful placement; failed placements never charge.
+- Extended regression.js with deterministic placement, rejection, and restart tests.
 
 === v 1.6.0 =====
 - Introduced three distinct enemy archetypes (Standard, Runner, Armored) with a centralized ENEMY_TYPES definition used by spawning, combat, rendering, and the wave preview.

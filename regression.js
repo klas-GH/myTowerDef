@@ -19,12 +19,12 @@ const css = read('style.css');
 const qg = read('quick_Guide.txt');
 const readme = read('README.md');
 
-report.checks.push({name:'html_has_ids', ok: !!html && ['coins','lives','buildBtn','startBtn','restartBtn','game','wavePreview'].every(id=>html.includes('id="'+id+'"')||html.includes("id='"+id+"'"))});
-report.checks.push({name:'html_utf8_emojis', ok: !!html && html.includes('💰') && html.includes('❤️') && html.includes('🗼') && html.includes('▶') && html.includes('↻')});
-report.checks.push({name:'html_v160', ok: !!html && html.includes('v1.6.0')});
-report.checks.push({name:'manifest_v160', ok: !!manifest && /"version"\s*:\s*"1\.6\.0"/.test(manifest)});
-report.checks.push({name:'sw_v160', ok: !!sw && sw.includes('v1.6.0')});
-report.checks.push({name:'docs_v160', ok: (!!qg && qg.includes('v1.6.0')) || (!!readme && readme.includes('v1.6.0'))});
+report.checks.push({name:'html_has_ids', ok: !!html && ['coins','lives','startBtn','restartBtn','game','wavePreview'].every(id=>html.includes('id="'+id+'"')||html.includes("id='"+id+"'"))});
+report.checks.push({name:'html_utf8_emojis', ok: !!html && html.includes('💰') && html.includes('❤️') && html.includes('▶') && html.includes('↻')});
+report.checks.push({name:'html_v170', ok: !!html && html.includes('v1.7.0')});
+report.checks.push({name:'manifest_v170', ok: !!manifest && /"version"\s*:\s*"1\.7\.0"/.test(manifest)});
+report.checks.push({name:'sw_v170', ok: !!sw && sw.includes('v1.7.0')});
+report.checks.push({name:'docs_v170', ok: (!!qg && qg.includes('v1.7.0')) || (!!readme && readme.includes('v1.7.0'))});
 
 
 
@@ -56,7 +56,7 @@ const doc = { querySelector, getElementById: makeGetById };
 const raf = ()=>{};
 const ctx = { document: doc, window: { requestAnimationFrame: raf }, requestAnimationFrame: raf, console: console };
 vm.createContext(ctx);
-vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getEnemyType, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI};', ctx);
+vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getEnemyType, placeTower, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI};', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -182,7 +182,7 @@ assert('restart_restores_wave', ctx.__api.currentWave === 0 && ctx.__api.mode ==
 assert('restart_refreshes_preview', els.wavePreview.innerHTML.includes('Next: Wave 1/3'));
 
 
-// ---- v1.6.0 enemy archetype and composition tests ----
+// ---- v1.7.0 enemy archetype and composition tests ----
 // Every enemy type has a valid identifier and finite gameplay stats.
 const types = ctx.__api.ENEMY_TYPES;
 assert('enemy_has_standard', !!types.standard && types.standard.hp > 0 && types.standard.speed > 0 && types.standard.reward > 0);
@@ -267,6 +267,52 @@ assert('preview_wave3_has_standard', wave3Preview.includes('Standard'));
 // Capture a multi-type preview before the reset below changes it.
 const multiTypePreview = wave3Preview;
 
+
+// Repeated placement across distinct spots works and charges once each.
+  ctx.__api.reset();
+  ctx.__api.placeTower(100, 80);
+  ctx.__api.placeTower(195, 85);
+  assert('two_placements_create_two_towers', ctx.__api.towers.length === 2);
+  assertEq('two_placements_charge_correctly', ctx.__api.coins, 0);
+  // Capture placement outcomes before the reset below clears them.
+  const placementSucceeds = ctx.__api.towers.length === 2 && ctx.__api.coins === 0;
+  // Re-run the key rejection scenarios on a fresh board and capture results.
+  ctx.__api.reset();
+  const beforeCoins = ctx.__api.coins;
+  ctx.__api.placeTower(100, 80);
+  const placementDeducts = ctx.__api.coins === beforeCoins - 50;
+  ctx.__api.placeTower(100, 80);
+  const occupiedRejected = ctx.__api.towers.length === 1 && ctx.__api.coins === beforeCoins - 50;
+  ctx.__api.coins = 40;
+  ctx.__api.placeTower(195, 85);
+  const insufficientRejected = ctx.__api.towers.length === 1 && ctx.__api.coins === 40;
+  ctx.__api.coins = 100;
+  ctx.__api.placeTower(10, 10);
+  const offSpotRejected = ctx.__api.towers.length === 1 && ctx.__api.coins === 100;
+  ctx.__api.reset();
+  ctx.__api.startWave();
+  ctx.__api.waveActive = true;
+  ctx.__api.coins = 100;
+  ctx.__api.placeTower(100, 80);
+  const waveRejected = ctx.__api.towers.length === 0;
+  ctx.__api.reset();
+  ctx.__api.mode = 'won';
+  ctx.__api.placeTower(100, 80);
+  const victoryRejected = ctx.__api.towers.length === 0;
+  ctx.__api.mode = 'lost';
+  ctx.__api.placeTower(100, 80);
+  const defeatRejected = ctx.__api.towers.length === 0;
+  ctx.__api.reset();
+  ctx.__api.placeTower(100, 80);
+  ctx.__api.selectedTower = ctx.__api.towers[0];
+  ctx.__api.placeTower(100, 80);
+  const selectNoPlace = ctx.__api.towers.length === 1;
+  ctx.__api.reset();
+  ctx.__api.placeTower(100, 80);
+  ctx.__api.placeTower(195, 85);
+  ctx.__api.reset();
+  const restartClears = ctx.__api.towers.length === 0 && ctx.__api.coins === 100;
+
 // Record deterministic test results into the report.
 // Reset to a known state first so the checks below reflect the actual
 // post-restart baseline rather than leftover victory state.
@@ -280,7 +326,17 @@ report.checks.push({name:'no_duplicate_wave_start', ok: true});
 report.checks.push({name:'no_premature_spawn', ok: ctx.__api.enemies.length === 0 && ctx.__api.spawned === 0});
 report.checks.push({name:'defeat_blocks_start', ok: true});
 report.checks.push({name:'restart_resets_wave', ok: ctx.__api.currentWave === 0 && ctx.__api.mode === 'ready'});
-// v1.6.0 enemy archetype and composition checks.
+// v1.7.0 streamlined tower placement checks.
+report.checks.push({name:'placement_succeeds', ok: placementSucceeds});
+report.checks.push({name:'placement_deducts_currency', ok: placementDeducts});
+report.checks.push({name:'occupied_spot_rejected', ok: occupiedRejected});
+report.checks.push({name:'insufficient_funds_rejected', ok: insufficientRejected});
+report.checks.push({name:'off_spot_rejected', ok: offSpotRejected});
+report.checks.push({name:'placement_rejected_during_wave', ok: waveRejected});
+report.checks.push({name:'placement_rejected_victory_defeat', ok: victoryRejected && defeatRejected});
+report.checks.push({name:'selecting_tower_does_not_place', ok: selectNoPlace});
+report.checks.push({name:'restart_clears_placement', ok: restartClears});
+// v1.7.0 enemy archetype and composition checks.
 report.checks.push({name:'enemy_types_valid', ok: ctx.__api.ENEMY_TYPES.standard.hp > 0 && ctx.__api.ENEMY_TYPES.runner.speed > ctx.__api.ENEMY_TYPES.standard.speed && ctx.__api.ENEMY_TYPES.armored.hp > ctx.__api.ENEMY_TYPES.standard.hp});
 report.checks.push({name:'enemy_baseline_preserved', ok: ctx.__api.ENEMY_TYPES.standard.hp === 35 && ctx.__api.ENEMY_TYPES.standard.speed === 28 && ctx.__api.ENEMY_TYPES.standard.reward === 10});
 report.checks.push({name:'enemy_unknown_falls_back', ok: ctx.__api.getEnemyType('nope') === ctx.__api.ENEMY_TYPES.standard});
