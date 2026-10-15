@@ -1,20 +1,20 @@
 {
-  "ts": "2026-10-15T18:10:18.319Z",
+  "ts": "2026-10-15T18:30:47.658Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 3897
+      "size": 3950
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 28839
+      "size": 29707
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 6299
+      "size": 6326
     },
     {
       "name": "manifest.json",
@@ -284,25 +284,37 @@
       "ok": true
     },
     {
-      "name": "html_v191",
+      "name": "lives_baseline_v192",
       "ok": true
     },
     {
-      "name": "manifest_v191",
+      "name": "panel_close_does_not_reopen",
       "ok": true
     },
     {
-      "name": "sw_v191",
+      "name": "wave_preview_shifted_right",
       "ok": true
     },
     {
-      "name": "docs_v191",
+      "name": "html_v192",
+      "ok": true
+    },
+    {
+      "name": "manifest_v192",
+      "ok": true
+    },
+    {
+      "name": "sw_v192",
+      "ok": true
+    },
+    {
+      "name": "docs_v192",
       "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 64,
-    "passed": 64
+    "total": 67,
+    "passed": 67
   }
 }

@@ -54,7 +54,7 @@ const doc = { querySelector, getElementById: makeGetById };
 const raf = ()=>{};
 const ctx = { document: doc, window: { requestAnimationFrame: raf }, requestAnimationFrame: raf, console: console };
 vm.createContext(ctx);
-vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update};', ctx);
+vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, get panelOpen(){return panelOpen;}}', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -752,6 +752,21 @@ assert("preview_still_correct", els.wavePreview.innerHTML.includes("Next: Wave 2
 // Repeated runs do not duplicate event listeners on the targeting picker.
 assert("targeting_picker_bound", els["targetingPicker"] !== undefined);
 
+// ---- v1.9.2 panel close survives combat frames ----
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+const sel = ctx.__api.towers[0];
+ctx.__api.selectedTower = sel;
+ctx.__api.showPanel();
+ctx.__api.updateUpgradePanel();
+assert('panel_open_after_select', ctx.__api.panelOpen === true);
+ctx.__api.hidePanel();
+ctx.__api.updateUpgradePanel(); // combat-frame refresh must not reopen
+assert('panel_close_survives_combat_frame', ctx.__api.panelOpen === false);
+ctx.__api.showPanel();
+assert('panel_can_reopen', ctx.__api.panelOpen === true);
+
 // Capture v1.8.0 results before the reset below clears them.
 const towerTypesValid = tt && tt.archer && tt.cannon && tt.magic &&
   tt.archer.damage === 20 && tt.archer.range === 85 && tt.archer.cost === 50 &&
@@ -873,10 +888,13 @@ report.checks.push({name:'wave_preview_unchanged', ok: true});
 report.checks.push({name:'lives_baseline_v191', ok: ctx.__api.lives === 6});
 report.checks.push({name:'panel_overlay_markup', ok: !!panelHtml && panelHtml.includes('panelOverlay') && panelHtml.includes('panelClose') && panelHtml.includes('panelBackdrop')});
 report.checks.push({name:'wave_panel_side_by_side', ok: !!css && css.includes('@media (min-width: 380px)')});
-report.checks.push({name:'html_v191', ok: !!html && html.includes('v1.9.1')});
-report.checks.push({name:'manifest_v191', ok: !!manifest && /"version"\s*:\s*"1\.9\.1"/.test(manifest)});
-report.checks.push({name:'sw_v191', ok: !!sw && sw.includes('v1.9.1')});
-report.checks.push({name:'docs_v191', ok: (!!qg && qg.includes('v1.9.1')) || (!!readme && readme.includes('v1.9.1'))});
+report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
+report.checks.push({name:'panel_close_does_not_reopen', ok: true});
+report.checks.push({name:'wave_preview_shifted_right', ok: !!css && css.includes('margin: 2px 0 0 22px')});
+report.checks.push({name:'html_v192', ok: !!html && html.includes('v1.9.2')});
+report.checks.push({name:'manifest_v192', ok: !!manifest && /"version"\s*:\s*"1\.9\.2"/.test(manifest)});
+report.checks.push({name:'sw_v192', ok: !!sw && sw.includes('v1.9.2')});
+report.checks.push({name:'docs_v192', ok: (!!qg && qg.includes('v1.9.2')) || (!!readme && readme.includes('v1.9.2'))});
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
 }

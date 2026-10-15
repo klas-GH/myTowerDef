@@ -97,13 +97,29 @@ function selectTargetingMode(tower, modeId) {
 // when a tower is selected. It frees the bottom of the screen for narrow
 // mobile layouts. Tapping the backdrop, the close button, or pressing Escape
 // dismisses it without losing the selection state (it reopens on re-select).
+// `panelOpen` is the single authority: the panel only opens on an explicit
+// tower click, so combat frames can never force it back open after the player
+// dismissed it.
+let panelOpen = false;
 function showPanel() {
+  if (panelOpen) return; // already open; never force it back after dismissal
   const overlay = $("panelOverlay");
   if (overlay) overlay.hidden = false;
+  panelOpen = true;
 }
 function hidePanel() {
   const overlay = $("panelOverlay");
   if (overlay) overlay.hidden = true;
+  panelOpen = false;
+}
+// Refreshes the panel CONTENT only. It never forces the popup open, so combat
+// frames (which call updateUpgradePanel() every tick) cannot resurrect a
+// panel the player dismissed. The popup is shown explicitly by the canvas
+// click handler when a tower is selected.
+function refreshPanelContent() {
+  const overlay = $("panelOverlay");
+  if (panelOpen && overlay) overlay.hidden = false;
+  if (!panelOpen && overlay) overlay.hidden = true;
 }
 
 // Distinct enemy archetypes. Every gameplay stat (hp, speed, reward) and
@@ -664,11 +680,11 @@ function updateUpgradePanel() {
     if (msg) msg.textContent = "";
     const targetingRow = $("targetingRow");
     if (targetingRow) targetingRow.hidden = true;
-    hidePanel();
+    refreshPanelContent();
     return;
   }
 
-  showPanel();
+  refreshPanelContent();
 
   const t = selectedTower;
   const tt = getTowerType(t.type);
@@ -837,10 +853,12 @@ canvas.addEventListener("pointerdown", event => {
   const y = (event.clientY - rect.top) * H / rect.height;
 
   // Tapping an existing tower selects it for inspection and upgrade.
-  // It must never trigger a new placement.
+  // It must never trigger a new placement. Selecting also opens the
+  // context-style upgrade popup explicitly.
   const clickedTower = towers.find(t => distance(t, { x, y }) < 15);
   if (clickedTower) {
     selectedTower = clickedTower;
+    showPanel();
     updateUpgradePanel();
     $("status").textContent = `Tower Lv ${clickedTower.level} selected.`;
     return;

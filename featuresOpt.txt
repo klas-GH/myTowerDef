@@ -1,5 +1,12 @@
-@version: 1.9.1
-@release: v1.9.1
+@version: 1.9.2
+@release: v1.9.2
+@status: fix, verification
+@scope: UI bug fix
+
+=== v 1.9.2 =====
+- Fixed the upgrade-panel close button: dismissing the popup no longer reopens it during combat frames. The panel now only opens on an explicit tower click via a `panelOpen` flag, so `updateUpgradePanel()` refreshes content without resurrecting a dismissed popup.
+- The next-wave preview is shifted right (22px margin) so the left-side wave info fits fully on narrow screens; the current-wave and next-wave info now sit side by side in a `.wave-info-row`.
+
 @status: polish, verification
 @scope: UI and balance polish
 
