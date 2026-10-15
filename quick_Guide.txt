@@ -1,4 +1,4 @@
-Quick Guide - myTowerDef v1.3.0
+Quick Guide - myTowerDef v1.5.0
 
 1. Run it
 Save files in same folder. Open index.html in browser.
@@ -7,9 +7,11 @@ If local files blocked, use VS Code Live Server.
 2. How to play
 - Tap Build  50, then tap a green spot to place tower.
 - Tap Start Wave to begin.
-- Defend base. Survive all 8 enemies to win (+30 coins).
+- The wave panel shows the next wave's HP, speed, enemy count, and reward before you start it.
+- Defend base. Survive all waves to win (+coins per wave).
 - Restart to play again.
 
 3. Notes
 - Mobile-first responsive layout with touch input.
 - Offline-capable via service worker.
+- Towers can be upgraded up to level 3.

@@ -1,7 +1,22 @@
-@version: 1.1.2
-@release: v1.3.0
+@version: 1.5.0
+@release: v1.5.0
 @status: maintenance, verification, polish
 @scope: incremental maintenance of existing game
+
+=== v 1.5.0 =====
+- Added accurate next-wave preview in the wave panel: HP, speed, enemy count, and reward, derived from the authoritative WAVE_DEFS used by spawning.
+- Preview updates on wave start, wave completion, restart, victory, and defeat; final-wave/victory shows no next wave.
+- Preserved existing manual wave starts, preparation phase, tower placement, upgrades, combat, victory, defeat, and restart behavior.
+- Extended regression.js with deterministic wave-preview and wave-state tests.
+
+=== v 1.4.0 =====
+- Added wave system with current-wave and next-wave indicators.
+
+=== v 1.3.0 =====
+- Improved the upgrade panel, tower selection, statistics, level indicators, and upgrade reliability.
+
+=== v 1.2.0 =====
+- Introduced the tower upgrade system.
 
 === v 1.1.1 =====
 - Added manifest, SW, updated docs/metadata; fixed initial UI state; restored emoji icons

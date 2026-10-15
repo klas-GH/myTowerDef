@@ -43,6 +43,7 @@ let lastTime = 0;
 let currentWave = 0; // 0 means not started yet
 let enemiesToSpawn, enemyHp, enemySpeed, waveReward;
 let waveActive = false;
+let lastPreviewWave = -1; // cached next-wave number rendered in the preview
 
 function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -508,6 +509,7 @@ function updateWaveInfo() {
       }
     }
   }
+  updateWavePreview();
 }
 
 function loop(time) {
@@ -518,6 +520,44 @@ function loop(time) {
   draw();
 
   requestAnimationFrame(loop);
+}
+
+// Returns the authoritative wave definition for the next wave to start.
+// Returns null when no further waves remain (final wave complete or victory).
+function getNextWaveDef() {
+  if (mode === "won" || mode === "lost") return null;
+  const nextW = (currentWave === 0) ? 1 : currentWave + 1;
+  if (nextW > MAX_WAVE) return null;
+  return WAVE_DEFS[nextW - 1];
+}
+
+// Renders a compact preview of the next wave into the preview panel.
+// Derives all values from the authoritative WAVE_DEFS used by spawning,
+// so the preview always matches the enemies that will actually spawn.
+function updateWavePreview() {
+  const previewEl = $("wavePreview");
+  if (!previewEl) return;
+
+  const w = getNextWaveDef();
+  const nextW = (currentWave === 0) ? 1 : currentWave + 1;
+
+  if (!w) {
+    lastPreviewWave = -1;
+    previewEl.innerHTML =
+      '<span class="preview-title">Next wave</span>' +
+      '<span class="preview-line">—</span>';
+    return;
+  }
+
+  // Only rewrite the DOM when the previewed wave actually changed, to avoid
+  // unnecessary work during an active wave's per-frame updates.
+  if (lastPreviewWave === nextW) return;
+  lastPreviewWave = nextW;
+
+  previewEl.innerHTML =
+    '<span class="preview-title">Next: Wave ' + nextW + '/' + MAX_WAVE + '</span>' +
+    '<span class="preview-line">❤️ ' + w.enemyHp + ' HP · ⚡ ' + w.enemySpeed + ' · 🎯 ' + w.enemies + '</span>' +
+    '<span class="preview-line">💰 Reward ' + w.reward + '</span>';
 }
 
 $("buildBtn").addEventListener("click", () => {

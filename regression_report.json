@@ -1,20 +1,20 @@
 {
-  "ts": "2026-10-15T09:00:34.817Z",
+  "ts": "2026-10-15T12:51:48.805Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 2830
+      "size": 2887
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 14284
+      "size": 15874
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 2947
+      "size": 3248
     },
     {
       "name": "manifest.json",
@@ -29,12 +29,12 @@
     {
       "name": "quick_Guide.txt",
       "exists": true,
-      "size": 426
+      "size": 562
     },
     {
       "name": "README.md",
       "exists": true,
-      "size": 289
+      "size": 399
     },
     {
       "name": "icon.svg",
@@ -52,25 +52,61 @@
       "ok": true
     },
     {
-      "name": "html_v130",
+      "name": "html_v150",
       "ok": true
     },
     {
-      "name": "manifest_v130",
+      "name": "manifest_v150",
       "ok": true
     },
     {
-      "name": "sw_v130",
+      "name": "sw_v150",
       "ok": true
     },
     {
-      "name": "docs_v130",
+      "name": "docs_v150",
+      "ok": true
+    },
+    {
+      "name": "wave_defs_authoritative",
+      "ok": true
+    },
+    {
+      "name": "preview_wave1",
+      "ok": true
+    },
+    {
+      "name": "preview_wave2_after_start",
+      "ok": true
+    },
+    {
+      "name": "preview_wave3",
+      "ok": true
+    },
+    {
+      "name": "preview_victory_empty",
+      "ok": true
+    },
+    {
+      "name": "no_duplicate_wave_start",
+      "ok": true
+    },
+    {
+      "name": "no_premature_spawn",
+      "ok": true
+    },
+    {
+      "name": "defeat_blocks_start",
+      "ok": true
+    },
+    {
+      "name": "restart_resets_wave",
       "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 6,
-    "passed": 6
+    "total": 15,
+    "passed": 15
   }
 }
