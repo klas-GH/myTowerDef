@@ -1,20 +1,20 @@
 {
-  "ts": "2026-10-15T14:38:38.350Z",
+  "ts": "2026-10-15T16:01:53.676Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 2896
+      "size": 3377
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 19887
+      "size": 23274
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 3232
+      "size": 3959
     },
     {
       "name": "manifest.json",
@@ -29,12 +29,12 @@
     {
       "name": "quick_Guide.txt",
       "exists": true,
-      "size": 685
+      "size": 769
     },
     {
       "name": "README.md",
       "exists": true,
-      "size": 524
+      "size": 693
     },
     {
       "name": "icon.svg",
@@ -52,19 +52,19 @@
       "ok": true
     },
     {
-      "name": "html_v170",
+      "name": "html_v180",
       "ok": true
     },
     {
-      "name": "manifest_v170",
+      "name": "manifest_v180",
       "ok": true
     },
     {
-      "name": "sw_v170",
+      "name": "sw_v180",
       "ok": true
     },
     {
-      "name": "docs_v170",
+      "name": "docs_v180",
       "ok": true
     },
     {
@@ -140,6 +140,38 @@
       "ok": true
     },
     {
+      "name": "tower_types_valid",
+      "ok": true
+    },
+    {
+      "name": "cannon_placement_uses_its_stats",
+      "ok": true
+    },
+    {
+      "name": "magic_placement_uses_its_stats",
+      "ok": true
+    },
+    {
+      "name": "cannon_insufficient_funds_rejected",
+      "ok": true
+    },
+    {
+      "name": "sell_refunds_full_investment",
+      "ok": true
+    },
+    {
+      "name": "upgrades_work_for_all_tower_types",
+      "ok": true
+    },
+    {
+      "name": "selecting_tower_does_not_place",
+      "ok": true
+    },
+    {
+      "name": "restart_clears_tower_state",
+      "ok": true
+    },
+    {
       "name": "enemy_types_valid",
       "ok": true
     },
@@ -170,7 +202,7 @@
   ],
   "summary": {
     "allOk": true,
-    "total": 31,
-    "passed": 31
+    "total": 39,
+    "passed": 39
   }
 }

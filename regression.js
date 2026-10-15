@@ -21,10 +21,10 @@ const readme = read('README.md');
 
 report.checks.push({name:'html_has_ids', ok: !!html && ['coins','lives','startBtn','restartBtn','game','wavePreview'].every(id=>html.includes('id="'+id+'"')||html.includes("id='"+id+"'"))});
 report.checks.push({name:'html_utf8_emojis', ok: !!html && html.includes('💰') && html.includes('❤️') && html.includes('▶') && html.includes('↻')});
-report.checks.push({name:'html_v170', ok: !!html && html.includes('v1.7.0')});
-report.checks.push({name:'manifest_v170', ok: !!manifest && /"version"\s*:\s*"1\.7\.0"/.test(manifest)});
-report.checks.push({name:'sw_v170', ok: !!sw && sw.includes('v1.7.0')});
-report.checks.push({name:'docs_v170', ok: (!!qg && qg.includes('v1.7.0')) || (!!readme && readme.includes('v1.7.0'))});
+report.checks.push({name:'html_v180', ok: !!html && html.includes('v1.8.0')});
+report.checks.push({name:'manifest_v180', ok: !!manifest && /"version"\s*:\s*"1\.8\.0"/.test(manifest)});
+report.checks.push({name:'sw_v180', ok: !!sw && sw.includes('v1.8.0')});
+report.checks.push({name:'docs_v180', ok: (!!qg && qg.includes('v1.8.0')) || (!!readme && readme.includes('v1.8.0'))});
 
 
 
@@ -56,7 +56,7 @@ const doc = { querySelector, getElementById: makeGetById };
 const raf = ()=>{};
 const ctx = { document: doc, window: { requestAnimationFrame: raf }, requestAnimationFrame: raf, console: console };
 vm.createContext(ctx);
-vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getEnemyType, placeTower, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI};', ctx);
+vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, placeTower, sellTower, upgradeTower, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI};', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -182,7 +182,7 @@ assert('restart_restores_wave', ctx.__api.currentWave === 0 && ctx.__api.mode ==
 assert('restart_refreshes_preview', els.wavePreview.innerHTML.includes('Next: Wave 1/3'));
 
 
-// ---- v1.7.0 enemy archetype and composition tests ----
+// ---- v1.8.0 enemy archetype and composition tests ----
 // Every enemy type has a valid identifier and finite gameplay stats.
 const types = ctx.__api.ENEMY_TYPES;
 assert('enemy_has_standard', !!types.standard && types.standard.hp > 0 && types.standard.speed > 0 && types.standard.reward > 0);
@@ -313,6 +313,111 @@ const multiTypePreview = wave3Preview;
   ctx.__api.reset();
   const restartClears = ctx.__api.towers.length === 0 && ctx.__api.coins === 100;
 
+
+// ---- v1.8.0 strategic tower variety tests ----
+const tt = ctx.__api.TOWER_TYPES;
+assert('tower_has_archer', !!tt.archer && tt.archer.cost > 0 && tt.archer.damage > 0 && tt.archer.range > 0 && tt.archer.cooldown > 0);
+assert('tower_has_cannon', !!tt.cannon && tt.cannon.cost > 0 && tt.cannon.damage > 0 && tt.cannon.range > 0 && tt.cannon.cooldown > 0);
+assert('tower_has_magic', !!tt.magic && tt.magic.cost > 0 && tt.magic.damage > 0 && tt.magic.range > 0 && tt.magic.cooldown > 0);
+assert('tower_archer_is_baseline', tt.archer.damage === 20 && tt.archer.range === 85 && tt.archer.cost === 50);
+assert('tower_cannon_heavy', tt.cannon.damage > tt.archer.damage);
+assert('tower_magic_long_range', tt.magic.range > tt.archer.range);
+assert('tower_cannon_slower', tt.cannon.cooldown > tt.archer.cooldown);
+assert('tower_unknown_falls_back', ctx.__api.getTowerType('nope') === tt.archer);
+
+ctx.__api.selectedTowerType = 'cannon';
+assert('selected_tower_type_set', ctx.__api.selectedTowerType === 'cannon');
+
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.placeTower(100, 80);
+assert('cannon_placement_succeeds', ctx.__api.towers.length === 1);
+assertEq('cannon_placement_cost', ctx.__api.coins, 100 - tt.cannon.cost);
+assertEq('cannon_type_recorded', ctx.__api.towers[0].type, 'cannon');
+assertEq('cannon_damage_recorded', ctx.__api.towers[0].damage, tt.cannon.damage);
+assertEq('cannon_range_recorded', ctx.__api.towers[0].range, tt.cannon.range);
+
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'magic';
+ctx.__api.placeTower(100, 80);
+assert('magic_placement_succeeds', ctx.__api.towers.length === 1);
+assertEq('magic_range_recorded', ctx.__api.towers[0].range, tt.magic.range);
+
+
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 50;
+ctx.__api.placeTower(100, 80);
+assert('cannon_insufficient_rejected', ctx.__api.towers.length === 0);
+assertEq('cannon_insufficient_no_deduction', ctx.__api.coins, 50);
+
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+ctx.__api.selectedTower = ctx.__api.towers[0];
+ctx.__api.placeTower(100, 80);
+assert('select_does_not_place', ctx.__api.towers.length === 1);
+
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.placeTower(100, 80);
+ctx.__api.reset();
+assert('restart_clears_type', ctx.__api.selectedTowerType === 'archer');
+assert('restart_clears_towers', ctx.__api.towers.length === 0);
+// Capture v1.8.0 results before the reset below clears them.
+const towerTypesValid = tt && tt.archer && tt.cannon && tt.magic &&
+  tt.archer.damage === 20 && tt.archer.range === 85 && tt.archer.cost === 50 &&
+  tt.cannon.damage > tt.archer.damage && tt.magic.range > tt.archer.range &&
+  tt.cannon.cooldown > tt.archer.cooldown;
+// Re-run the key placement/sell scenarios on a fresh board and capture results.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.placeTower(100, 80);
+const cannonPlacementWorks = ctx.__api.towers.length === 1 && ctx.__api.coins === 100 - tt.cannon.cost;
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'magic';
+ctx.__api.placeTower(100, 80);
+const magicPlacementWorks = ctx.__api.towers.length === 1 && ctx.__api.towers[0].range === tt.magic.range;
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 50;
+ctx.__api.placeTower(100, 80);
+const cannonInsufficientRejected = ctx.__api.towers.length === 0 && ctx.__api.coins === 50;
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+const sellTowerRef = ctx.__api.towers[0];
+ctx.__api.selectedTower = sellTowerRef;
+// Fund the upgrade (costs 80) before upgrading, then upgrade twice.
+ctx.__api.coins = 200;
+ctx.__api.upgradeTower();
+ctx.__api.upgradeTower();
+const expectedRefund = sellTowerRef.cost + (sellTowerRef.totalUpgradeCost || 0);
+ctx.__api.sellTower(sellTowerRef);
+const sellRefunds = ctx.__api.coins === expectedRefund && ctx.__api.towers.length === 0;
+let upgradesWork = true;
+for (const key of ['archer', 'cannon', 'magic']) {
+  ctx.__api.reset();
+  ctx.__api.selectedTowerType = key;
+  ctx.__api.placeTower(100, 80);
+  const t = ctx.__api.towers[0];
+  ctx.__api.selectedTower = t;
+  ctx.__api.coins = 200; // fund the 80-cost upgrade
+  ctx.__api.upgradeTower();
+  if (!(t.damage > ctx.__api.getTowerType(key).damage && t.range > ctx.__api.getTowerType(key).range && t.level === 2)) upgradesWork = false;
+}
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+ctx.__api.selectedTower = ctx.__api.towers[0];
+ctx.__api.placeTower(100, 80);
+const selectDoesNotPlace = ctx.__api.towers.length === 1;
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.placeTower(100, 80);
+ctx.__api.reset();
+const restartClearsTowerState = ctx.__api.selectedTowerType === 'archer' && ctx.__api.towers.length === 0;
+
 // Record deterministic test results into the report.
 // Reset to a known state first so the checks below reflect the actual
 // post-restart baseline rather than leftover victory state.
@@ -326,7 +431,7 @@ report.checks.push({name:'no_duplicate_wave_start', ok: true});
 report.checks.push({name:'no_premature_spawn', ok: ctx.__api.enemies.length === 0 && ctx.__api.spawned === 0});
 report.checks.push({name:'defeat_blocks_start', ok: true});
 report.checks.push({name:'restart_resets_wave', ok: ctx.__api.currentWave === 0 && ctx.__api.mode === 'ready'});
-// v1.7.0 streamlined tower placement checks.
+// v1.8.0 streamlined tower placement checks.
 report.checks.push({name:'placement_succeeds', ok: placementSucceeds});
 report.checks.push({name:'placement_deducts_currency', ok: placementDeducts});
 report.checks.push({name:'occupied_spot_rejected', ok: occupiedRejected});
@@ -336,7 +441,16 @@ report.checks.push({name:'placement_rejected_during_wave', ok: waveRejected});
 report.checks.push({name:'placement_rejected_victory_defeat', ok: victoryRejected && defeatRejected});
 report.checks.push({name:'selecting_tower_does_not_place', ok: selectNoPlace});
 report.checks.push({name:'restart_clears_placement', ok: restartClears});
-// v1.7.0 enemy archetype and composition checks.
+// v1.8.0 strategic tower variety checks.
+report.checks.push({name:'tower_types_valid', ok: towerTypesValid});
+report.checks.push({name:'cannon_placement_uses_its_stats', ok: cannonPlacementWorks});
+report.checks.push({name:'magic_placement_uses_its_stats', ok: magicPlacementWorks});
+report.checks.push({name:'cannon_insufficient_funds_rejected', ok: cannonInsufficientRejected});
+report.checks.push({name:'sell_refunds_full_investment', ok: sellRefunds});
+report.checks.push({name:'upgrades_work_for_all_tower_types', ok: upgradesWork});
+report.checks.push({name:'selecting_tower_does_not_place', ok: selectDoesNotPlace});
+report.checks.push({name:'restart_clears_tower_state', ok: restartClearsTowerState});
+// v1.8.0 enemy archetype and composition checks.
 report.checks.push({name:'enemy_types_valid', ok: ctx.__api.ENEMY_TYPES.standard.hp > 0 && ctx.__api.ENEMY_TYPES.runner.speed > ctx.__api.ENEMY_TYPES.standard.speed && ctx.__api.ENEMY_TYPES.armored.hp > ctx.__api.ENEMY_TYPES.standard.hp});
 report.checks.push({name:'enemy_baseline_preserved', ok: ctx.__api.ENEMY_TYPES.standard.hp === 35 && ctx.__api.ENEMY_TYPES.standard.speed === 28 && ctx.__api.ENEMY_TYPES.standard.reward === 10});
 report.checks.push({name:'enemy_unknown_falls_back', ok: ctx.__api.getEnemyType('nope') === ctx.__api.ENEMY_TYPES.standard});

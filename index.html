@@ -14,7 +14,7 @@
     <header class="header">
       <div>
         <h1>myTowerDef</h1>
-        <p>LEVEL 01 · FIRST DEFENSE · v1.7.0</p>
+        <p>LEVEL 01 · FIRST DEFENSE · v1.8.0</p>
       </div>
       <div class="stats">
         <span>💰 <b id="coins">60</b></span>
@@ -55,8 +55,15 @@
         </div>
       </div>
       <button id="upgradeBtn" disabled>⬆ Upgrade</button>
+      <button id="sellBtn" class="secondary" disabled>🗑 Sell</button>
       <div id="upgradeMsg" class="upgrade-msg"></div>
     </section>
+
+    <div id="towerPicker" class="tower-picker">
+      <button data-type="archer" class="active"><span class="tname">Arch</span><span class="tcost">50</span></button>
+      <button data-type="cannon"><span class="tname">Cannon</span><span class="tcost">90</span></button>
+      <button data-type="magic"><span class="tname">Magic</span><span class="tcost">80</span></button>
+    </div>
 
     <section class="controls">
       <button id="startBtn" disabled>▶ Start Wave</button>
@@ -64,8 +71,8 @@
     </section>
 
     <p class="hint">
-      Tap a green spot to place a tower (50 coins). Tap an existing tower to
-      select and upgrade it. Then start the wave.
+      Pick a tower type, then tap a green spot to place it. Tap an existing
+      tower to select and upgrade it, or sell it for a full refund.
       Defend your base!
     </p>
   </main>

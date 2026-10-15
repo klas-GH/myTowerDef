@@ -8,6 +8,19 @@ const H = 360;
 const TOWER_COST = 50;
 const TOTAL_ENEMIES = 8;
 
+// Distinct tower archetypes. Combat stats live here so placement, combat,
+// rendering, the placement ghost, and the upgrade panel all derive from one
+// authoritative source. The Archer is the existing baseline tower.
+const TOWER_TYPES = {
+  archer: { id: "archer", name: "Archer", cost: 50, damage: 20, range: 85, cooldown: 0.65, color: "#60a5fa", glyph: "▲" },
+  cannon: { id: "cannon", name: "Cannon", cost: 90, damage: 45, range: 75, cooldown: 1.00, color: "#f97316", glyph: "●" },
+  magic:  { id: "magic",  name: "Magic",  cost: 80, damage: 28, range: 110, cooldown: 0.85, color: "#a855f7", glyph: "✦" }
+};
+function getTowerType(id) {
+  return TOWER_TYPES[id] || TOWER_TYPES.archer;
+}
+let selectedTowerType = "archer"; // the type used for the next placement
+
 // Distinct enemy archetypes. Every gameplay stat (hp, speed, reward) and
 // visual identity lives here so spawning, combat, rendering, and the wave
 // preview all derive from a single authoritative source.
@@ -77,6 +90,15 @@ function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
+// Renders the compact tower-type picker and highlights the selected type.
+function updateTowerPicker() {
+  const picker = $("towerPicker");
+  if (!picker || !picker.children) return;
+  for (const btn of picker.children) {
+    btn.classList.toggle("active", btn.dataset.type === selectedTowerType);
+  }
+}
+
 function reset() {
   coins = 100;
   lives = 10;
@@ -87,6 +109,7 @@ function reset() {
   spawnTimer = 0;
   spawnQueue = [];
   pointerPos = null;
+  selectedTowerType = "archer";
   mode = "ready";
   selectedTower = null;
   currentWave = 0;
@@ -99,6 +122,7 @@ function reset() {
   $("status").textContent = "Build your defense!";
   $("startBtn").disabled = false;
   $("startBtn").textContent = "▶ Start Wave";
+  updateTowerPicker();
 
   updateUI();
   updateUpgradePanel();
@@ -184,24 +208,41 @@ function placeTower(x, y) {
     return;
   }
 
-  if (coins < TOWER_COST) {
-    $("status").textContent = "Not enough coins!";
+  const t = getTowerType(selectedTowerType);
+  if (coins < t.cost) {
+    $("status").textContent = "Need " + t.cost + " coins for " + t.name + "!";
     return;
   }
 
   towers.push({
     x: spot.x,
     y: spot.y,
-    range: 85,
-    damage: 20,
-    cooldown: 0,
+    type: t.id,
+    range: t.range,
+    damage: t.damage,
+    cooldown: t.cooldown,
     level: 1,
-    upgradeCost: 80
+    upgradeCost: 80,
+    cost: t.cost
   });
 
-  coins -= TOWER_COST;
-  $("status").textContent = "Tower built! Ready to defend.";
+  coins -= t.cost;
+  $("status").textContent = t.name + " tower built! Ready to defend.";
   updateUI();
+}
+
+// Sell/demolish a placed tower, refunding its full purchase cost plus every
+// upgrade cost already spent on it. No loss, no gain — just a reset of the
+// coins invested in that tower.
+function sellTower(tower) {
+  if (!tower || mode === "won" || mode === "lost") return;
+  const refund = (tower.cost || 0) + (tower.totalUpgradeCost || 0);
+  coins += refund;
+  towers = towers.filter(t => t !== tower);
+  if (selectedTower === tower) selectedTower = null;
+  $("status").textContent = "Tower sold. +" + refund + " coins";
+  updateUI();
+  updateUpgradePanel();
 }
 
 function moveEnemy(enemy, dt) {
@@ -373,21 +414,27 @@ function draw() {
   }
 
   // Lightweight placement preview: a ghost tower drawn at the pointer on the
-  // nearest valid empty spot. Green = placeable, red = blocked (occupied or
-  // unaffordable). Derived from the actual placement rules, never bypasses
-  // them, and is skipped during active waves / game over.
+  // nearest valid empty spot, using the selected tower type's range. Green =
+  // placeable, red = blocked (occupied or unaffordable). Derived from the
+  // actual placement rules, never bypasses them, skipped during waves/game over.
   if (pointerPos && mode !== "won" && mode !== "lost" && !waveActive) {
     const p = pointerPos;
     const spot = spots.find(s => distance(s, p) < 20);
     if (spot) {
+      const st = getTowerType(selectedTowerType);
       const occupied = towers.some(t => distance(t, spot) < 1);
-      const affordable = coins >= TOWER_COST;
+      const affordable = coins >= st.cost;
       const ok = !occupied && affordable;
-      const ghostColor = ok ? "rgba(96,165,250,0.55)" : "rgba(239,68,68,0.55)";
+
+      // Range ring from the selected tower type.
+      ctx.beginPath();
+      ctx.arc(spot.x, spot.y, st.range, 0, Math.PI * 2);
+      ctx.fillStyle = ok ? "rgba(96,165,250,0.10)" : "rgba(239,68,68,0.10)";
+      ctx.fill();
 
       ctx.beginPath();
       ctx.arc(spot.x, spot.y, 13, 0, Math.PI * 2);
-      ctx.fillStyle = ghostColor;
+      ctx.fillStyle = ok ? st.color + "cc" : "rgba(239,68,68,0.55)";
       ctx.fill();
       ctx.strokeStyle = ok ? "#4ade80" : "#f87171";
       ctx.lineWidth = 2;
@@ -395,20 +442,22 @@ function draw() {
 
       if (!ok) {
         ctx.fillStyle = "#fca5a5";
-        ctx.font = "bold 12px sans-serif";
+        ctx.font = "bold 11px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(occupied ? "occupied" : "need " + TOWER_COST, spot.x, spot.y + 17);
+        ctx.fillText(occupied ? "occupied" : "need " + st.cost, spot.x, spot.y + 17);
       }
     }
   }
 
-  // Towers
+// Towers
   for (const tower of towers) {
+    const tt = getTowerType(tower.type);
+
     ctx.beginPath();
     ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(96,165,250,0.07)";
     ctx.fill();
-    
+
     if (selectedTower === tower) {
       ctx.beginPath();
       ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
@@ -419,16 +468,23 @@ function draw() {
 
     ctx.beginPath();
     ctx.arc(tower.x, tower.y, 12, 0, Math.PI * 2);
-    ctx.fillStyle = "#60a5fa";
+    ctx.fillStyle = tt.color;
     ctx.fill();
-    ctx.strokeStyle = selectedTower === tower ? "#fef08a" : "#dbeafe";
+    ctx.strokeStyle = selectedTower === tower ? "#fef08a" : "rgba(15,23,42,0.6)";
     ctx.lineWidth = 2;
     ctx.stroke();
+
+    // Type glyph distinguishes tower types without relying on color alone.
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "bold 10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(tt.glyph, tower.x, tower.y + 1);
+
     if (tower.level > 1) {
-      ctx.fillStyle = "#0f172a";
+      ctx.fillStyle = "#fef08a";
       ctx.font = "bold 10px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(tower.level, tower.x, tower.y + 3);
+      ctx.fillText(tower.level, tower.x, tower.y - 7);
     }
   }
 
@@ -479,6 +535,7 @@ function upgradeTower(){
   if(selectedTower.level >= 3) return;
   if(coins < selectedTower.upgradeCost) return;
   coins -= selectedTower.upgradeCost;
+  selectedTower.totalUpgradeCost = (selectedTower.totalUpgradeCost || 0) + selectedTower.upgradeCost;
   selectedTower.level++;
   selectedTower.range += 20;
   selectedTower.damage += 10;
@@ -493,6 +550,7 @@ function upgradeTower(){
 
 function updateUpgradePanel() {
   const upgradeBtn = $("upgradeBtn");
+  const sellBtn = $("sellBtn");
   const title = $("towerTitle");
   const levelPill = $("towerLevel");
   const curDmg = $("curDamage");
@@ -515,18 +573,26 @@ function updateUpgradePanel() {
     nextCd.textContent = "-";
     nextCost.textContent = "-";
     upgradeBtn.disabled = true;
+    if (sellBtn) sellBtn.disabled = true;
     if (msg) msg.textContent = "";
     return;
   }
 
   const t = selectedTower;
+  const tt = getTowerType(t.type);
   const maxLevel = 3;
-  title.textContent = `Tower (Lv ${t.level})`;
-  levelPill.textContent = `Lv ${t.level}/${maxLevel}`;
+  title.textContent = tt.name + " (Lv " + t.level + ")";
+  levelPill.textContent = "Lv " + t.level + "/" + maxLevel;
 
   curDmg.textContent = Math.round(t.damage);
   curRng.textContent = Math.round(t.range);
   curCd.textContent = t.cooldown.toFixed(2);
+
+  if (sellBtn) {
+    const refund = (t.cost || 0) + (t.totalUpgradeCost || 0);
+    sellBtn.textContent = "Sell · +" + refund;
+    sellBtn.disabled = mode === "won" || mode === "lost";
+  }
 
   if (t.level >= maxLevel) {
     nextDmg.textContent = "-";
@@ -688,3 +754,16 @@ reset();
 requestAnimationFrame(loop);
 
 $("upgradeBtn").addEventListener("click", upgradeTower);
+$("sellBtn").addEventListener("click", () => sellTower(selectedTower));
+
+$("towerPicker").addEventListener("click", event => {
+  const btn = event.target.closest ? event.target.closest("button[data-type]") : null;
+  if (!btn) return;
+  selectedTowerType = btn.dataset.type;
+  // Selecting a tower type clears any existing tower selection.
+  selectedTower = null;
+  updateUpgradePanel();
+  updateTowerPicker();
+  const t = getTowerType(selectedTowerType);
+  $("status").textContent = t.name + " selected (" + t.cost + " coins). Tap a green spot.";
+});

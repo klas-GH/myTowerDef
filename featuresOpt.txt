@@ -1,7 +1,18 @@
-@version: 1.7.0
-@release: v1.7.0
+@version: 1.8.0
+@release: v1.8.0
 @status: maintenance, verification, polish
 @scope: incremental maintenance of existing game
+
+=== v 1.8.0 =====
+- Introduced three distinct purchasable tower types (Archer, Cannon, Magic) with a centralized TOWER_TYPES definition used by placement, combat, rendering, the placement ghost, and the upgrade panel.
+- Archer (50/20/85/0.65) is the baseline; Cannon (90/45/75/1.00) deals heavy damage slowly; Magic (80/28/110/0.85) has the longest range. Each has a real cost/damage/range/cooldown trade-off.
+- Added a compact 3-button tower picker above the controls; selecting a type clears any tower selection and shows its cost.
+- Placement uses the selected tower type and deducts its specific cost exactly once; failed placements never charge.
+- Added a Sell button on the upgrade panel: selling a tower refunds its full purchase cost plus every upgrade cost already spent (no loss).
+- Placement ghost now draws the selected tower type's color and range ring.
+- Towers render with per-type color and a shape glyph so types are distinguishable without relying on color alone.
+- Preserved existing direct placement, upgrades, combat, enemy archetypes, wave progression, victory, defeat, and restart.
+- Extended regression.js with deterministic tower-type, selection, placement, sell, upgrade, and restart tests.
 
 === v 1.7.0 =====
 - Streamlined tower placement: removed the separate Build button. Tapping a green spot now places a tower directly (validated: not wave-active, not game-over, not occupied, coins sufficient). Tapping an existing tower still selects it for upgrade.

@@ -113,10 +113,50 @@ canvas {
 }
 
 .controls {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 12px;
+}
+
+.tower-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tower-picker button {
+  min-height: 40px;
+  padding: 6px 4px;
+  font-size: 11px;
+  border-radius: 10px;
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  cursor: pointer;
+  touch-action: manipulation;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.tower-picker button .tname {
+  font-weight: 700;
+}
+
+.tower-picker button .tcost {
+  font-size: 10px;
+  color: #fbbf24;
+}
+
+.tower-picker button.active {
+  background: #2563eb;
+  border-color: #60a5fa;
+  color: white;
 }
 
 button {
