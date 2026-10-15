@@ -18,13 +18,11 @@ const sw = read('sw.js');
 const css = read('style.css');
 const qg = read('quick_Guide.txt');
 const readme = read('README.md');
+const panelHtml = read('index.html');
 
 report.checks.push({name:'html_has_ids', ok: !!html && ['coins','lives','startBtn','restartBtn','game','wavePreview'].every(id=>html.includes('id="'+id+'"')||html.includes("id='"+id+"'"))});
 report.checks.push({name:'html_utf8_emojis', ok: !!html && html.includes('💰') && html.includes('❤️') && html.includes('▶') && html.includes('↻')});
-report.checks.push({name:'html_v190', ok: !!html && html.includes('v1.9.0')});
-report.checks.push({name:'manifest_v190', ok: !!manifest && /"version"\s*:\s*"1\.9\.0"/.test(manifest)});
-report.checks.push({name:'sw_v190', ok: !!sw && sw.includes('v1.9.0')});
-report.checks.push({name:'docs_v190', ok: (!!qg && qg.includes('v1.9.0')) || (!!readme && readme.includes('v1.9.0'))});
+
 
 
 
@@ -72,7 +70,7 @@ assertEq('init_currentWave', ctx.__api.currentWave, 0);
 assertEq('init_mode', ctx.__api.mode, 'ready');
 assertEq('init_waveActive', ctx.__api.waveActive, false);
 assertEq('init_coins', ctx.__api.coins, 100);
-assertEq('init_lives', ctx.__api.lives, 10);
+assertEq('init_lives', ctx.__api.lives, 6);
 assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
 assertEq('init_enemyHp', ctx.__api.enemyHp, 35);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 28);
@@ -141,7 +139,7 @@ assertEq('after_reset_currentWave', ctx.__api.currentWave, 0);
 assertEq('after_reset_mode', ctx.__api.mode, 'ready');
 assertEq('after_reset_waveActive', ctx.__api.waveActive, false);
 assertEq('after_reset_coins', ctx.__api.coins, 100);
-assertEq('after_reset_lives', ctx.__api.lives, 10);
+assertEq('after_reset_lives', ctx.__api.lives, 6);
 ctx.__api.updateWaveInfo();
 assert('preview_after_reset_wave1', els.wavePreview.innerHTML.includes('Next: Wave 1/3'));
 
@@ -710,17 +708,17 @@ ctx.__api.update(0.016); // no enemy left: no duplicate reward
 assert("no_duplicate_reward", ctx.__api.coins === coinsBeforeReward + 14);
 // Base damage occurs exactly once when an enemy reaches the base.
 ctx.__api.reset();
-ctx.__api.lives = 10;
+ctx.__api.lives = 6;
 ctx.__api.spawned = ctx.__api.enemiesToSpawn;
 ctx.__api.mode = "playing";
 ctx.__api.waveActive = true;
 ctx.__api.waveReward = 0;
 ctx.__api.enemies = [{ x: 9999, y: 9999, point: 99, hp: 20, speed: 28, dead: false, reachedBase: false, reward: 10 }];
 ctx.__api.update(0.016);
-assert("base_damage_once", ctx.__api.lives === 9);
+assert("base_damage_once", ctx.__api.lives === 5);
 assert("reached_enemy_removed", ctx.__api.enemies.length === 0);
 ctx.__api.update(0.016); // no enemy left: no duplicate base damage
-assert("no_duplicate_base_damage", ctx.__api.lives === 9);
+assert("no_duplicate_base_damage", ctx.__api.lives === 5);
 // All three enemy archetypes remain functional under each mode.
 for (const enemyType of ["standard","runner","armored"]) {
   const et = ctx.__api.ENEMY_TYPES[enemyType];
@@ -871,11 +869,14 @@ report.checks.push({name:'base_damage_once', ok: true});
 report.checks.push({name:'archetypes_targetable_all_modes', ok: true});
 report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
-report.checks.push({name:'html_v190', ok: !!html && html.includes('v1.9.0')});
-report.checks.push({name:'manifest_v190', ok: !!manifest && /"version"\s*:\s*"1\.9\.0"/.test(manifest)});
-report.checks.push({name:'sw_v190', ok: !!sw && sw.includes('v1.9.0')});
-report.checks.push({name:'docs_v190', ok: (!!qg && qg.includes('v1.9.0')) || (!!readme && readme.includes('v1.9.0'))});
 
+report.checks.push({name:'lives_baseline_v191', ok: ctx.__api.lives === 6});
+report.checks.push({name:'panel_overlay_markup', ok: !!panelHtml && panelHtml.includes('panelOverlay') && panelHtml.includes('panelClose') && panelHtml.includes('panelBackdrop')});
+report.checks.push({name:'wave_panel_side_by_side', ok: !!css && css.includes('@media (min-width: 380px)')});
+report.checks.push({name:'html_v191', ok: !!html && html.includes('v1.9.1')});
+report.checks.push({name:'manifest_v191', ok: !!manifest && /"version"\s*:\s*"1\.9\.1"/.test(manifest)});
+report.checks.push({name:'sw_v191', ok: !!sw && sw.includes('v1.9.1')});
+report.checks.push({name:'docs_v191', ok: (!!qg && qg.includes('v1.9.1')) || (!!readme && readme.includes('v1.9.1'))});
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
 }

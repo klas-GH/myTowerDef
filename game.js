@@ -93,6 +93,19 @@ function selectTargetingMode(tower, modeId) {
   updateUpgradePanel();
 }
 
+// The upgrade panel is shown as a small context-style popup over the canvas
+// when a tower is selected. It frees the bottom of the screen for narrow
+// mobile layouts. Tapping the backdrop, the close button, or pressing Escape
+// dismisses it without losing the selection state (it reopens on re-select).
+function showPanel() {
+  const overlay = $("panelOverlay");
+  if (overlay) overlay.hidden = false;
+}
+function hidePanel() {
+  const overlay = $("panelOverlay");
+  if (overlay) overlay.hidden = true;
+}
+
 // Distinct enemy archetypes. Every gameplay stat (hp, speed, reward) and
 // visual identity lives here so spawning, combat, rendering, and the wave
 // preview all derive from a single authoritative source.
@@ -173,7 +186,7 @@ function updateTowerPicker() {
 
 function reset() {
   coins = 100;
-  lives = 10;
+  lives = 6;
   towers = [];
   enemies = [];
   shots = [];
@@ -651,8 +664,11 @@ function updateUpgradePanel() {
     if (msg) msg.textContent = "";
     const targetingRow = $("targetingRow");
     if (targetingRow) targetingRow.hidden = true;
+    hidePanel();
     return;
   }
+
+  showPanel();
 
   const t = selectedTower;
   const tt = getTowerType(t.type);
@@ -873,3 +889,28 @@ $("towerPicker").addEventListener("click", event => {
   const t = getTowerType(selectedTowerType);
   $("status").textContent = t.name + " selected (" + t.cost + " coins). Tap a green spot.";
 });
+
+// Dismiss the upgrade popup via its close button, backdrop, or Escape key.
+// Taps on the backdrop (or anywhere outside the panel content) dismiss it;
+// taps on panel content (upgrade, sell, targeting) stay inside the popup.
+const panelOverlay = $("panelOverlay");
+if (panelOverlay) {
+  panelOverlay.addEventListener("pointerdown", event => {
+    // Guarded so non-DOM contexts (deterministic test harness) never crash.
+    if (event.target && typeof event.target.closest === "function" && event.target.closest("#upgradePanel")) return; // panel content tap
+    hidePanel(); // backdrop or canvas area tap
+  });
+}
+const panelCloseBtn = $("panelClose");
+if (panelCloseBtn) {
+  panelCloseBtn.addEventListener("click", hidePanel);
+}
+// Escape dismisses the popup when a tower is selected. Guarded so non-DOM
+// contexts (deterministic test harness) never crash here.
+if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && selectedTower) {
+      hidePanel();
+    }
+  });
+}

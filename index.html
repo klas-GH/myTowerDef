@@ -14,7 +14,7 @@
     <header class="header">
       <div>
         <h1>myTowerDef</h1>
-        <p>LEVEL 01 · FIRST DEFENSE · v1.9.0</p>
+        <p>LEVEL 01 · FIRST DEFENSE · v1.9.1</p>
       </div>
       <div class="stats">
         <span>💰 <b id="coins">60</b></span>
@@ -29,39 +29,43 @@
       <div id="wavePreview" class="wave-preview"></div>
     </div>
 
-    <canvas id="game" aria-label="Tower defense game" width="300" height="360"></canvas>
+<canvas id="game" aria-label="Tower defense game" width="300" height="360"></canvas>
 
-    <section id="upgradePanel" class="upgrade-panel" aria-live="polite">
-      <div class="upgrade-header">
-        <h2 id="towerTitle">No tower selected</h2>
-        <span id="towerLevel" class="level-pill"></span>
-      </div>
-      <div class="upgrade-stats">
-        <div class="stat">
-          <span class="label">Damage</span>
-          <span class="value"><span id="curDamage">-</span> → <span id="nextDamage">-</span></span>
+    <div id="panelOverlay" class="panel-overlay" hidden>
+      <div id="panelBackdrop" class="panel-backdrop"></div>
+      <section id="upgradePanel" class="upgrade-panel" aria-live="polite">
+        <div class="upgrade-header">
+          <h2 id="towerTitle">No tower selected</h2>
+          <span id="towerLevel" class="level-pill"></span>
+          <button id="panelClose" class="panel-close" aria-label="Close panel" title="Close">✕</button>
         </div>
-        <div class="stat">
-          <span class="label">Range</span>
-          <span class="value"><span id="curRange">-</span> → <span id="nextRange">-</span></span>
+        <div class="upgrade-stats">
+          <div class="stat">
+            <span class="label">Damage</span>
+            <span class="value"><span id="curDamage">-</span> → <span id="nextDamage">-</span></span>
+          </div>
+          <div class="stat">
+            <span class="label">Range</span>
+            <span class="value"><span id="curRange">-</span> → <span id="nextRange">-</span></span>
+          </div>
+          <div class="stat">
+            <span class="label">Cooldown</span>
+            <span class="value"><span id="curCooldown">-</span>s → <span id="nextCooldown">-</span>s</span>
+          </div>
+          <div class="stat">
+            <span class="label">Next Cost</span>
+            <span class="value" id="nextCost">-</span>
+          </div>
         </div>
-        <div class="stat">
-          <span class="label">Cooldown</span>
-          <span class="value"><span id="curCooldown">-</span>s → <span id="nextCooldown">-</span>s</span>
+        <button id="upgradeBtn" disabled>⬆ Upgrade</button>
+        <button id="sellBtn" class="secondary" disabled>🗑 Sell</button>
+        <div id="targetingRow" class="targeting-row" hidden>
+          <span class="tlabel">Target</span>
+          <div id="targetingPicker" class="targeting-picker" role="group" aria-label="Target priority"></div>
         </div>
-        <div class="stat">
-          <span class="label">Next Cost</span>
-          <span class="value" id="nextCost">-</span>
-        </div>
-      </div>
-      <button id="upgradeBtn" disabled>⬆ Upgrade</button>
-      <button id="sellBtn" class="secondary" disabled>🗑 Sell</button>
-      <div id="targetingRow" class="targeting-row" hidden>
-        <span class="tlabel">Target</span>
-        <div id="targetingPicker" class="targeting-picker" role="group" aria-label="Target priority"></div>
-      </div>
-      <div id="upgradeMsg" class="upgrade-msg"></div>
-    </section>
+        <div id="upgradeMsg" class="upgrade-msg"></div>
+      </section>
+    </div>
 
     <div id="towerPicker" class="tower-picker">
       <button data-type="archer" class="active"><span class="tname">Arch</span><span class="tcost">50</span></button>

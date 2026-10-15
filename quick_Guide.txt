@@ -1,4 +1,4 @@
-Quick Guide - myTowerDef v1.9.0
+Quick Guide - myTowerDef v1.9.1
 
 1. Run it
 Save files in same folder. Open index.html in browser.
@@ -12,7 +12,7 @@ If local files blocked, use VS Code Live Server.
 - Targeting: tap a tower to select it, then change its target priority (First, Strongest, Fastest, Nearest) on the upgrade panel. Free to change; affects which enemy it attacks next.
 - The wave panel shows the next wave's enemy types and counts before you start it.
 - Enemy types: Standard (red), Runner (fast, low HP), Armored (slow, high HP).
-- Defend base. Survive all waves to win (+coins per wave).
+- Defend base with 6 starting lives. Survive all waves to win (+coins per wave).
 - Restart to play again.
 
 3. Notes

@@ -1,8 +1,16 @@
-@version: 1.9.0
-@release: v1.9.0
+@version: 1.9.1
+@release: v1.9.1
+@status: polish, verification
+@scope: UI and balance polish
+
+=== v 1.9.1 =====
+- Starting lives reduced from 10 to 6 for a tighter defense challenge; reset() and all baseline assertions updated.
+- The upgrade panel is now a context-style popup shown over the canvas when a tower is selected, freeing the bottom of the screen for narrow mobile layouts. It can be dismissed via the close button, the backdrop, or the Escape key, and reopens when the tower is re-selected.
+- The wave panel lays its current-wave and next-wave info side by side on wider screens so the preview block can use the freed vertical space on mobile.
+
+
 @status: feature, verification
 @scope: tactical targeting
-
 
 === v 1.9.0 =====
 - Introduced configurable tower targeting. Every placed tower carries its own `targeting` mode (default "first"); the mode only affects which enemy is acquired next and never changes a tower's cost, damage, range, or cooldown.
