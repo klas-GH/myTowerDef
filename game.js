@@ -29,6 +29,70 @@ function selectTowerType(id) {
 }
 let selectedTowerType = "archer"; // the type used for the next placement
 
+// Configurable tower targeting priorities. Every placed tower carries its own
+// `targeting` mode (default "first"); the mode only affects which enemy is
+// acquired next and never changes a tower's cost, damage, range, or cooldown.
+// Enemy progress is read from the authoritative `point` field (path index),
+// HP from `hp`, speed from `speed`, and distance from `distance()`, so all
+// four modes are supported accurately by the existing data model.
+const TARGET_MODES = {
+  first:   { id: "first",   name: "First",  glyph: "1️⃣" },
+  strongest: { id: "strongest", name: "Strongest", glyph: "💪" },
+  fastest:  { id: "fastest",  name: "Fastest",  glyph: "⚡" },
+  nearest:  { id: "nearest",  name: "Nearest",  glyph: "🎯" }
+};
+function getTargetingMode(id) {
+  return TARGET_MODES[id] || TARGET_MODES.first;
+}
+// Returns the single best enemy for the given tower under its targeting mode,
+// or null when no valid target exists. Only living enemies inside the tower's
+// effective attack range are considered. Tie-breaking is deterministic: for
+// "first" the enemy furthest along the path wins; for the stat-based modes the
+// best value wins, broken by path index, then by array position.
+function pickTarget(tower, list) {
+  if (!tower || !list || list.length === 0) return null;
+  const mode = getTargetingMode(tower.targeting || "first");
+
+  let best = null;
+  let bestKey = null;
+  let bestTie = null;
+
+  for (let i = 0; i < list.length; i++) {
+    const e = list[i];
+    if (e.dead || e.reachedBase) continue;
+    if (distance(tower, e) > tower.range) continue;
+
+    let key;
+    if (mode.id === "first") {
+      // First = progressed furthest along the path, so the HIGHEST point wins.
+      key = -e.point;
+    } else if (mode.id === "strongest") {
+      key = -e.hp; // higher HP sorts first
+    } else if (mode.id === "fastest") {
+      key = -e.speed;
+    } else { // nearest
+      key = distance(tower, e);
+    }
+    // Deterministic tie-break: lower path index, then lower array position.
+    const tie = e.point * 1000 + i;
+    if (best === null || key < bestKey || (key === bestKey && tie < bestTie)) {
+      best = e;
+      bestKey = key;
+      bestTie = tie;
+    }
+  }
+  return best;
+}
+// Changes a placed tower's targeting mode immediately, without spending
+// currency or granting extra attacks. Safe no-op for unknown modes.
+function selectTargetingMode(tower, modeId) {
+  if (!tower || mode === "won" || mode === "lost") return;
+  const m = getTargetingMode(modeId);
+  if (!m) return;
+  tower.targeting = m.id;
+  updateUpgradePanel();
+}
+
 // Distinct enemy archetypes. Every gameplay stat (hp, speed, reward) and
 // visual identity lives here so spawning, combat, rendering, and the wave
 // preview all derive from a single authoritative source.
@@ -231,7 +295,8 @@ function placeTower(x, y) {
     cooldown: t.cooldown,
     level: 1,
     upgradeCost: 80,
-    cost: t.cost
+    cost: t.cost,
+    targeting: "first" // default priority; changes are free and immediate
   });
 
   coins -= t.cost;
@@ -311,9 +376,8 @@ function update(dt) {
 
     if (tower.cooldown > 0) continue;
 
-    const target = enemies.find(e =>
-      distance(tower, e) <= tower.range
-    );
+    // Acquire a target according to this tower's configured priority mode.
+    const target = pickTarget(tower, enemies);
 
     if (target) {
       shots.push({
@@ -585,6 +649,8 @@ function updateUpgradePanel() {
     upgradeBtn.disabled = true;
     if (sellBtn) sellBtn.disabled = true;
     if (msg) msg.textContent = "";
+    const targetingRow = $("targetingRow");
+    if (targetingRow) targetingRow.hidden = true;
     return;
   }
 
@@ -602,6 +668,26 @@ function updateUpgradePanel() {
     const refund = (t.cost || 0) + (t.totalUpgradeCost || 0);
     sellBtn.textContent = "Sell · +" + refund;
     sellBtn.disabled = mode === "won" || mode === "lost";
+  }
+
+  // Render the compact targeting picker for the selected tower. It shows the
+  // current mode and lets the player switch freely, without spending coins.
+  const targetingRow = $("targetingRow");
+  const targetingPicker = $("targetingPicker");
+  if (targetingRow && targetingPicker && typeof document !== "undefined" && typeof document.createElement === "function" && typeof targetingPicker.appendChild === "function") {
+    const currentMode = getTargetingMode(t.targeting || "first");
+    targetingRow.hidden = false;
+    targetingPicker.innerHTML = "";
+    for (const key of Object.keys(TARGET_MODES)) {
+      const m = TARGET_MODES[key];
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tmode-btn" + (m.id === currentMode.id ? " active" : "");
+      btn.dataset.mode = m.id;
+      btn.title = m.name + " targeting";
+      btn.textContent = m.glyph + " " + m.name;
+      targetingPicker.appendChild(btn);
+    }
   }
 
   if (t.level >= maxLevel) {
@@ -765,6 +851,20 @@ requestAnimationFrame(loop);
 
 $("upgradeBtn").addEventListener("click", upgradeTower);
 $("sellBtn").addEventListener("click", () => sellTower(selectedTower));
+
+// Switch the selected tower's target priority. Changing mode is free, does
+// not grant extra attacks, and never triggers placement.
+const targetingPickerEl = $("targetingPicker");
+if (targetingPickerEl) {
+  targetingPickerEl.addEventListener("click", event => {
+    if (!selectedTower) return;
+    const btn = event.target.closest ? event.target.closest(".tmode-btn") : null;
+    if (!btn || !btn.dataset.mode) return;
+    selectTargetingMode(selectedTower, btn.dataset.mode);
+    const m = getTargetingMode(selectedTower.targeting);
+    $("status").textContent = "Targeting set to " + m.name + ".";
+  });
+}
 
 $("towerPicker").addEventListener("click", event => {
   const btn = event.target.closest ? event.target.closest("button[data-type]") : null;

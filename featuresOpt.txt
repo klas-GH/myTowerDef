@@ -1,7 +1,17 @@
-@version: 1.8.1
-@release: v1.8.1
-@status: maintenance, verification, polish
-@scope: incremental maintenance of existing game
+@version: 1.9.0
+@release: v1.9.0
+@status: feature, verification
+@scope: tactical targeting
+
+
+=== v 1.9.0 =====
+- Introduced configurable tower targeting. Every placed tower carries its own `targeting` mode (default "first"); the mode only affects which enemy is acquired next and never changes a tower's cost, damage, range, or cooldown.
+- Four targeting modes, each with a clear, distinct definition and deterministic tie-breaking: First (the living enemy furthest along the path, using the authoritative `point` field), Strongest (highest current HP), Fastest (highest movement speed), and Nearest (closest by Euclidean distance).
+- Target selection only considers living enemies inside the tower's effective attack range; dead, reached-base, and out-of-range enemies are excluded. Empty enemy lists return null safely.
+- Added a compact 4-button targeting picker inside the selected-tower panel that shows the current mode and lets the player switch freely, without spending currency or granting extra attacks. The picker is hidden when no tower is selected and fits narrow mobile screens.
+- Targeting works identically for all supported tower types (Archer, Cannon, Magic); upgrades preserve the mode; selling a tower removes its targeting state; restart restores the default "first" mode for new towers.
+- Combat, cooldown, projectile lifecycle, per-type enemy rewards, base damage, wave progression, victory, and defeat behavior are unchanged.
+- Extended regression.js with deterministic target-selection, tower-integration, combat, and game-state tests for v1.9.0.
 
 === v 1.8.1 =====
 - Removed a dead `const TOWER_COST = 50;` leftover from the pre-type era; placement now derives every cost from the authoritative TOWER_TYPES only.

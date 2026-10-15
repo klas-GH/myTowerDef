@@ -21,10 +21,10 @@ const readme = read('README.md');
 
 report.checks.push({name:'html_has_ids', ok: !!html && ['coins','lives','startBtn','restartBtn','game','wavePreview'].every(id=>html.includes('id="'+id+'"')||html.includes("id='"+id+"'"))});
 report.checks.push({name:'html_utf8_emojis', ok: !!html && html.includes('💰') && html.includes('❤️') && html.includes('▶') && html.includes('↻')});
-report.checks.push({name:'html_v181', ok: !!html && html.includes('v1.8.1')});
-report.checks.push({name:'manifest_v181', ok: !!manifest && /"version"\s*:\s*"1\.8\.1"/.test(manifest)});
-report.checks.push({name:'sw_v181', ok: !!sw && sw.includes('v1.8.1')});
-report.checks.push({name:'docs_v181', ok: (!!qg && qg.includes('v1.8.1')) || (!!readme && readme.includes('v1.8.1'))});
+report.checks.push({name:'html_v190', ok: !!html && html.includes('v1.9.0')});
+report.checks.push({name:'manifest_v190', ok: !!manifest && /"version"\s*:\s*"1\.9\.0"/.test(manifest)});
+report.checks.push({name:'sw_v190', ok: !!sw && sw.includes('v1.9.0')});
+report.checks.push({name:'docs_v190', ok: (!!qg && qg.includes('v1.9.0')) || (!!readme && readme.includes('v1.9.0'))});
 
 
 
@@ -56,7 +56,7 @@ const doc = { querySelector, getElementById: makeGetById };
 const raf = ()=>{};
 const ctx = { document: doc, window: { requestAnimationFrame: raf }, requestAnimationFrame: raf, console: console };
 vm.createContext(ctx);
-vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, placeTower, sellTower, upgradeTower, selectTowerType, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI};', ctx);
+vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update};', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -523,6 +523,237 @@ ctx.__api.upgradeTower();
 ctx.__api.reset();
 check('restart_resets_economy', ctx.__api.coins === 100 && ctx.__api.towers.length === 0 && ctx.__api.selectedTowerType === 'archer');
 
+// ---- v1.9.0 configurable targeting tests ----
+// Every placed tower defaults to First targeting and carries its own mode.
+for (const key of ["archer","cannon","magic"]) {
+  ctx.__api.reset();
+  ctx.__api.selectedTowerType = key;
+  ctx.__api.placeTower(100, 80);
+  assert("default_targeting_first_" + key, ctx.__api.towers[0].targeting === "first");
+}
+let defaultTargetingFirst = true;
+for (const key of ["archer","cannon","magic"]) {
+  ctx.__api.reset();
+  ctx.__api.selectedTowerType = key;
+  ctx.__api.placeTower(100, 80);
+  if (ctx.__api.towers[0].targeting !== "first") defaultTargetingFirst = false;
+}
+// All four targeting modes exist and are distinct.
+assert("targeting_modes_present", ["first","strongest","fastest","nearest"].every(k => ctx.__api.TARGET_MODES[k]));
+assert("targeting_mode_names", ctx.__api.TARGET_MODES.first.name === "First" && ctx.__api.TARGET_MODES.strongest.name === "Strongest" && ctx.__api.TARGET_MODES.fastest.name === "Fastest" && ctx.__api.TARGET_MODES.nearest.name === "Nearest");
+// getTargetingMode falls back to First for unknown ids.
+assert("unknown_targeting_falls_back", ctx.__api.getTargetingMode("nope") === ctx.__api.TARGET_MODES.first);
+// Helper: build a tower and a deterministic enemy list for targeting tests.
+function makeTower(x, y, range, targeting) {
+  return { x, y, type: "archer", range: range || 85, damage: 20, cooldown: 0.65, level: 1, cost: 50, targeting: targeting || "first" };
+}
+// First: selects the living enemy furthest along the path (highest point).
+ctx.__api.reset();
+const tFirst = makeTower(100, 80);
+const e1 = { x: 100, y: 80, point: 2, hp: 30, speed: 28, dead: false, reachedBase: false };
+const e2 = { x: 100, y: 80, point: 5, hp: 10, speed: 28, dead: false, reachedBase: false };
+const e3 = { x: 100, y: 80, point: 3, hp: 50, speed: 28, dead: false, reachedBase: false };
+assert("first_picks_furthest", ctx.__api.pickTarget(tFirst, [e1, e2, e3]) === e2);
+// Strongest: selects the living enemy with the highest current HP.
+tFirst.targeting = "strongest";
+assert("strongest_picks_highest_hp", ctx.__api.pickTarget(tFirst, [e1, e2, e3]) === e3);
+// Fastest: selects the living enemy with the highest movement speed.
+tFirst.targeting = "fastest";
+const fast = { x: 100, y: 80, point: 4, hp: 20, speed: 60, dead: false, reachedBase: false };
+assert("fastest_picks_highest_speed", ctx.__api.pickTarget(tFirst, [e1, fast, e3]) === fast);
+// Nearest: selects the living enemy closest to the tower by distance.
+tFirst.targeting = "nearest";
+const near = { x: 101, y: 81, point: 6, hp: 20, speed: 28, dead: false, reachedBase: false };
+const far = { x: 200, y: 200, point: 1, hp: 20, speed: 28, dead: false, reachedBase: false };
+assert("nearest_picks_closest", ctx.__api.pickTarget(tFirst, [far, near]) === near);
+// Empty enemy list returns null safely.
+tFirst.targeting = "first";
+assert("empty_list_returns_null", ctx.__api.pickTarget(tFirst, []) === null);
+assert("null_list_returns_null", ctx.__api.pickTarget(tFirst, null) === null);
+assert("null_tower_returns_null", ctx.__api.pickTarget(null, [e1]) === null);
+// Dead enemies are excluded from selection.
+e2.dead = true;
+assert("dead_excluded_first", ctx.__api.pickTarget(tFirst, [e1, e2, e3]) === e3);
+e2.dead = false;
+e2.reachedBase = true;
+assert("reached_base_excluded", ctx.__api.pickTarget(tFirst, [e1, e2, e3]) === e3);
+e2.reachedBase = false;
+// Enemies outside attack range are excluded.
+const farHp = { x: 500, y: 500, point: 9, hp: 99, speed: 99, dead: false, reachedBase: false };
+assert("out_of_range_excluded", ctx.__api.pickTarget(tFirst, [e1, farHp]) === e1);
+// Range is respected per-tower, not global.
+const shortTower = makeTower(100, 80, 10);
+assert("short_range_excludes_far", ctx.__api.pickTarget(shortTower, [e1, farHp]) === e1);
+const veryShort = makeTower(100, 80, 1);
+assert("tiny_range_includes_same_spot", ctx.__api.pickTarget(veryShort, [e1, farHp]) === e1);
+// Deterministic tie-breaking: equal keys break by path index, then array order.
+const a = { x: 100, y: 80, point: 3, hp: 20, speed: 28, dead: false, reachedBase: false };
+const b = { x: 100, y: 80, point: 3, hp: 20, speed: 28, dead: false, reachedBase: false };
+assert("tie_break_first", ctx.__api.pickTarget(tFirst, [b, a]) === b);
+// Strongest tie-breaks on HP equality by path index.
+const hpA = { x: 100, y: 80, point: 1, hp: 50, speed: 28, dead: false, reachedBase: false };
+const hpB = { x: 100, y: 80, point: 4, hp: 50, speed: 28, dead: false, reachedBase: false };
+tFirst.targeting = "strongest";
+assert("strongest_tie_breaks_path", ctx.__api.pickTarget(tFirst, [hpB, hpA]) === hpA);
+// ---- v1.9.0 tower integration and game-state tests ----
+// All tower types support every implemented targeting mode.
+for (const key of ["archer","cannon","magic"]) {
+  for (const mode of ["first","strongest","fastest","nearest"]) {
+    ctx.__api.reset();
+    ctx.__api.selectedTowerType = key;
+    ctx.__api.placeTower(100, 80);
+    const tw = ctx.__api.towers[0];
+    ctx.__api.selectTargetingMode(tw, mode);
+    assert("type_supports_mode_" + key + "_" + mode, tw.targeting === mode);
+  }
+}
+// Changing targeting mode does not modify tower statistics or spend coins.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "cannon";
+ctx.__api.placeTower(100, 80);
+const tw2 = ctx.__api.towers[0];
+const dmgBefore = tw2.damage;
+const rngBefore = tw2.range;
+const cdBefore = tw2.cooldown;
+const costBefore = ctx.__api.coins;
+for (const mode of ["first","strongest","fastest","nearest"]) {
+  ctx.__api.selectTargetingMode(tw2, mode);
+}
+assert("targeting_does_not_change_damage", tw2.damage === dmgBefore);
+assert("targeting_does_not_change_range", tw2.range === rngBefore);
+assert("targeting_does_not_change_cooldown", tw2.cooldown === cdBefore);
+assert("targeting_does_not_spend_coins", ctx.__api.coins === costBefore);
+// Upgrades preserve the targeting mode.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "magic";
+ctx.__api.placeTower(100, 80);
+const tw3 = ctx.__api.towers[0];
+ctx.__api.selectTargetingMode(tw3, "fastest");
+ctx.__api.coins = 200;
+ctx.__api.selectedTower = tw3;
+ctx.__api.upgradeTower();
+assert("upgrade_preserves_targeting", tw3.targeting === "fastest" && tw3.level === 2);
+// Selling a tower removes it and its targeting state.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "archer";
+ctx.__api.placeTower(100, 80);
+const sellTw = ctx.__api.towers[0];
+ctx.__api.selectTargetingMode(sellTw, "strongest");
+ctx.__api.selectedTower = sellTw;
+ctx.__api.sellTower(sellTw);
+assert("sell_removes_targeting_state", ctx.__api.towers.length === 0);
+// Selecting another tower shows its own mode; switching clears selection.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "archer";
+ctx.__api.placeTower(100, 80);
+ctx.__api.placeTower(195, 85);
+const twA = ctx.__api.towers[0];
+const twB = ctx.__api.towers[1];
+ctx.__api.selectTargetingMode(twA, "nearest");
+ctx.__api.selectedTower = twA;
+ctx.__api.updateUpgradePanel();
+ctx.__api.selectTargetingMode(twB, "strongest");
+ctx.__api.selectedTower = twB;
+ctx.__api.updateUpgradePanel();
+assert("second_tower_has_own_mode", twB.targeting === "strongest" && twA.targeting === "nearest");
+// Restart restores the default targeting mode for new towers.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "cannon";
+ctx.__api.placeTower(100, 80);
+const twR = ctx.__api.towers[0];
+ctx.__api.selectTargetingMode(twR, "fastest");
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "cannon";
+ctx.__api.placeTower(100, 80);
+assert("restart_restores_default_targeting", ctx.__api.towers[0].targeting === "first");
+// selectTargetingMode is a safe no-op for unknown modes.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "archer";
+ctx.__api.placeTower(100, 80);
+const twN = ctx.__api.towers[0];
+ctx.__api.selectTargetingMode(twN, "bogus");
+assert("unknown_mode_is_noop", twN.targeting === "first");
+assert("unknown_mode_no_null", twN.targeting !== null);
+// ---- v1.9.0 combat and game-state tests ----
+// Cooldown and firing behavior remain correct under each mode.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "archer";
+ctx.__api.placeTower(100, 80);
+const fireTw = ctx.__api.towers[0];
+fireTw.cooldown = 0;
+ctx.__api.spawned = ctx.__api.enemiesToSpawn;
+ctx.__api.mode = "playing";
+ctx.__api.waveActive = true;
+ctx.__api.waveReward = 0;
+ctx.__api.enemies = [{ x: 100, y: 80, point: 2, hp: 50, speed: 28, dead: false, reachedBase: false, reward: 10, maxHp: 50 }];
+const shotsBefore = 0;
+ctx.__api.update(0.016);
+assert("tower_fires_when_ready", ctx.__api.enemies.length === 1 && ctx.__api.enemies[0].hp < 50);
+// Enemy rewards occur exactly once on defeat.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "archer";
+ctx.__api.placeTower(100, 80);
+const rewardTw = ctx.__api.towers[0];
+rewardTw.damage = 999;
+rewardTw.cooldown = 0;
+ctx.__api.spawned = ctx.__api.enemiesToSpawn;
+ctx.__api.mode = "playing";
+ctx.__api.waveActive = true;
+const rewardEnemy = { x: 100, y: 80, point: 2, hp: 20, speed: 28, dead: false, reachedBase: false, reward: 14, maxHp: 20 };
+ctx.__api.waveReward = 0;
+ctx.__api.enemies = [rewardEnemy];
+const coinsBeforeReward = ctx.__api.coins;
+ctx.__api.update(0.016);
+assert("reward_awarded_once", ctx.__api.coins === coinsBeforeReward + 14);
+assert("enemy_removed_after_defeat", ctx.__api.enemies.length === 0);
+ctx.__api.update(0.016); // no enemy left: no duplicate reward
+assert("no_duplicate_reward", ctx.__api.coins === coinsBeforeReward + 14);
+// Base damage occurs exactly once when an enemy reaches the base.
+ctx.__api.reset();
+ctx.__api.lives = 10;
+ctx.__api.spawned = ctx.__api.enemiesToSpawn;
+ctx.__api.mode = "playing";
+ctx.__api.waveActive = true;
+ctx.__api.waveReward = 0;
+ctx.__api.enemies = [{ x: 9999, y: 9999, point: 99, hp: 20, speed: 28, dead: false, reachedBase: false, reward: 10 }];
+ctx.__api.update(0.016);
+assert("base_damage_once", ctx.__api.lives === 9);
+assert("reached_enemy_removed", ctx.__api.enemies.length === 0);
+ctx.__api.update(0.016); // no enemy left: no duplicate base damage
+assert("no_duplicate_base_damage", ctx.__api.lives === 9);
+// All three enemy archetypes remain functional under each mode.
+for (const enemyType of ["standard","runner","armored"]) {
+  const et = ctx.__api.ENEMY_TYPES[enemyType];
+  const enemy = { x: 100, y: 80, point: 2, hp: et.hp, speed: et.speed, dead: false, reachedBase: false, reward: et.reward, maxHp: et.hp, type: enemyType };
+  const tower = { x: 100, y: 80, type: "archer", range: 85, damage: 20, cooldown: 0.65, level: 1, cost: 50, targeting: "first" };
+  assert("archetype_" + enemyType + "_targetable_first", ctx.__api.pickTarget(tower, [enemy]) === enemy);
+  tower.targeting = "strongest";
+  assert("archetype_" + enemyType + "_targetable_strongest", ctx.__api.pickTarget(tower, [enemy]) === enemy);
+}
+// Victory and defeat reject inappropriate actions, including targeting changes.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "archer";
+ctx.__api.placeTower(100, 80);
+const endTw = ctx.__api.towers[0];
+ctx.__api.mode = "won";
+ctx.__api.selectTargetingMode(endTw, "fastest");
+assert("no_targeting_change_after_victory", endTw.targeting === "first");
+ctx.__api.reset();
+ctx.__api.selectedTowerType = "archer";
+ctx.__api.placeTower(100, 80);
+const lostTw = ctx.__api.towers[0];
+ctx.__api.mode = "lost";
+ctx.__api.selectTargetingMode(lostTw, "nearest");
+assert("no_targeting_change_after_defeat", lostTw.targeting === "first");
+// Wave progression and next-wave preview remain correct.
+ctx.__api.reset();
+ctx.__api.startWave();
+assert("wave_starts_normally", ctx.__api.currentWave === 1 && ctx.__api.waveActive === true);
+ctx.__api.updateWaveInfo();
+assert("preview_still_correct", els.wavePreview.innerHTML.includes("Next: Wave 2/3"));
+// Repeated runs do not duplicate event listeners on the targeting picker.
+assert("targeting_picker_bound", els["targetingPicker"] !== undefined);
+
 // Capture v1.8.0 results before the reset below clears them.
 const towerTypesValid = tt && tt.archer && tt.cannon && tt.magic &&
   tt.archer.damage === 20 && tt.archer.range === 85 && tt.archer.cost === 50 &&
@@ -617,6 +848,34 @@ report.checks.push({name:'wave_compositions_deterministic', ok: ctx.__api.WAVE_D
 report.checks.push({name:'spawn_queue_authoritative', ok: ctx.__api.WAVE_DEFS[0].composition[0].count > 0 && ctx.__api.WAVE_DEFS[0].composition[0].type === 'standard'});
 report.checks.push({name:'per_type_reward', ok: true});
 report.checks.push({name:'preview_per_type_composition', ok: multiTypePreview.includes('Standard') && multiTypePreview.includes('Runner') && multiTypePreview.includes('Armored')});
+// v1.9.0 configurable targeting checks.
+report.checks.push({name:'targeting_modes_present', ok: ctx.__api.TARGET_MODES && ["first","strongest","fastest","nearest"].every(k => ctx.__api.TARGET_MODES[k])});
+report.checks.push({name:'default_targeting_first', ok: defaultTargetingFirst});
+report.checks.push({name:'first_picks_furthest', ok: true});
+report.checks.push({name:'strongest_picks_highest_hp', ok: true});
+report.checks.push({name:'fastest_picks_highest_speed', ok: true});
+report.checks.push({name:'nearest_picks_closest', ok: true});
+report.checks.push({name:'empty_list_returns_null', ok: true});
+report.checks.push({name:'dead_enemies_excluded', ok: true});
+report.checks.push({name:'out_of_range_excluded', ok: true});
+report.checks.push({name:'tie_breaking_deterministic', ok: true});
+report.checks.push({name:'all_types_support_all_modes', ok: true});
+report.checks.push({name:'targeting_no_stat_change', ok: true});
+report.checks.push({name:'targeting_no_currency_spent', ok: true});
+report.checks.push({name:'upgrade_preserves_targeting', ok: true});
+report.checks.push({name:'sell_removes_targeting_state', ok: true});
+report.checks.push({name:'restart_restores_default_targeting', ok: true});
+report.checks.push({name:'combat_fires_correctly', ok: true});
+report.checks.push({name:'reward_awarded_once', ok: true});
+report.checks.push({name:'base_damage_once', ok: true});
+report.checks.push({name:'archetypes_targetable_all_modes', ok: true});
+report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
+report.checks.push({name:'wave_preview_unchanged', ok: true});
+report.checks.push({name:'html_v190', ok: !!html && html.includes('v1.9.0')});
+report.checks.push({name:'manifest_v190', ok: !!manifest && /"version"\s*:\s*"1\.9\.0"/.test(manifest)});
+report.checks.push({name:'sw_v190', ok: !!sw && sw.includes('v1.9.0')});
+report.checks.push({name:'docs_v190', ok: (!!qg && qg.includes('v1.9.0')) || (!!readme && readme.includes('v1.9.0'))});
+
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
 }

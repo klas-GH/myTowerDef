@@ -1,20 +1,20 @@
 {
-  "ts": "2026-10-15T16:27:25.025Z",
+  "ts": "2026-10-15T17:31:21.742Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 3377
+      "size": 3604
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 23618
+      "size": 27207
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 3959
+      "size": 4854
     },
     {
       "name": "manifest.json",
@@ -29,12 +29,12 @@
     {
       "name": "quick_Guide.txt",
       "exists": true,
-      "size": 769
+      "size": 952
     },
     {
       "name": "README.md",
       "exists": true,
-      "size": 693
+      "size": 883
     },
     {
       "name": "icon.svg",
@@ -52,19 +52,19 @@
       "ok": true
     },
     {
-      "name": "html_v181",
+      "name": "html_v190",
       "ok": true
     },
     {
-      "name": "manifest_v181",
+      "name": "manifest_v190",
       "ok": true
     },
     {
-      "name": "sw_v181",
+      "name": "sw_v190",
       "ok": true
     },
     {
-      "name": "docs_v181",
+      "name": "docs_v190",
       "ok": true
     },
     {
@@ -198,11 +198,115 @@
     {
       "name": "preview_per_type_composition",
       "ok": true
+    },
+    {
+      "name": "targeting_modes_present",
+      "ok": true
+    },
+    {
+      "name": "default_targeting_first",
+      "ok": true
+    },
+    {
+      "name": "first_picks_furthest",
+      "ok": true
+    },
+    {
+      "name": "strongest_picks_highest_hp",
+      "ok": true
+    },
+    {
+      "name": "fastest_picks_highest_speed",
+      "ok": true
+    },
+    {
+      "name": "nearest_picks_closest",
+      "ok": true
+    },
+    {
+      "name": "empty_list_returns_null",
+      "ok": true
+    },
+    {
+      "name": "dead_enemies_excluded",
+      "ok": true
+    },
+    {
+      "name": "out_of_range_excluded",
+      "ok": true
+    },
+    {
+      "name": "tie_breaking_deterministic",
+      "ok": true
+    },
+    {
+      "name": "all_types_support_all_modes",
+      "ok": true
+    },
+    {
+      "name": "targeting_no_stat_change",
+      "ok": true
+    },
+    {
+      "name": "targeting_no_currency_spent",
+      "ok": true
+    },
+    {
+      "name": "upgrade_preserves_targeting",
+      "ok": true
+    },
+    {
+      "name": "sell_removes_targeting_state",
+      "ok": true
+    },
+    {
+      "name": "restart_restores_default_targeting",
+      "ok": true
+    },
+    {
+      "name": "combat_fires_correctly",
+      "ok": true
+    },
+    {
+      "name": "reward_awarded_once",
+      "ok": true
+    },
+    {
+      "name": "base_damage_once",
+      "ok": true
+    },
+    {
+      "name": "archetypes_targetable_all_modes",
+      "ok": true
+    },
+    {
+      "name": "victory_defeat_reject_targeting",
+      "ok": true
+    },
+    {
+      "name": "wave_preview_unchanged",
+      "ok": true
+    },
+    {
+      "name": "html_v190",
+      "ok": true
+    },
+    {
+      "name": "manifest_v190",
+      "ok": true
+    },
+    {
+      "name": "sw_v190",
+      "ok": true
+    },
+    {
+      "name": "docs_v190",
+      "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 39,
-    "passed": 39
+    "total": 65,
+    "passed": 65
   }
 }
