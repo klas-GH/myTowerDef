@@ -7,6 +7,12 @@ const W = 300;
 const H = 360;
 const TOWER_COST = 50;
 const TOTAL_ENEMIES = 8;
+const WAVE_DEFS = [
+  { enemies: 8, enemyHp: 35, enemySpeed: 28, reward: 30 },
+  { enemies: 10, enemyHp: 45, enemySpeed: 32, reward: 40 },
+  { enemies: 12, enemyHp: 60, enemySpeed: 36, reward: 60 }
+];
+const MAX_WAVE = WAVE_DEFS.length;
 
 canvas.width = W;
 canvas.height = H;
@@ -34,6 +40,9 @@ let coins, lives, towers, enemies, shots;
 let spawned, spawnTimer, mode, buildMode;
 let selectedTower = null;
 let lastTime = 0;
+let currentWave = 0; // 0 means not started yet
+let enemiesToSpawn, enemyHp, enemySpeed, waveReward;
+let waveActive = false;
 
 function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -50,6 +59,12 @@ function reset() {
   mode = "ready";
   buildMode = false;
   selectedTower = null;
+  currentWave = 0;
+  waveActive = false;
+  enemiesToSpawn = WAVE_DEFS[0].enemies;
+  enemyHp = WAVE_DEFS[0].enemyHp;
+  enemySpeed = WAVE_DEFS[0].enemySpeed;
+  waveReward = WAVE_DEFS[0].reward;
 
   $("status").textContent = "Build your defense!";
   $("startBtn").disabled = false;
@@ -57,25 +72,41 @@ function reset() {
 
   updateUI();
   updateUpgradePanel();
+  updateWaveInfo();
 }
 
 function updateUI() {
   $("coins").textContent = coins;
   $("lives").textContent = lives;
   $("buildBtn").disabled =
-    coins < TOWER_COST || mode === "won" || mode === "lost";
+    coins < TOWER_COST || mode === "won" || mode === "lost" || waveActive;
   updateUpgradePanel();
+  updateWaveInfo();
 }
 
 function startWave() {
-  if (mode !== "ready") return;
+  if (mode === "won" || mode === "lost") return;
+  if (waveActive) return;
+
+  currentWave += 1;
+  if (currentWave > MAX_WAVE) {
+    currentWave = MAX_WAVE;
+    return;
+  }
+
+  const w = WAVE_DEFS[currentWave - 1];
+  enemiesToSpawn = w.enemies;
+  enemyHp = w.enemyHp;
+  enemySpeed = w.enemySpeed;
+  waveReward = w.reward;
 
   mode = "playing";
+  waveActive = true;
   buildMode = false;
   spawned = 0;
   spawnTimer = 0;
 
-  $("status").textContent = "Wave 1: enemies incoming!";
+  $("status").textContent = `Wave ${currentWave}: enemies incoming!`;
   $("startBtn").disabled = true;
   $("startBtn").textContent = "⚔ Wave in progress";
   updateUI();
@@ -88,9 +119,9 @@ function addEnemy() {
     x: path[0].x,
     y: path[0].y,
     point: 1,
-    hp,
-    maxHp: hp,
-    speed: 28
+    hp: enemyHp,
+    maxHp: enemyHp,
+    speed: enemySpeed
   });
 }
 
@@ -157,7 +188,7 @@ function update(dt) {
 
   spawnTimer -= dt;
 
-  if (spawned < TOTAL_ENEMIES && spawnTimer <= 0) {
+  if (spawned < enemiesToSpawn && spawnTimer <= 0) {
     addEnemy();
     spawned++;
     spawnTimer = 1;
@@ -232,14 +263,27 @@ function update(dt) {
   shots = shots.filter(s => !s.done);
   updateUI();
 
-  if (spawned === TOTAL_ENEMIES && enemies.length === 0) {
-    mode = "won";
-    coins += 30;
+  if (spawned === enemiesToSpawn && enemies.length === 0) {
+    waveActive = false;
+    const lastWave = currentWave >= MAX_WAVE;
+    mode = lastWave ? "won" : "ready";
+    if (!lastWave) {
+      coins += waveReward;
+    } else {
+      coins += waveReward;
+    }
     updateUI();
     updateUpgradePanel();
+    updateWaveInfo();
 
-    $("status").textContent = "🏆 Level 1 complete! +30 coins";
-    $("startBtn").disabled = true;
+    if (lastWave) {
+      $("status").textContent = "🏆 All waves complete! +30 coins bonus";
+      $("startBtn").disabled = true;
+    } else {
+      $("status").textContent = `Wave ${currentWave} complete! +${waveReward} coins`;
+      $("startBtn").disabled = false;
+      $("startBtn").textContent = "▶ Start Wave";
+    }
   }
 }
 
@@ -426,6 +470,42 @@ function updateUpgradePanel() {
       msg.textContent = "Maximum level reached.";
     } else {
       msg.textContent = "Upgrade available.";
+    }
+  }
+}
+
+function updateWaveInfo() {
+  const wEl = $("waveInfo");
+  const nwEl = $("nextWaveInfo");
+  if (!wEl && !nwEl) return;
+  if (mode === "won") {
+    if (wEl) wEl.textContent = "Wave: " + MAX_WAVE + "/" + MAX_WAVE + " (Complete)";
+    if (nwEl) nwEl.textContent = "Next: -";
+    return;
+  }
+  if (mode === "lost") {
+    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Lost)";
+    if (nwEl) nwEl.textContent = "Next: -";
+    return;
+  }
+  if (waveActive) {
+    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Active)";
+    const nextW = currentWave < MAX_WAVE ? currentWave + 1 : null;
+    if (nwEl) {
+      if (nextW) nwEl.textContent = "Next: Wave " + nextW + " (" + WAVE_DEFS[nextW - 1].enemies + " enemies)";
+      else nwEl.textContent = "Next: -";
+    }
+  } else {
+    if (currentWave === 0) {
+      if (wEl) wEl.textContent = "Wave: 1/" + MAX_WAVE + " (Pending)";
+      if (nwEl) nwEl.textContent = "Next: Wave 1 (" + WAVE_DEFS[0].enemies + " enemies)";
+    } else {
+      if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Complete)";
+      const nextW2 = currentWave < MAX_WAVE ? currentWave + 1 : null;
+      if (nwEl) {
+        if (nextW2) nwEl.textContent = "Next: Wave " + nextW2 + " (" + WAVE_DEFS[nextW2 - 1].enemies + " enemies)";
+        else nwEl.textContent = "Next: -";
+      }
     }
   }
 }
