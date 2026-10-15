@@ -21,10 +21,10 @@ const readme = read('README.md');
 
 report.checks.push({name:'html_has_ids', ok: !!html && ['coins','lives','startBtn','restartBtn','game','wavePreview'].every(id=>html.includes('id="'+id+'"')||html.includes("id='"+id+"'"))});
 report.checks.push({name:'html_utf8_emojis', ok: !!html && html.includes('💰') && html.includes('❤️') && html.includes('▶') && html.includes('↻')});
-report.checks.push({name:'html_v180', ok: !!html && html.includes('v1.8.0')});
-report.checks.push({name:'manifest_v180', ok: !!manifest && /"version"\s*:\s*"1\.8\.0"/.test(manifest)});
-report.checks.push({name:'sw_v180', ok: !!sw && sw.includes('v1.8.0')});
-report.checks.push({name:'docs_v180', ok: (!!qg && qg.includes('v1.8.0')) || (!!readme && readme.includes('v1.8.0'))});
+report.checks.push({name:'html_v181', ok: !!html && html.includes('v1.8.1')});
+report.checks.push({name:'manifest_v181', ok: !!manifest && /"version"\s*:\s*"1\.8\.1"/.test(manifest)});
+report.checks.push({name:'sw_v181', ok: !!sw && sw.includes('v1.8.1')});
+report.checks.push({name:'docs_v181', ok: (!!qg && qg.includes('v1.8.1')) || (!!readme && readme.includes('v1.8.1'))});
 
 
 
@@ -56,7 +56,7 @@ const doc = { querySelector, getElementById: makeGetById };
 const raf = ()=>{};
 const ctx = { document: doc, window: { requestAnimationFrame: raf }, requestAnimationFrame: raf, console: console };
 vm.createContext(ctx);
-vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, placeTower, sellTower, upgradeTower, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI};', ctx);
+vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, placeTower, sellTower, upgradeTower, selectTowerType, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI};', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -364,6 +364,165 @@ ctx.__api.placeTower(100, 80);
 ctx.__api.reset();
 assert('restart_clears_type', ctx.__api.selectedTowerType === 'archer');
 assert('restart_clears_towers', ctx.__api.towers.length === 0);
+
+// ---- v1.8.1 maintenance and polish checks ----
+// Exact purchase deductions for every tower type.
+for (const key of ['archer', 'cannon', 'magic']) {
+  ctx.__api.reset();
+  ctx.__api.selectedTowerType = key;
+  const before = ctx.__api.coins;
+  ctx.__api.placeTower(100, 80);
+  assert('purchase_deducts_exact_' + key, ctx.__api.coins === before - tt[key].cost);
+  assert('purchase_records_type_' + key, ctx.__api.towers[0].type === key);
+}
+
+// Insufficient-funds rejection for the most expensive tower.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 89;
+ctx.__api.placeTower(100, 80);
+assert('cannon_insufficient_at_89', ctx.__api.towers.length === 0 && ctx.__api.coins === 89);
+
+// Sell refunds are consistent across tower types and upgrade levels.
+for (const key of ['archer', 'cannon', 'magic']) {
+  ctx.__api.reset();
+  ctx.__api.selectedTowerType = key;
+  ctx.__api.placeTower(100, 80);
+  const t = ctx.__api.towers[0];
+  ctx.__api.selectedTower = t;
+  ctx.__api.coins = 200;
+  ctx.__api.upgradeTower();
+  ctx.__api.upgradeTower();
+  const expected = t.cost + (t.totalUpgradeCost || 0);
+  ctx.__api.sellTower(t);
+  assert('sell_refund_' + key, ctx.__api.coins === expected && ctx.__api.towers.length === 0);
+}
+
+// Selling one tower does not affect another.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.placeTower(195, 85);
+const keep = ctx.__api.towers.find(t => t.type === 'archer');
+const sellCannon = ctx.__api.towers.find(t => t.type === 'cannon');
+ctx.__api.selectedTower = sellCannon;
+ctx.__api.sellTower(sellCannon);
+assert('sell_removes_only_intended', ctx.__api.towers.length === 1 && ctx.__api.towers[0] === keep);
+
+// Repeated selling cannot duplicate a refund.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+const dupB = ctx.__api.towers[0];
+ctx.__api.selectedTower = dupB;
+const coinsBeforeDupB = ctx.__api.coins;
+ctx.__api.sellTower(dupB);
+const refund1B = coinsBeforeDupB + dupB.cost;
+ctx.__api.sellTower(dupB); // already removed: must be a no-op
+assert('no_double_refund', ctx.__api.coins === refund1B);
+ctx.__api.reset();
+ctx.__api.mode = 'lost';
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 200;
+ctx.__api.placeTower(100, 80);
+assert('no_placement_after_defeat', ctx.__api.towers.length === 0);
+ctx.__api.selectedTower = ctx.__api.towers[0];
+ctx.__api.upgradeTower();
+ctx.__api.sellTower(ctx.__api.towers[0]);
+assert('no_actions_after_defeat', ctx.__api.coins === 200);
+
+// Switching tower type after selecting a tower updates the interface.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+ctx.__api.selectedTower = ctx.__api.towers[0];
+ctx.__api.selectTowerType('magic');
+assert('switch_type_clears_tower_selection', ctx.__api.selectedTower === null && ctx.__api.selectedTowerType === 'magic');
+
+// Restart resets towers, currency, and upgrade investment.
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.placeTower(100, 80);
+ctx.__api.selectedTower = ctx.__api.towers[0];
+ctx.__api.coins = 200;
+ctx.__api.upgradeTower();
+ctx.__api.reset();
+assert('restart_resets_currency', ctx.__api.coins === 100);
+assert('restart_resets_towers', ctx.__api.towers.length === 0);
+assert('restart_resets_tower_type', ctx.__api.selectedTowerType === 'archer');
+// Capture v1.8.1 maintenance results before the reset below clears them.
+let v181 = true;
+function check(name, cond){ if (!cond) v181 = false; }
+for (const key of ['archer', 'cannon', 'magic']) {
+  ctx.__api.reset();
+  ctx.__api.selectedTowerType = key;
+  const before = ctx.__api.coins;
+  ctx.__api.placeTower(100, 80);
+  check('purchase_' + key, ctx.__api.coins === before - tt[key].cost && ctx.__api.towers[0].type === key);
+}
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 89;
+ctx.__api.placeTower(100, 80);
+check('cannon_insufficient_at_89', ctx.__api.towers.length === 0 && ctx.__api.coins === 89);
+for (const key of ['archer', 'cannon', 'magic']) {
+  ctx.__api.reset();
+  ctx.__api.selectedTowerType = key;
+  ctx.__api.placeTower(100, 80);
+  const t = ctx.__api.towers[0];
+  ctx.__api.selectedTower = t;
+  ctx.__api.coins = 200;
+  ctx.__api.upgradeTower();
+  ctx.__api.upgradeTower();
+  const expected = t.cost + (t.totalUpgradeCost || 0);
+  ctx.__api.sellTower(t);
+  check('sell_refund_' + key, ctx.__api.coins === expected && ctx.__api.towers.length === 0);
+}
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.placeTower(195, 85);
+const keepArcher = ctx.__api.towers.find(t => t.type === 'archer');
+const sellCannonB = ctx.__api.towers.find(t => t.type === 'cannon');
+ctx.__api.selectedTower = sellCannonB;
+ctx.__api.sellTower(sellCannonB);
+check('sell_removes_only_intended', ctx.__api.towers.length === 1 && ctx.__api.towers[0] === keepArcher);
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+const dupC = ctx.__api.towers[0];
+ctx.__api.selectedTower = dupC;
+const coinsBeforeDupC = ctx.__api.coins;
+ctx.__api.sellTower(dupC);
+const refund1C = coinsBeforeDupC + dupC.cost;
+ctx.__api.sellTower(dupC);
+check('no_double_refund', ctx.__api.coins === refund1C);
+ctx.__api.reset();
+ctx.__api.mode = 'lost';
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 200;
+ctx.__api.placeTower(100, 80);
+ctx.__api.selectedTower = ctx.__api.towers[0];
+ctx.__api.upgradeTower();
+ctx.__api.sellTower(ctx.__api.towers[0]);
+check('no_actions_after_defeat', ctx.__api.coins === 200);
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+ctx.__api.selectedTower = ctx.__api.towers[0];
+ctx.__api.selectTowerType('magic');
+check('switch_type_clears_tower_selection', ctx.__api.selectedTower === null && ctx.__api.selectedTowerType === 'magic');
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.placeTower(100, 80);
+ctx.__api.selectedTower = ctx.__api.towers[0];
+ctx.__api.coins = 200;
+ctx.__api.upgradeTower();
+ctx.__api.reset();
+check('restart_resets_economy', ctx.__api.coins === 100 && ctx.__api.towers.length === 0 && ctx.__api.selectedTowerType === 'archer');
+
 // Capture v1.8.0 results before the reset below clears them.
 const towerTypesValid = tt && tt.archer && tt.cannon && tt.magic &&
   tt.archer.damage === 20 && tt.archer.range === 85 && tt.archer.cost === 50 &&

@@ -5,7 +5,6 @@ const $ = id => document.getElementById(id);
 
 const W = 300;
 const H = 360;
-const TOWER_COST = 50;
 const TOTAL_ENEMIES = 8;
 
 // Distinct tower archetypes. Combat stats live here so placement, combat,
@@ -18,6 +17,15 @@ const TOWER_TYPES = {
 };
 function getTowerType(id) {
   return TOWER_TYPES[id] || TOWER_TYPES.archer;
+}
+// Selecting a tower type always clears any existing tower selection, so the
+// upgrade panel can never show a stale tower after a type switch. This
+// helper is the single authoritative path for changing the type.
+function selectTowerType(id) {
+  selectedTowerType = id;
+  selectedTower = null;
+  updateUpgradePanel();
+  updateTowerPicker();
 }
 let selectedTowerType = "archer"; // the type used for the next placement
 
@@ -110,8 +118,8 @@ function reset() {
   spawnQueue = [];
   pointerPos = null;
   selectedTowerType = "archer";
-  mode = "ready";
   selectedTower = null;
+  mode = "ready";
   currentWave = 0;
   waveActive = false;
   enemiesToSpawn = WAVE_DEFS[0].enemies;
@@ -233,9 +241,11 @@ function placeTower(x, y) {
 
 // Sell/demolish a placed tower, refunding its full purchase cost plus every
 // upgrade cost already spent on it. No loss, no gain — just a reset of the
-// coins invested in that tower.
+// coins invested in that tower. Selling a tower that is no longer placed
+// (already sold or cleared by restart) is a safe no-op: no double refund.
 function sellTower(tower) {
   if (!tower || mode === "won" || mode === "lost") return;
+  if (!towers.includes(tower)) return;
   const refund = (tower.cost || 0) + (tower.totalUpgradeCost || 0);
   coins += refund;
   towers = towers.filter(t => t !== tower);
@@ -759,11 +769,7 @@ $("sellBtn").addEventListener("click", () => sellTower(selectedTower));
 $("towerPicker").addEventListener("click", event => {
   const btn = event.target.closest ? event.target.closest("button[data-type]") : null;
   if (!btn) return;
-  selectedTowerType = btn.dataset.type;
-  // Selecting a tower type clears any existing tower selection.
-  selectedTower = null;
-  updateUpgradePanel();
-  updateTowerPicker();
+  selectTowerType(btn.dataset.type);
   const t = getTowerType(selectedTowerType);
   $("status").textContent = t.name + " selected (" + t.cost + " coins). Tap a green spot.";
 });

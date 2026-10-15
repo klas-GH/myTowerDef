@@ -1,7 +1,13 @@
-@version: 1.8.0
-@release: v1.8.0
+@version: 1.8.1
+@release: v1.8.1
 @status: maintenance, verification, polish
 @scope: incremental maintenance of existing game
+
+=== v 1.8.1 =====
+- Removed a dead `const TOWER_COST = 50;` leftover from the pre-type era; placement now derives every cost from the authoritative TOWER_TYPES only.
+- Sell is hardened against double refunds: selling a tower that is no longer placed (already sold or cleared by restart) is a safe no-op, so repeated calls never duplicate coins.
+- Switching tower type is centralized in a single `selectTowerType()` helper that always clears any existing tower selection, so the upgrade panel can never show a stale tower after a type switch.
+- Extended regression.js with deterministic maintenance checks: exact purchase deduction per type, insufficient-funds rejection at the boundary, full-refund sell across all types and upgrade levels, sell removes only the intended tower, no double refund, no actions after defeat, switch type clears tower selection, restart resets economy.
 
 === v 1.8.0 =====
 - Introduced three distinct purchasable tower types (Archer, Cannon, Magic) with a centralized TOWER_TYPES definition used by placement, combat, rendering, the placement ghost, and the upgrade panel.
