@@ -1,7 +1,11 @@
-@version: 1.9.13
-@release: v1.9.13
+@version: 1.9.14
+@release: v1.9.14
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.14 =====
+- Current wave info now shows mini-icon/glyph enemy breakdown in ALL states (Pending, Active, Complete, Won, Lost), matching the wave preview format.
+- Bumped version to 1.9.14 across all files, docs, and changelog.
 
 === v 1.9.13 =====
 - Current wave (Active) info now shows mini-icon/glyph enemy breakdown matching the wave preview: "Wave: X/MAX (Active) ● Standard 6 ⬢ Armored 4 ◆ Runner 4 · 4 left".
