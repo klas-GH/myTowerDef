@@ -109,20 +109,22 @@ h1 {
   color: #94a3b8;
 }
 
-/* Wave info + next-wave info side by side, robustly visible on all widths. */
+/* Wave info + next-wave info split the panel in half, side by side, on all widths. */
 .wave-info-row {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
   gap: 8px;
+  align-items: flex-start;
 }
 
 .wave-info,
 .next-wave-info {
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 0 50%;
   overflow: visible;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .wave-info {

@@ -1,7 +1,11 @@
-@version: 1.9.16
-@release: v1.9.16
+@version: 1.9.17
+@release: v1.9.17
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.17 ===
+- Current wave and next wave info now split the panel exactly in half, side by side (flex: 0 0 50%) like early versions, with text wrapping so nothing overflows on narrow screens.
+- Bumped version to 1.9.17 across all files, docs, and changelog.
 
 === v 1.9.16 ===
 - Current wave info now styled identically to the wave preview: colored glyph spans + stats line, side-by-side with next wave info via flex row layout (flex-wrap: wrap for narrow screens).
