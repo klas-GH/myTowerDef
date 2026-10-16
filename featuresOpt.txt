@@ -1,7 +1,11 @@
-@version: 1.9.8
-@release: v1.9.8
-@status: feature, verification
-@scope: wave-panel, keyboard-shortcuts
+@version: 1.9.9
+@release: v1.9.9
+@status: fix, verification
+@scope: wave-panel
+
+=== v 1.9.9 =====
+- Wave panel now guarantees both current wave and next wave info are visible simultaneously: changed .wave-info-row to flex-wrap: wrap so the two info items stack vertically instead of one being cut off on narrow screens. Enemies-remaining counter shown during active waves.
+- Bumped version to 1.9.9 across all files, docs, and changelog.
 
 === v 1.9.8 =====
 - Wave panel now shows enemies remaining during an active wave (e.g. "Wave: 1/3 (Active) · 8 left"), computed from enemiesToSpawn minus spawned plus enemies still alive.
