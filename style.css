@@ -109,10 +109,10 @@ h1 {
   color: #94a3b8;
 }
 
-/* Wave info + next-wave info split the panel in half, side by side, on all widths. */
+/* Wave info + next-wave info split exactly in half side by side. */
 .wave-info-row {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   align-items: flex-start;
 }
@@ -120,7 +120,6 @@ h1 {
 .wave-info,
 .next-wave-info {
   min-width: 0;
-  flex: 1 1 0%;
   overflow: visible;
   white-space: normal;
   overflow-wrap: break-word;
