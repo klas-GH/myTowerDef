@@ -1,7 +1,19 @@
-@version: 1.9.3
-@release: v1.9.3
+@version: 1.9.7
+@release: v1.9.7
 @status: fix, verification
-@scope: targeting, economics, UI
+@scope: targeting-during-wave, wave-panel, cooldown, declarations
+
+=== v 1.9.7 =====
+- Fixed targeting mode switch during active wave: the targeting picker DOM was destroyed and recreated every frame inside updateUpgradePanel(), breaking button clicks mid-wave. Picker DOM is now cached and only re-rendered when the selected tower or its targeting mode actually changes (renderTargetingPicker).
+- Fixed wave panel: .wave-info and .next-wave-info now use min-width: 0, flex: 1 1 auto, overflow hidden with text-overflow ellipsis so both current wave and next wave info are always visible side by side without overflow/cutoff.
+- Declared spawnQueue and buildMode with let (were implicit globals).
+- Fixed combat bug: tower.cooldown was hardcoded to 0.65s on every shot. Towers now track baseCooldown and reset to their own per-type cooldown after each shot; upgrades reduce baseCooldown accordingly.
+
+=== v 1.9.6 =====
+- Bumped version to 1.9.6 across README, index.html, manifest, service worker cache.
+- Confirmed targeting mode changes work during an active wave via the upgrade popup (no wave-based restriction in selectTargetingMode / showPanel / targeting click handler).
+- Fixed wave-panel preview display: preview lines now wrap and don't overflow/cut off on narrow screens; adjusted margins.
+- Fixed combat bug: tower.cooldown was hardcoded to 0.65s on every shot, making Cannon (1.00s) and Magic (0.85s) fire faster than intended. Towers now reset to their own base cooldown (tracked via tower.baseCooldown), reduced by upgrades.
 
 === v 1.9.3 =====
 - Targeting mode changes now work while a wave is active (selecting a tower during an active wave still allows changing its target priority via the popup).

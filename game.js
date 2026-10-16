@@ -18,6 +18,43 @@ const TOWER_TYPES = {
 function getTowerType(id) {
   return TOWER_TYPES[id] || TOWER_TYPES.archer;
 }
+// Cache for the targeting picker DOM so it is not destroyed and recreated
+// every frame (which would break button clicks during an active wave). Only
+// re-render when the selected tower or its targeting mode actually changes.
+let panelTargetTower = null;
+let panelTargetMode = null;
+
+function renderTargetingPicker(t) {
+  const targetingRow = $("targetingRow");
+  const targetingPicker = $("targetingPicker");
+  if (!targetingRow || !targetingPicker) return;
+  // Guarded so non-DOM contexts (deterministic test harness) never crash.
+  if (typeof document === "undefined" || typeof document.createElement !== "function") return;
+  const currentMode = getTargetingMode(t.targeting || "first");
+  const needsRender = panelTargetTower !== t || panelTargetMode !== currentMode.id;
+  targetingRow.hidden = false;
+  if (needsRender) {
+    targetingPicker.innerHTML = "";
+    for (const key of Object.keys(TARGET_MODES)) {
+      const m = TARGET_MODES[key];
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tmode-btn" + (m.id === currentMode.id ? " active" : "");
+      btn.dataset.mode = m.id;
+      btn.title = m.name + " targeting";
+      btn.textContent = m.glyph + " " + m.name;
+      targetingPicker.appendChild(btn);
+    }
+    panelTargetTower = t;
+    panelTargetMode = currentMode.id;
+  } else {
+    // Refresh active states on existing buttons without destroying DOM.
+    for (const btn of targetingPicker.children) {
+      btn.classList.toggle("active", btn.dataset.mode === currentMode.id);
+    }
+  }
+}
+
 // Selecting a tower type always clears any existing tower selection, so the
 // upgrade panel can never show a stale tower after a type switch. This
 // helper is the single authoritative path for changing the type.
@@ -87,6 +124,7 @@ function pickTarget(tower, list) {
 // currency or granting extra attacks. Safe no-op for unknown modes.
 function selectTargetingMode(tower, modeId) {
   if (!tower) return;
+  if (mode === "won" || mode === "lost") return;
   const m = getTargetingMode(modeId);
   if (!m) return;
   tower.targeting = m.id;
@@ -178,7 +216,7 @@ const spots = [
 ];
 
 let coins, lives, towers, enemies, shots;
-let spawned, spawnTimer, mode;
+let spawned, spawnTimer, mode, spawnQueue, buildMode;
 let pointerPos = null; // last canvas pointer position, used for placement preview
 let selectedTower = null;
 let lastTime = 0;
@@ -322,6 +360,7 @@ function placeTower(x, y) {
     range: t.range,
     damage: t.damage,
     cooldown: t.cooldown,
+    baseCooldown: t.cooldown,
     level: 1,
     upgradeCost: 80,
     cost: t.cost,
@@ -421,7 +460,7 @@ function update(dt) {
         speed: 220
       });
 
-      tower.cooldown = 0.65;
+      tower.cooldown = tower.baseCooldown;
     }
   }
 
@@ -646,7 +685,8 @@ function upgradeTower(){
   selectedTower.level++;
   selectedTower.range += 20;
   selectedTower.damage += 10;
-  selectedTower.cooldown = Math.max(0.3, selectedTower.cooldown - 0.05);
+  selectedTower.baseCooldown = Math.max(0.3, (selectedTower.baseCooldown || selectedTower.cooldown) - 0.05);
+  selectedTower.cooldown = selectedTower.baseCooldown;
   selectedTower.upgradeCost = Math.floor(selectedTower.upgradeCost * 1.5);
   $("status").textContent = "Tower upgraded to L"+selectedTower.level+"!";
   const msgEl = $("upgradeMsg");
@@ -684,6 +724,9 @@ function updateUpgradePanel() {
     if (msg) msg.textContent = "";
     const targetingRow = $("targetingRow");
     if (targetingRow) targetingRow.hidden = true;
+    // Reset picker cache so the next selected tower re-renders the picker.
+    panelTargetTower = null;
+    panelTargetMode = null;
     refreshPanelContent();
     return;
   }
@@ -710,23 +753,9 @@ function updateUpgradePanel() {
 
   // Render the compact targeting picker for the selected tower. It shows the
   // current mode and lets the player switch freely, without spending coins.
-  const targetingRow = $("targetingRow");
-  const targetingPicker = $("targetingPicker");
-  if (targetingRow && targetingPicker && typeof document !== "undefined" && typeof document.createElement === "function" && typeof targetingPicker.appendChild === "function") {
-    const currentMode = getTargetingMode(t.targeting || "first");
-    targetingRow.hidden = false;
-    targetingPicker.innerHTML = "";
-    for (const key of Object.keys(TARGET_MODES)) {
-      const m = TARGET_MODES[key];
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "tmode-btn" + (m.id === currentMode.id ? " active" : "");
-      btn.dataset.mode = m.id;
-      btn.title = m.name + " targeting";
-      btn.textContent = m.glyph + " " + m.name;
-      targetingPicker.appendChild(btn);
-    }
-  }
+  // Works identically during an active wave: targeting mode changes are free
+  // and take effect on the next shot.
+  renderTargetingPicker(t);
 
   if (t.level >= maxLevel) {
     nextDmg.textContent = "-";
