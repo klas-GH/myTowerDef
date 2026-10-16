@@ -1,5 +1,14 @@
-@version: 1.9.2
-@release: v1.9.2
+@version: 1.9.3
+@release: v1.9.3
+@status: fix, verification
+@scope: targeting, economics, UI
+
+=== v 1.9.3 =====
+- Targeting mode changes now work while a wave is active (selecting a tower during an active wave still allows changing its target priority via the popup).
+- Sell refund policy: 100% before any wave has started, 50% while a wave is active (computed from purchase + upgrades).
+- Building towers is now allowed during an active wave (placement preview and building no longer blocked when a wave is active).
+- Wave preview shifted right by an additional 14px (margin 36px) so left-side info fits fully.
+
 @status: fix, verification
 @scope: UI bug fix
 

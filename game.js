@@ -295,7 +295,7 @@ function addEnemy() {
 }
 
 function placeTower(x, y) {
-  if (mode === "won" || mode === "lost" || waveActive) return;
+  if (mode === "won" || mode === "lost") return;
 
   const spot = spots.find(s => distance(s, { x, y }) < 20);
 
@@ -340,11 +340,15 @@ function placeTower(x, y) {
 function sellTower(tower) {
   if (!tower || mode === "won" || mode === "lost") return;
   if (!towers.includes(tower)) return;
-  const refund = (tower.cost || 0) + (tower.totalUpgradeCost || 0);
+  // 50% refund if selling while a wave is active; 100% refund if selling
+  // before any wave has started or in non-playing/preparation states.
+  const wasWaveStarted = currentWave >= 1;
+  const penalty = (waveActive && wasWaveStarted) ? 0.5 : 1.0;
+  const refund = Math.floor(((tower.cost || 0) + (tower.totalUpgradeCost || 0)) * penalty);
   coins += refund;
   towers = towers.filter(t => t !== tower);
   if (selectedTower === tower) selectedTower = null;
-  $("status").textContent = "Tower sold. +" + refund + " coins";
+  $("status").textContent = "Tower sold. +" + refund + " coins" + (penalty < 1.0 ? " (50%)" : "");
   updateUI();
   updateUpgradePanel();
 }

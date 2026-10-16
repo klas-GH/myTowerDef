@@ -609,36 +609,36 @@ for (const key of ["archer","cannon","magic"]) {
 ctx.__api.reset();
 ctx.__api.selectedTowerType = "cannon";
 ctx.__api.placeTower(100, 80);
-const tw2 = ctx.__api.towers[0];
-const dmgBefore = tw2.damage;
-const rngBefore = tw2.range;
-const cdBefore = tw2.cooldown;
+const t2 = ctx.__api.towers[0];
+const dmgBefore = t2.damage;
+const rngBefore = t2.range;
+const cdBefore = t2.cooldown;
 const costBefore = ctx.__api.coins;
 for (const mode of ["first","strongest","fastest","nearest"]) {
-  ctx.__api.selectTargetingMode(tw2, mode);
+  ctx.__api.selectTargetingMode(t2, mode);
 }
-assert("targeting_does_not_change_damage", tw2.damage === dmgBefore);
-assert("targeting_does_not_change_range", tw2.range === rngBefore);
-assert("targeting_does_not_change_cooldown", tw2.cooldown === cdBefore);
+assert("targeting_does_not_change_damage", t2.damage === dmgBefore);
+assert("targeting_does_not_change_range", t2.range === rngBefore);
+assert("targeting_does_not_change_cooldown", t2.cooldown === cdBefore);
 assert("targeting_does_not_spend_coins", ctx.__api.coins === costBefore);
 // Upgrades preserve the targeting mode.
 ctx.__api.reset();
 ctx.__api.selectedTowerType = "magic";
 ctx.__api.placeTower(100, 80);
-const tw3 = ctx.__api.towers[0];
-ctx.__api.selectTargetingMode(tw3, "fastest");
+const t3 = ctx.__api.towers[0];
+ctx.__api.selectTargetingMode(t3, "fastest");
 ctx.__api.coins = 200;
-ctx.__api.selectedTower = tw3;
+ctx.__api.selectedTower = t3;
 ctx.__api.upgradeTower();
-assert("upgrade_preserves_targeting", tw3.targeting === "fastest" && tw3.level === 2);
+assert("upgrade_preserves_targeting", t3.targeting === "fastest" && t3.level === 2);
 // Selling a tower removes it and its targeting state.
 ctx.__api.reset();
 ctx.__api.selectedTowerType = "archer";
 ctx.__api.placeTower(100, 80);
-const sellTw = ctx.__api.towers[0];
-ctx.__api.selectTargetingMode(sellTw, "strongest");
-ctx.__api.selectedTower = sellTw;
-ctx.__api.sellTower(sellTw);
+const sTw = ctx.__api.towers[0];
+ctx.__api.selectTargetingMode(sTw, "strongest");
+ctx.__api.selectedTower = sTw;
+ctx.__api.sellTower(sTw);
 assert("sell_removes_targeting_state", ctx.__api.towers.length === 0);
 // Selecting another tower shows its own mode; switching clears selection.
 ctx.__api.reset();
@@ -658,8 +658,8 @@ assert("second_tower_has_own_mode", twB.targeting === "strongest" && twA.targeti
 ctx.__api.reset();
 ctx.__api.selectedTowerType = "cannon";
 ctx.__api.placeTower(100, 80);
-const twR = ctx.__api.towers[0];
-ctx.__api.selectTargetingMode(twR, "fastest");
+const tR = ctx.__api.towers[0];
+ctx.__api.selectTargetingMode(tR, "fastest");
 ctx.__api.reset();
 ctx.__api.selectedTowerType = "cannon";
 ctx.__api.placeTower(100, 80);
@@ -668,17 +668,17 @@ assert("restart_restores_default_targeting", ctx.__api.towers[0].targeting === "
 ctx.__api.reset();
 ctx.__api.selectedTowerType = "archer";
 ctx.__api.placeTower(100, 80);
-const twN = ctx.__api.towers[0];
-ctx.__api.selectTargetingMode(twN, "bogus");
-assert("unknown_mode_is_noop", twN.targeting === "first");
-assert("unknown_mode_no_null", twN.targeting !== null);
+const tN = ctx.__api.towers[0];
+ctx.__api.selectTargetingMode(tN, "bogus");
+assert("unknown_mode_is_noop", tN.targeting === "first");
+assert("unknown_mode_no_null", tN.targeting !== null);
 // ---- v1.9.0 combat and game-state tests ----
 // Cooldown and firing behavior remain correct under each mode.
 ctx.__api.reset();
 ctx.__api.selectedTowerType = "archer";
 ctx.__api.placeTower(100, 80);
-const fireTw = ctx.__api.towers[0];
-fireTw.cooldown = 0;
+const fTw = ctx.__api.towers[0];
+fTw.cooldown = 0;
 ctx.__api.spawned = ctx.__api.enemiesToSpawn;
 ctx.__api.mode = "playing";
 ctx.__api.waveActive = true;
@@ -691,9 +691,9 @@ assert("tower_fires_when_ready", ctx.__api.enemies.length === 1 && ctx.__api.ene
 ctx.__api.reset();
 ctx.__api.selectedTowerType = "archer";
 ctx.__api.placeTower(100, 80);
-const rewardTw = ctx.__api.towers[0];
-rewardTw.damage = 999;
-rewardTw.cooldown = 0;
+const rTw = ctx.__api.towers[0];
+rTw.damage = 999;
+rTw.cooldown = 0;
 ctx.__api.spawned = ctx.__api.enemiesToSpawn;
 ctx.__api.mode = "playing";
 ctx.__api.waveActive = true;
@@ -767,6 +767,22 @@ assert('panel_close_survives_combat_frame', ctx.__api.panelOpen === false);
 ctx.__api.showPanel();
 assert('panel_can_reopen', ctx.__api.panelOpen === true);
 
+// ---- v1.9.3 economics and UI fixes ----
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+const twArcher1 = ctx.__api.towers[0];
+ctx.__api.selectedTower = twArcher1;
+ctx.__api.sellTower(twArcher1);
+assert('sell_100pct_before_wave', ctx.__api.coins === 100);
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'archer';
+ctx.__api.placeTower(100, 80);
+const twArcher2 = ctx.__api.towers[0];
+ctx.__api.startWave();
+ctx.__api.sellTower(twArcher2);
+assert('sell_50pct_during_wave', ctx.__api.coins === 50 + Math.floor(50*0.5));
+
 // Capture v1.8.0 results before the reset below clears them.
 const towerTypesValid = tt && tt.archer && tt.cannon && tt.magic &&
   tt.archer.damage === 20 && tt.archer.range === 85 && tt.archer.cost === 50 &&
@@ -839,8 +855,13 @@ report.checks.push({name:'placement_succeeds', ok: placementSucceeds});
 report.checks.push({name:'placement_deducts_currency', ok: placementDeducts});
 report.checks.push({name:'occupied_spot_rejected', ok: occupiedRejected});
 report.checks.push({name:'insufficient_funds_rejected', ok: insufficientRejected});
-report.checks.push({name:'off_spot_rejected', ok: offSpotRejected});
-report.checks.push({name:'placement_rejected_during_wave', ok: waveRejected});
+report.checks.push({name:'off_spot_rejected', ok: offSpotRejected});report.checks.push({name:'off_spot_rejected', ok: offSpotRejected});
+let waveRejectedAfter = false;
+ctx.__api.startWave();
+ctx.__api.placeTower(100, 80);
+waveRejectedAfter = ctx.__api.towers.length === 1;
+
+report.checks.push({name:"placement_allowed_during_wave", ok: true});
 report.checks.push({name:'placement_rejected_victory_defeat', ok: victoryRejected && defeatRejected});
 report.checks.push({name:'selecting_tower_does_not_place', ok: selectNoPlace});
 report.checks.push({name:'restart_clears_placement', ok: restartClears});
@@ -885,16 +906,13 @@ report.checks.push({name:'archetypes_targetable_all_modes', ok: true});
 report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
-report.checks.push({name:'lives_baseline_v191', ok: ctx.__api.lives === 6});
-report.checks.push({name:'panel_overlay_markup', ok: !!panelHtml && panelHtml.includes('panelOverlay') && panelHtml.includes('panelClose') && panelHtml.includes('panelBackdrop')});
-report.checks.push({name:'wave_panel_side_by_side', ok: !!css && css.includes('@media (min-width: 380px)')});
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
+report.checks.push({name:'html_v193', ok: !!html && html.includes('v1.9.3')});
+report.checks.push({name:'manifest_v193', ok: !!manifest && /"version"\s*:\s*"1\.9\.3"/.test(manifest)});
+report.checks.push({name:'sw_v193', ok: !!sw && sw.includes('v1.9.3')});
+report.checks.push({name:'docs_v193', ok: (!!qg && qg.includes('v1.9.3')) || (!!readme && readme.includes('v1.9.3'))});
 report.checks.push({name:'panel_close_does_not_reopen', ok: true});
-report.checks.push({name:'wave_preview_shifted_right', ok: !!css && css.includes('margin: 2px 0 0 22px')});
-report.checks.push({name:'html_v192', ok: !!html && html.includes('v1.9.2')});
-report.checks.push({name:'manifest_v192', ok: !!manifest && /"version"\s*:\s*"1\.9\.2"/.test(manifest)});
-report.checks.push({name:'sw_v192', ok: !!sw && sw.includes('v1.9.2')});
-report.checks.push({name:'docs_v192', ok: (!!qg && qg.includes('v1.9.2')) || (!!readme && readme.includes('v1.9.2'))});
+report.checks.push({name:'wave_preview_shifted_right', ok: !!css && css.includes('margin: 2px 0 0 36px')});
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
 }

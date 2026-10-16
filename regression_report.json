@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-15T18:30:47.658Z",
+  "ts": "2026-10-16T06:00:01.181Z",
   "files": [
     {
       "name": "index.html",
@@ -9,12 +9,12 @@
     {
       "name": "game.js",
       "exists": true,
-      "size": 29707
+      "size": 30001
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 6326
+      "size": 5951
     },
     {
       "name": "manifest.json",
@@ -108,7 +108,11 @@
       "ok": true
     },
     {
-      "name": "placement_rejected_during_wave",
+      "name": "off_spot_rejected",
+      "ok": true
+    },
+    {
+      "name": "placement_allowed_during_wave",
       "ok": true
     },
     {
@@ -272,19 +276,23 @@
       "ok": true
     },
     {
-      "name": "lives_baseline_v191",
-      "ok": true
-    },
-    {
-      "name": "panel_overlay_markup",
-      "ok": true
-    },
-    {
-      "name": "wave_panel_side_by_side",
-      "ok": true
-    },
-    {
       "name": "lives_baseline_v192",
+      "ok": true
+    },
+    {
+      "name": "html_v193",
+      "ok": true
+    },
+    {
+      "name": "manifest_v193",
+      "ok": true
+    },
+    {
+      "name": "sw_v193",
+      "ok": true
+    },
+    {
+      "name": "docs_v193",
       "ok": true
     },
     {
@@ -294,27 +302,11 @@
     {
       "name": "wave_preview_shifted_right",
       "ok": true
-    },
-    {
-      "name": "html_v192",
-      "ok": true
-    },
-    {
-      "name": "manifest_v192",
-      "ok": true
-    },
-    {
-      "name": "sw_v192",
-      "ok": true
-    },
-    {
-      "name": "docs_v192",
-      "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 67,
-    "passed": 67
+    "total": 65,
+    "passed": 65
   }
 }
