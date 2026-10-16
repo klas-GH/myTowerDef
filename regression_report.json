@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-16T08:58:08.705Z",
+  "ts": "2026-10-16T09:09:13.095Z",
   "files": [
     {
       "name": "index.html",
@@ -9,7 +9,7 @@
     {
       "name": "game.js",
       "exists": true,
-      "size": 31364
+      "size": 32053
     },
     {
       "name": "style.css",
@@ -280,19 +280,19 @@
       "ok": true
     },
     {
-      "name": "html_v197",
+      "name": "html_v198",
       "ok": true
     },
     {
-      "name": "manifest_v197",
+      "name": "manifest_v198",
       "ok": true
     },
     {
-      "name": "sw_v197",
+      "name": "sw_v198",
       "ok": true
     },
     {
-      "name": "docs_v197",
+      "name": "docs_v198",
       "ok": true
     },
     {

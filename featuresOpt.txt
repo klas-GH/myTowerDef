@@ -1,7 +1,12 @@
-@version: 1.9.7
-@release: v1.9.7
-@status: fix, verification
-@scope: targeting-during-wave, wave-panel, cooldown, declarations
+@version: 1.9.8
+@release: v1.9.8
+@status: feature, verification
+@scope: wave-panel, keyboard-shortcuts
+
+=== v 1.9.8 =====
+- Wave panel now shows enemies remaining during an active wave (e.g. "Wave: 1/3 (Active) · 8 left"), computed from enemiesToSpawn minus spawned plus enemies still alive.
+- Added keyboard shortcuts: 1/2/3 select tower type (Archer/Cannon/Magic), Space starts a wave, R restarts the game.
+- Updated regression.js and smoke_quick.js version checks to v1.9.8.
 
 === v 1.9.7 =====
 - Fixed targeting mode switch during active wave: the targeting picker DOM was destroyed and recreated every frame inside updateUpgradePanel(), breaking button clicks mid-wave. Picker DOM is now cached and only re-rendered when the selected tower or its targeting mode actually changes (renderTargetingPicker).

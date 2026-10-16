@@ -803,7 +803,8 @@ function updateWaveInfo() {
     return;
   }
   if (waveActive) {
-    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Active)";
+    const enemiesLeft = (enemiesToSpawn - spawned) + enemies.length;
+    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Active) · " + enemiesLeft + " left";
     const nextW = currentWave < MAX_WAVE ? currentWave + 1 : null;
     if (nwEl) {
       if (nextW) nwEl.textContent = "Next: Wave " + nextW + " (" + WAVE_DEFS[nextW - 1].enemies + " enemies)";
@@ -960,10 +961,26 @@ if (panelCloseBtn) {
 }
 // Escape dismisses the popup when a tower is selected. Guarded so non-DOM
 // contexts (deterministic test harness) never crash here.
+// Keyboard shortcuts: 1/2/3 select tower type, Space starts wave, R restarts.
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
   document.addEventListener("keydown", event => {
     if (event.key === "Escape" && selectedTower) {
       hidePanel();
+      return;
+    }
+    if (event.key === "1") { selectTowerType("archer"); return; }
+    if (event.key === "2") { selectTowerType("cannon"); return; }
+    if (event.key === "3") { selectTowerType("magic"); return; }
+    if (event.key === " " || event.code === "Space") {
+      event.preventDefault();
+      if (mode !== "playing" && mode !== "won" && mode !== "lost" && !waveActive) {
+        startWave();
+      }
+      return;
+    }
+    if (event.key === "r" || event.key === "R") {
+      reset();
+      return;
     }
   });
 }
