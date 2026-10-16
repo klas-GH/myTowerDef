@@ -1,7 +1,11 @@
-@version: 1.9.14
-@release: v1.9.14
+@version: 1.9.15
+@release: v1.9.15
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.15 =====
+- Current wave info now shows the enemy stats line (HP / speed / reward) matching the wave preview: "❤️ 35 HP · ⚡ 28 · 💰 Reward 40", via buildWaveStatsLine().
+- Bumped version to 1.9.15 across all files, docs, and changelog.
 
 === v 1.9.14 =====
 - Current wave info now shows mini-icon/glyph enemy breakdown in ALL states (Pending, Active, Complete, Won, Lost), matching the wave preview format.
