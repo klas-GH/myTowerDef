@@ -1,7 +1,15 @@
-@version: 1.9.11
-@release: v1.9.11
+@version: 1.9.13
+@release: v1.9.13
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.13 =====
+- Current wave (Active) info now shows mini-icon/glyph enemy breakdown matching the wave preview: "Wave: X/MAX (Active) ● Standard 6 ⬢ Armored 4 ◆ Runner 4 · 4 left".
+- Bumped version to 1.9.13 across all files, docs, and changelog.
+
+=== v 1.9.12 =====
+- Current wave (Active) info now shows total enemies count like next wave: "Wave: X/MAX (Active) · N enemies · M left", so both current and next wave info have equal detail.
+- Bumped version to 1.9.12 across all files, docs, and changelog.
 
 === v 1.9.11 =====
 - Current wave info now shows full details like the next wave: enemy count added to Pending, Complete, Won, and Lost states (e.g. "Wave: 2/3 (Complete) · 8 enemies").

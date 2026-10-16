@@ -907,10 +907,10 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v1911', ok: !!html && html.includes('v1.9.11')});
-report.checks.push({name:'manifest_v1911', ok: !!manifest});
-report.checks.push({name:'sw_v1911', ok: !!sw && sw.includes('v1.9.11')});
-report.checks.push({name:'docs_v1911', ok: (!!qg && qg.includes('v1.9.11')) || (!!readme && readme.includes('v1.9.11'))});
+report.checks.push({name:'html_v1913', ok: !!html && html.includes('v1.9.13')});
+report.checks.push({name:'manifest_v1913', ok: !!manifest});
+report.checks.push({name:'sw_v1913', ok: !!sw && sw.includes('v1.9.13')});
+report.checks.push({name:'docs_v1913', ok: (!!qg && qg.includes('v1.9.13')) || (!!readme && readme.includes('v1.9.13'))});
 report.checks.push({name:'panel_close_does_not_reopen', ok: true});
 report.checks.push({name:'wave_preview_shifted_right', ok: !!css && css.includes('margin: 2px 0 0 36px')});
 if (failures > 0) {

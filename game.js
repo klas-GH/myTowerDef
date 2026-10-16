@@ -804,7 +804,13 @@ function updateWaveInfo() {
   }
   if (waveActive) {
     const enemiesLeft = (enemiesToSpawn - spawned) + enemies.length;
-    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Active) · " + enemiesLeft + " left";
+    const wd = currentWave >= 1 && currentWave <= MAX_WAVE ? WAVE_DEFS[currentWave - 1] : null;
+    const totalEnemies = wd ? wd.enemies : 0;
+    const typeLines = wd ? wd.composition.map(function(entry) {
+      const t = getEnemyType(entry.type);
+      return t.glyph + " " + t.name + " " + entry.count;
+    }).join("  ") : "";
+    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Active) · " + totalEnemies + " enemies · " + typeLines + " · " + enemiesLeft + " left";
     const nextW = currentWave < MAX_WAVE ? currentWave + 1 : null;
     if (nwEl) {
       if (nextW) nwEl.textContent = "Next: Wave " + nextW + " (" + WAVE_DEFS[nextW - 1].enemies + " enemies)";
