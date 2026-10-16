@@ -109,31 +109,29 @@ h1 {
   color: #94a3b8;
 }
 
-/* Wave info + next-wave info side by side, split exactly in half. */
+/* Wave panel info row: current wave | next wave, side by side */
 .wave-info-row {
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
   gap: 8px;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.wave-info,
-.next-wave-info {
-  flex: 1 1 0%;
-  min-width: 0;
-  overflow: visible;
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
+  align-items: stretch;
 }
 
 .wave-info {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
   font-weight: 600;
 }
 
 .next-wave-info {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
   color: #94a3b8;
 }
 

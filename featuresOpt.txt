@@ -1,7 +1,11 @@
-@version: 1.9.21
-@release: v1.9.21
+@version: 1.9.22
+@release: v1.9.22
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.22 ===
+- Wave panel CSS redone from scratch: flex row with flex: 1 on each cell and text wrapping, current wave and next wave side by side.
+- Bumped version to 1.9.22 across all files, docs, and changelog.
 
 === v 1.9.21 ===
 - Wave panel flex children use flex: 1 1 0% (equal space sharing) instead of width: 50% so current wave and next wave info sit exactly side by side with text wrapping on narrow screens.
