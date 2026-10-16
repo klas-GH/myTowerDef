@@ -85,7 +85,7 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  margin: 2px 0 0 18px;
+  margin: 2px 0 0 36px;
   padding-top: 4px;
   border-top: 1px dashed #334155;
   font-size: 11px;
@@ -109,42 +109,21 @@ h1 {
   color: #94a3b8;
 }
 
-/* Wave info + next-wave info sit side by side on wide screens so the
-   preview block below can use the freed vertical space on mobile. */
+/* Wave info + next-wave info always visible, stacked vertically so neither
+   can ever be cut off or hidden on any screen width. */
 .wave-info-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.wave-info,
-.next-wave-info {
-  min-width: 0;
-  overflow: visible;
-  white-space: normal;
-  flex: 0 0 auto;
+  display: block;
+  gap: 4px;
 }
 
 .wave-info {
   font-weight: 600;
+  display: block;
 }
 
 .next-wave-info {
   color: #94a3b8;
-}
-
-@media (min-width: 380px) {
-  .wave-info-row {
-    flex-direction: row;
-  }
-  .wave-preview {
-    flex-basis: 100%;
-    margin: 2px 0 0 36px;
-    padding-top: 0;
-    border-top: none;
-  }
+  display: block;
 }
 
 /* ---- Upgrade panel as a context-style popup over the canvas ---- */
