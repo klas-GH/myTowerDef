@@ -1,7 +1,11 @@
-@version: 1.9.20
-@release: v1.9.20
+@version: 1.9.21
+@release: v1.9.21
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.21 ===
+- Wave panel flex children use flex: 1 1 0% (equal space sharing) instead of width: 50% so current wave and next wave info sit exactly side by side with text wrapping on narrow screens.
+- Bumped version to 1.9.21 across all files, docs, and changelog.
 
 === v 1.9.20 ===
 - Wave panel uses flex row with width: 50% on each info cell so current wave and next wave info sit side by side, split exactly in half, with text wrapping on narrow screens.
