@@ -1,7 +1,11 @@
-@version: 1.9.10
-@release: v1.9.10
+@version: 1.9.11
+@release: v1.9.11
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.11 =====
+- Current wave info now shows full details like the next wave: enemy count added to Pending, Complete, Won, and Lost states (e.g. "Wave: 2/3 (Complete) · 8 enemies").
+- Bumped version to 1.9.11 across all files, docs, and changelog.
 
 === v 1.9.10 =====
 - Wave panel now guarantees both current wave and next wave info visible simultaneously on all screen widths: .wave-info-row stacks vertically on narrow screens (< 380px) and sits side by side on wider screens. Neither info item can be cut off or hidden.

@@ -793,12 +793,12 @@ function updateWaveInfo() {
   const nwEl = $("nextWaveInfo");
   if (!wEl && !nwEl) return;
   if (mode === "won") {
-    if (wEl) wEl.textContent = "Wave: " + MAX_WAVE + "/" + MAX_WAVE + " (Complete)";
+    if (wEl) wEl.textContent = "Wave: " + MAX_WAVE + "/" + MAX_WAVE + " (Complete) · " + WAVE_DEFS[MAX_WAVE - 1].enemies + " enemies";
     if (nwEl) nwEl.textContent = "Next: -";
     return;
   }
   if (mode === "lost") {
-    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Lost)";
+    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Lost) · " + WAVE_DEFS[currentWave - 1].enemies + " enemies";
     if (nwEl) nwEl.textContent = "Next: -";
     return;
   }
@@ -812,10 +812,10 @@ function updateWaveInfo() {
     }
   } else {
     if (currentWave === 0) {
-      if (wEl) wEl.textContent = "Wave: 1/" + MAX_WAVE + " (Pending)";
+      if (wEl) wEl.textContent = "Wave: 1/" + MAX_WAVE + " (Pending) · " + WAVE_DEFS[0].enemies + " enemies";
       if (nwEl) nwEl.textContent = "Next: Wave 1 (" + WAVE_DEFS[0].enemies + " enemies)";
     } else {
-      if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Complete)";
+      if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Complete) · " + WAVE_DEFS[currentWave - 1].enemies + " enemies";
       const nextW2 = currentWave < MAX_WAVE ? currentWave + 1 : null;
       if (nwEl) {
         if (nextW2) nwEl.textContent = "Next: Wave " + nextW2 + " (" + WAVE_DEFS[nextW2 - 1].enemies + " enemies)";
