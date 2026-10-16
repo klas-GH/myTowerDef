@@ -120,7 +120,7 @@ h1 {
 .wave-info,
 .next-wave-info {
   min-width: 0;
-  flex: 0 0 50%;
+  flex: 1 1 0%;
   overflow: visible;
   white-space: normal;
   overflow-wrap: break-word;

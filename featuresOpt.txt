@@ -1,7 +1,11 @@
-@version: 1.9.17
-@release: v1.9.17
+@version: 1.9.18
+@release: v1.9.18
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.18 ===
+- Wave panel now splits exactly in half side-by-side (flex: 1 1 0%) with text wrapping so nothing overflows on narrow screens.
+- Bumped version to 1.9.18 across all files, docs, and changelog.
 
 === v 1.9.17 ===
 - Current wave and next wave info now split the panel exactly in half, side by side (flex: 0 0 50%) like early versions, with text wrapping so nothing overflows on narrow screens.
