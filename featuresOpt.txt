@@ -1,7 +1,59 @@
-@version: 1.9.23
-@release: v1.9.23
-@status: fix, verification
-@scope: wave-panel
+@version: 1.9.32
+@release: v1.9.32
+@status: feature
+@scope: difficulty, replay
+
+=== v 1.9.32 ===
+- Set starting coins to 80 and lower Cannon cost to 80 so any tower can be chosen immediately.
+- Increase base enemy HP by 50% and base speed by 10%; increase speed by 5% for each successive wave.
+- Add repeatable 12-level rounds with a 1% enemy HP and speed increase per round, cycling after Round 50.
+- Show a round-opened modal after completing all levels; the special Round 50 victory modal announces the restart at Round #1 and baseline difficulty.
+- Bump the service-worker cache version.
+
+=== v 1.9.31 ===
+- Add 12 progressing levels with distinct routes, build spots, ground themes, and road colors.
+- Scale enemy counts, HP, speed, rewards, and wave previews to the current level.
+- Add next-level progression after each level's three waves and a final completion state.
+- Add quiet, type-specific tower firing sounds using Web Audio.
+- Bump the service-worker cache version.
+
+=== v 1.9.30 ===
+- Add decorative jungle foliage and flowers to grass areas, keeping the road and build spots clear.
+- Bump the service-worker cache version.
+
+=== v 1.9.29 ===
+- Keep all three enemy rows visible in both wave columns to avoid wave-state height changes.
+- Shrink the header metadata and coin/life counters on short screens.
+- Scale the canvas to available viewport height while preserving its 5:6 aspect ratio.
+- Refresh build-menu affordability when coins change and when opening the menu.
+- Bump the service-worker cache version.
+
+=== v 1.9.28 ===
+- Keep all three enemy types visible in both wave panels, using zero counts when a type is absent.
+- Keep the build menu open during wave updates and disable tower choices that cost more than the available coins.
+- Bump the service-worker cache version.
+
+=== v 1.9.27 ===
+- Move the Archer, Cannon, and Magic buttons into a popup opened by tapping an empty build spot.
+- Keep that menu open during active-wave redraws so tower placement remains available mid-wave.
+- Enlarge the map on short displays while keeping the controls and wave panel in view.
+- Show current and next wave type, stats, and enemy counts in matching styles.
+- Put the entrance gate and direction marker at the canvas edge.
+- Bump the service-worker cache version.
+
+=== v 1.9.26 ===
+- Keep current-wave lines separated and readable in the two-column panel; compact the stats text.
+- Fit the board and lower controls to short displays while preserving the map aspect ratio and usable button heights.
+- Bump the service-worker cache version so installed apps load the layout fix.
+
+=== v 1.9.25 ===
+- Add a gate at the enemy entrance and a fortress at the route's base.
+- Replace tower and enemy circle tokens with small type-specific canvas icons.
+- Bump the service-worker cache version so installed apps load the updated visuals.
+
+=== v 1.9.24 ===
+- Place current-wave details and the next-wave preview side by side in a responsive two-column grid.
+- Bump the service-worker cache version so installed apps load the updated layout.
 
 === v 1.9.23 ===
 - Removed redundant nextWaveInfo div (duplicated wavePreview info). wavePreview now solely shows next wave details.
@@ -167,4 +219,3 @@
 - Added manifest, SW, updated docs/metadata; fixed initial UI state; restored emoji icons
 
 === v 1.1.0 =====
-

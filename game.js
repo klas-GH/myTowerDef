@@ -12,7 +12,7 @@ const TOTAL_ENEMIES = 8;
 // authoritative source. The Archer is the existing baseline tower.
 const TOWER_TYPES = {
   archer: { id: "archer", name: "Archer", cost: 50, damage: 20, range: 85, cooldown: 0.65, color: "#60a5fa", glyph: "▲" },
-  cannon: { id: "cannon", name: "Cannon", cost: 90, damage: 45, range: 75, cooldown: 1.00, color: "#f97316", glyph: "●" },
+  cannon: { id: "cannon", name: "Cannon", cost: 80, damage: 45, range: 75, cooldown: 1.00, color: "#f97316", glyph: "●" },
   magic:  { id: "magic",  name: "Magic",  cost: 80, damage: 28, range: 110, cooldown: 0.85, color: "#a855f7", glyph: "✦" }
 };
 function getTowerType(id) {
@@ -131,18 +131,21 @@ function selectTargetingMode(tower, modeId) {
   updateUpgradePanel();
 }
 
-// The upgrade panel is shown as a small context-style popup over the canvas
-// when a tower is selected. It frees the bottom of the screen for narrow
-// mobile layouts. Tapping the backdrop, the close button, or pressing Escape
-// dismisses it without losing the selection state (it reopens on re-select).
-// `panelOpen` is the single authority: the panel only opens on an explicit
-// tower click, so combat frames can never force it back open after the player
-// dismissed it.
+// The shared overlay hosts either the selected tower's upgrade panel or the
+// build menu for a tapped empty spot.
 let panelOpen = false;
+let buildMenuOpen = false;
+let pendingBuildSpot = null;
 function showPanel() {
   if (panelOpen) return; // already open; never force it back after dismissal
   const overlay = $("panelOverlay");
+  const buildPanel = $("buildPanel");
+  const upgradePanel = $("upgradePanel");
+  if (buildPanel) buildPanel.hidden = true;
+  if (upgradePanel) upgradePanel.hidden = false;
   if (overlay) overlay.hidden = false;
+  buildMenuOpen = false;
+  pendingBuildSpot = null;
   panelOpen = true;
 }
 function hidePanel() {
@@ -150,14 +153,30 @@ function hidePanel() {
   if (overlay) overlay.hidden = true;
   panelOpen = false;
 }
-// Refreshes the panel CONTENT only. It never forces the popup open, so combat
-// frames (which call updateUpgradePanel() every tick) cannot resurrect a
-// panel the player dismissed. The popup is shown explicitly by the canvas
-// click handler when a tower is selected.
+function showBuildMenu(spot) {
+  pendingBuildSpot = { x: spot.x, y: spot.y };
+  buildMenuOpen = true;
+  updateTowerPicker();
+  const overlay = $("panelOverlay");
+  const buildPanel = $("buildPanel");
+  const upgradePanel = $("upgradePanel");
+  if (buildPanel) buildPanel.hidden = false;
+  if (upgradePanel) upgradePanel.hidden = true;
+  if (overlay) overlay.hidden = false;
+}
+function closeBuildMenu() {
+  buildMenuOpen = false;
+  pendingBuildSpot = null;
+  const overlay = $("panelOverlay");
+  const buildPanel = $("buildPanel");
+  if (buildPanel) buildPanel.hidden = true;
+  if (overlay) overlay.hidden = !panelOpen;
+}
+// Keep the overlay visible for whichever menu is active during game updates.
 function refreshPanelContent() {
   const overlay = $("panelOverlay");
-  if (panelOpen && overlay) overlay.hidden = false;
-  if (!panelOpen && overlay) overlay.hidden = true;
+  if (!overlay) return;
+  overlay.hidden = !buildMenuOpen && !panelOpen;
 }
 
 // Distinct enemy archetypes. Every gameplay stat (hp, speed, reward) and
@@ -192,31 +211,83 @@ const WAVE_DEFS = [
   buildWaveDef([{ type: "standard", count: 4 }, { type: "armored", count: 4 }, { type: "runner", count: 4 }], 60)
 ];
 const MAX_WAVE = WAVE_DEFS.length;
+const MAX_RUN = 50;
+
+const LEVELS = [
+  {
+    name: "First Defense", theme: "jungle", ground: "#173c35", road: "#9b896a", roadEdge: "#c6b99a",
+    path: [{x:-10,y:45},{x:240,y:45},{x:240,y:130},{x:65,y:130},{x:65,y:225},{x:245,y:225},{x:245,y:370}],
+    spots: [{x:100,y:80},{x:195,y:85},{x:190,y:165},{x:110,y:185},{x:115,y:270},{x:200,y:280}]
+  },
+  {
+    name: "Coral Bay", theme: "ocean", ground: "#174653", road: "#c4a878", roadEdge: "#e8d6ad",
+    path: [{x:-10,y:70},{x:75,y:70},{x:75,y:150},{x:230,y:150},{x:230,y:55},{x:275,y:55},{x:275,y:255},{x:90,y:255},{x:90,y:370}],
+    spots: [{x:35,y:115},{x:135,y:105},{x:185,y:195},{x:250,y:300},{x:40,y:300},{x:180,y:315}]
+  },
+  {
+    name: "Wildflower Meadow", theme: "meadow", ground: "#31533b", road: "#b49a6c", roadEdge: "#dfc88f",
+    path: [{x:-10,y:85},{x:255,y:85},{x:255,y:155},{x:45,y:155},{x:45,y:235},{x:215,y:235},{x:215,y:295},{x:80,y:295},{x:80,y:370}],
+    spots: [{x:80,y:112},{x:210,y:120},{x:120,y:190},{x:260,y:200},{x:145,y:265},{x:30,y:330}]
+  },
+  {
+    name: "Sunset Dunes", theme: "desert", ground: "#8b6841", road: "#c6a66b", roadEdge: "#f0d89b",
+    path: [{x:-10,y:55},{x:55,y:55},{x:55,y:120},{x:260,y:120},{x:260,y:190},{x:105,y:190},{x:105,y:265},{x:235,y:265},{x:235,y:370}],
+    spots: [{x:25,y:90},{x:145,y:80},{x:220,y:155},{x:45,y:225},{x:165,y:230},{x:280,y:315}]
+  },
+  {
+    name: "Autumn Forest", theme: "autumn", ground: "#394432", road: "#a88b67", roadEdge: "#d8bd91",
+    path: [{x:-10,y:100},{x:210,y:100},{x:210,y:55},{x:270,y:55},{x:270,y:185},{x:70,y:185},{x:70,y:260},{x:230,y:260},{x:230,y:370}],
+    spots: [{x:65,y:60},{x:145,y:145},{x:245,y:140},{x:30,y:225},{x:150,y:300},{x:275,y:315}]
+  },
+  {
+    name: "Frost Valley", theme: "snow", ground: "#425766", road: "#b6aa91", roadEdge: "#e9e4d8",
+    path: [{x:-10,y:60},{x:270,y:60},{x:270,y:125},{x:35,y:125},{x:35,y:205},{x:225,y:205},{x:225,y:280},{x:100,y:280},{x:100,y:370}],
+    spots: [{x:65,y:90},{x:185,y:95},{x:100,y:165},{x:265,y:245},{x:165,y:320},{x:30,y:315}]
+  },
+  {
+    name: "Misty Swamp", theme: "swamp", ground: "#344a3d", road: "#92856b", roadEdge: "#c4b99e",
+    path: [{x:-10,y:115},{x:85,y:115},{x:85,y:55},{x:245,y:55},{x:245,y:165},{x:45,y:165},{x:45,y:245},{x:265,y:245},{x:265,y:370}],
+    spots: [{x:35,y:70},{x:160,y:95},{x:160,y:205},{x:105,y:285},{x:215,y:300},{x:25,y:320}]
+  },
+  {
+    name: "Volcanic Ridge", theme: "volcano", ground: "#3e3030", road: "#8f7867", roadEdge: "#d5ae82",
+    path: [{x:-10,y:75},{x:225,y:75},{x:225,y:145},{x:65,y:145},{x:65,y:215},{x:260,y:215},{x:260,y:285},{x:115,y:285},{x:115,y:370}],
+    spots: [{x:75,y:105},{x:175,y:110},{x:270,y:175},{x:25,y:180},{x:190,y:255},{x:55,y:320}]
+  },
+  {
+    name: "Ancient Temple", theme: "ruins", ground: "#4a4938", road: "#a18c6b", roadEdge: "#d2c19b",
+    path: [{x:-10,y:55},{x:115,y:55},{x:115,y:105},{x:270,y:105},{x:270,y:175},{x:35,y:175},{x:35,y:245},{x:190,y:245},{x:190,y:300},{x:250,y:300},{x:250,y:370}],
+    spots: [{x:65,y:85},{x:185,y:75},{x:230,y:140},{x:95,y:215},{x:235,y:215},{x:115,y:330}]
+  },
+  {
+    name: "Crystal Cavern", theme: "crystal", ground: "#26364b", road: "#8586a0", roadEdge: "#c4c6dd",
+    path: [{x:-10,y:95},{x:65,y:95},{x:65,y:55},{x:220,y:55},{x:220,y:135},{x:105,y:135},{x:105,y:220},{x:270,y:220},{x:270,y:290},{x:55,y:290},{x:55,y:370}],
+    spots: [{x:25,y:155},{x:155,y:95},{x:260,y:170},{x:165,y:185},{x:195,y:255},{x:145,y:330}]
+  },
+  {
+    name: "Moonlit Grove", theme: "moon", ground: "#26364a", road: "#958b78", roadEdge: "#cfc6ae",
+    path: [{x:-10,y:65},{x:160,y:65},{x:160,y:120},{x:270,y:120},{x:270,y:200},{x:55,y:200},{x:55,y:275},{x:230,y:275},{x:230,y:370}],
+    spots: [{x:45,y:100},{x:110,y:160},{x:220,y:160},{x:115,y:240},{x:275,y:320},{x:160,y:320}]
+  },
+  {
+    name: "Canyon Pass", theme: "canyon", ground: "#76513d", road: "#bda078", roadEdge: "#e5c99a",
+    path: [{x:-10,y:80},{x:270,y:80},{x:270,y:135},{x:35,y:135},{x:35,y:205},{x:235,y:205},{x:235,y:265},{x:75,y:265},{x:75,y:325},{x:250,y:325},{x:250,y:370}],
+    spots: [{x:60,y:105},{x:175,y:165},{x:130,y:105},{x:275,y:235},{x:155,y:295},{x:25,y:300}]
+  }
+];
+const MAX_LEVEL = LEVELS.length;
 
 canvas.width = W;
 canvas.height = H;
 
-const path = [
-  { x: -10, y: 45 },
-  { x: 240, y: 45 },
-  { x: 240, y: 130 },
-  { x: 65, y: 130 },
-  { x: 65, y: 225 },
-  { x: 245, y: 225 },
-  { x: 245, y: 370 }
-];
-
-const spots = [
-  { x: 100, y: 80 },
-  { x: 195, y: 85 },
-  { x: 190, y: 165 },
-  { x: 110, y: 185 },
-  { x: 115, y: 270 },
-  { x: 200, y: 280 }
-];
+let currentLevel = 1;
+let currentRun = 1;
+let currentLevelData = LEVELS[0];
+let path = currentLevelData.path;
+let spots = currentLevelData.spots;
 
 let coins, lives, towers, enemies, shots;
-let spawned, spawnTimer, mode, spawnQueue, buildMode;
+let spawned, spawnTimer, mode, spawnQueue;
 let pointerPos = null; // last canvas pointer position, used for placement preview
 let selectedTower = null;
 let lastTime = 0;
@@ -224,6 +295,83 @@ let currentWave = 0; // 0 means not started yet
 let enemiesToSpawn, enemyHp, enemySpeed, waveReward;
 let waveActive = false;
 let lastPreviewWave = -1; // cached next-wave number rendered in the preview
+let soundContext = null;
+
+function getLevelWaveDef(waveNum, levelNum, runNum) {
+  const base = WAVE_DEFS[waveNum - 1];
+  if (!base) return null;
+  const activeRun = runNum || currentRun;
+  const countMultiplier = 1 + (levelNum - 1) * 0.045;
+  const composition = base.composition.map(entry => ({
+    type: entry.type,
+    count: Math.ceil(entry.count * countMultiplier)
+  }));
+  const standard = getScaledEnemyType("standard", levelNum, activeRun, waveNum);
+  return {
+    composition,
+    enemies: composition.reduce((total, entry) => total + entry.count, 0),
+    enemyHp: standard.hp,
+    enemySpeed: standard.speed,
+    reward: Math.round(base.reward * (1 + (levelNum - 1) * 0.06))
+  };
+}
+
+function getScaledEnemyType(typeId, levelNum, runNum, waveNum) {
+  const type = getEnemyType(typeId);
+  const activeRun = runNum || currentRun;
+  const activeWave = waveNum || 1;
+  const levelOffset = levelNum - 1;
+  const runMultiplier = 1 + (activeRun - 1) * 0.01;
+  const waveSpeedMultiplier = 1.10 * runMultiplier * (1 + (activeWave - 1) * 0.05);
+  return {
+    ...type,
+    hp: Number((type.hp * 1.5 * (1 + levelOffset * 0.12) * runMultiplier).toFixed(2)),
+    speed: Number((type.speed * (1 + levelOffset * 0.025) * waveSpeedMultiplier).toFixed(2)),
+    reward: Math.round(type.reward * (1 + levelOffset * 0.06))
+  };
+}
+
+function updateLevelHeading() {
+  const heading = $("levelTitle");
+  if (!heading) return;
+  const number = String(currentLevel).padStart(2, "0");
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v1.9.32";
+}
+
+function unlockSound() {
+  if (typeof window === "undefined") return;
+  const AudioContextType = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextType) return;
+  if (!soundContext) soundContext = new AudioContextType();
+  if (soundContext.state === "suspended") {
+    const resumeResult = soundContext.resume();
+    if (resumeResult && typeof resumeResult.catch === "function") {
+      resumeResult.catch(error => console.warn("Could not resume game audio:", error));
+    }
+  }
+}
+
+function playFireSound(towerType) {
+  if (!soundContext || soundContext.state !== "running") return;
+  const now = soundContext.currentTime;
+  const oscillator = soundContext.createOscillator();
+  const gain = soundContext.createGain();
+  const settings = {
+    archer: { frequency: 620, type: "triangle" },
+    cannon: { frequency: 150, type: "square" },
+    magic: { frequency: 880, type: "sine" }
+  }[towerType] || { frequency: 620, type: "triangle" };
+
+  oscillator.type = settings.type;
+  oscillator.frequency.setValueAtTime(settings.frequency, now);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(60, settings.frequency * 0.55), now + 0.07);
+  gain.gain.setValueAtTime(0.035, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+  oscillator.connect(gain);
+  gain.connect(soundContext.destination);
+  oscillator.start(now);
+  oscillator.stop(now + 0.085);
+}
 
 function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -235,11 +383,24 @@ function updateTowerPicker() {
   if (!picker || !picker.children) return;
   for (const btn of picker.children) {
     btn.classList.toggle("active", btn.dataset.type === selectedTowerType);
+    const tower = getTowerType(btn.dataset.type);
+    const canAfford = coins >= tower.cost;
+    const costLabel = btn.querySelector(".tcost");
+    btn.disabled = !canAfford || mode === "won" || mode === "lost";
+    btn.title = canAfford ? tower.cost + " coins" : "Need " + (tower.cost - coins) + " more coins";
+    if (costLabel) {
+      costLabel.textContent = canAfford ? tower.cost + " coins" : "Need " + (tower.cost - coins) + " more";
+    }
   }
 }
 
 function reset() {
-  coins = 100;
+  closeBuildMenu();
+  hidePanel();
+  currentLevelData = LEVELS[currentLevel - 1];
+  path = currentLevelData.path;
+  spots = currentLevelData.spots;
+  coins = 80;
   lives = 6;
   towers = [];
   enemies = [];
@@ -253,11 +414,14 @@ function reset() {
   mode = "ready";
   currentWave = 0;
   waveActive = false;
-  enemiesToSpawn = WAVE_DEFS[0].enemies;
-  enemyHp = WAVE_DEFS[0].enemyHp;
-  enemySpeed = WAVE_DEFS[0].enemySpeed;
-  waveReward = WAVE_DEFS[0].reward;
+  lastPreviewWave = -1;
+  const firstWave = getLevelWaveDef(1, currentLevel);
+  enemiesToSpawn = firstWave.enemies;
+  enemyHp = firstWave.enemyHp;
+  enemySpeed = firstWave.enemySpeed;
+  waveReward = firstWave.reward;
 
+  updateLevelHeading();
   $("status").textContent = "Build your defense!";
   $("startBtn").disabled = false;
   $("startBtn").textContent = "▶ Start Wave";
@@ -271,6 +435,7 @@ function reset() {
 function updateUI() {
   $("coins").textContent = coins;
   $("lives").textContent = lives;
+  updateTowerPicker();
   updateUpgradePanel();
   updateWaveInfo();
 }
@@ -285,7 +450,7 @@ function startWave() {
     return;
   }
 
-  const w = WAVE_DEFS[currentWave - 1];
+  const w = getLevelWaveDef(currentWave, currentLevel);
   enemiesToSpawn = w.enemies;
   enemyHp = w.enemyHp;
   enemySpeed = w.enemySpeed;
@@ -302,9 +467,9 @@ function startWave() {
 
   mode = "playing";
   waveActive = true;
-  buildMode = false;
   spawned = 0;
   spawnTimer = 0;
+  unlockSound();
 
   $("status").textContent = `Wave ${currentWave}: enemies incoming!`;
   $("startBtn").disabled = true;
@@ -312,11 +477,71 @@ function startWave() {
   updateUI();
 }
 
+function advanceLevel() {
+  if (mode !== "won" || currentLevel >= MAX_LEVEL) return;
+  currentLevel++;
+  reset();
+  $("status").textContent = "Level " + currentLevel + ": " + currentLevelData.name + ". Build your defense!";
+}
+
+function showRoundNotice(title, message, buttonText, campaignComplete) {
+  const overlay = $("roundOverlay");
+  if (!overlay) return;
+  overlay.classList.toggle("campaign-complete", campaignComplete === true);
+  $("roundTitle").textContent = title;
+  $("roundMessage").textContent = message;
+  $("roundContinue").textContent = buttonText;
+  overlay.hidden = false;
+  $("roundContinue").focus();
+}
+
+function closeRoundNotice() {
+  const overlay = $("roundOverlay");
+  if (!overlay) return;
+  overlay.hidden = true;
+  $("startBtn").focus();
+}
+
+function openNextRun() {
+  if (currentRun >= MAX_RUN) {
+    currentRun = 1;
+    currentLevel = 1;
+    reset();
+    $("status").textContent = "All 50 rounds complete. Campaign restarted at Round #1.";
+    showRoundNotice(
+      "👑 LEGENDARY DEFENDER!",
+      "50 rounds conquered! Your campaign begins anew at Round #1, with all 12 levels ahead and enemy difficulty reset to the Round #1 baseline. Ready to defend the realm again?",
+      "Continue to Round #1",
+      true
+    );
+    return;
+  }
+
+  currentRun++;
+  currentLevel = 1;
+  reset();
+  $("status").textContent = "Round #" + currentRun + " opened. Enemy speed and HP increased!";
+  showRoundNotice(
+    "Round #" + currentRun + " Opened!",
+    "All 12 levels are unlocked again. Enemy speed and HP are each increased by 1% for this round.",
+    "Start Round #" + currentRun
+  );
+}
+
+function handleStartButton() {
+  if (mode === "won") {
+    if (currentLevel < MAX_LEVEL) advanceLevel();
+    else openNextRun();
+    return;
+  }
+  startWave();
+}
+
 function addEnemy() {
   // Pick the next enemy type from the authoritative spawn queue. Fall back
   // to the standard archetype if the queue is empty or malformed.
   const typeKey = spawnQueue[spawned] || "standard";
-  const t = getEnemyType(typeKey);
+  const t = getScaledEnemyType(typeKey, currentLevel, currentRun, currentWave);
 
   enemies.push({
     x: path[0].x,
@@ -460,6 +685,7 @@ function update(dt) {
         speed: 220
       });
 
+      playFireSound(tower.type);
       tower.cooldown = tower.baseCooldown;
     }
   }
@@ -497,18 +723,20 @@ function update(dt) {
     waveActive = false;
     const lastWave = currentWave >= MAX_WAVE;
     mode = lastWave ? "won" : "ready";
-    if (!lastWave) {
-      coins += waveReward;
-    } else {
-      coins += waveReward;
-    }
+    coins += waveReward;
     updateUI();
     updateUpgradePanel();
     updateWaveInfo();
 
     if (lastWave) {
-      $("status").textContent = "🏆 All waves complete! +30 coins bonus";
-      $("startBtn").disabled = true;
+      if (currentLevel < MAX_LEVEL) {
+        $("status").textContent = "🏆 Level " + currentLevel + " complete! +" + waveReward + " coins";
+        $("startBtn").disabled = false;
+        $("startBtn").textContent = "▶ Next Level";
+      } else {
+        openNextRun();
+        return;
+      }
     } else {
       $("status").textContent = `Wave ${currentWave} complete! +${waveReward} coins`;
       $("startBtn").disabled = false;
@@ -517,12 +745,243 @@ function update(dt) {
   }
 }
 
+function drawPolygon(points, fillColor, strokeColor, lineWidth) {
+  ctx.beginPath();
+  ctx.moveTo(points[0][0], points[0][1]);
+  for (const point of points.slice(1)) {
+    ctx.lineTo(point[0], point[1]);
+  }
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  if (strokeColor) {
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = lineWidth || 1;
+    ctx.stroke();
+  }
+}
+
+function drawTowerIcon(x, y, type, selected) {
+  const tower = getTowerType(type);
+  const outline = selected ? "#fef08a" : "#0f172a";
+  const tile = [
+    [x - 8, y - 11], [x + 8, y - 11], [x + 11, y - 8],
+    [x + 11, y + 7], [x + 7, y + 11], [x - 7, y + 11],
+    [x - 11, y + 7], [x - 11, y - 8]
+  ];
+  drawPolygon(tile, "#1e293b", outline, selected ? 2 : 1.5);
+
+  if (tower.id === "archer") {
+    drawPolygon([[x - 6, y + 5], [x - 3, y - 4], [x + 4, y - 7], [x + 7, y - 4], [x + 4, y - 1], [x + 2, y + 6]], tower.color, "#bfdbfe", 1);
+    ctx.beginPath();
+    ctx.moveTo(x - 5, y - 1);
+    ctx.lineTo(x + 7, y - 1);
+    ctx.strokeStyle = "#f8fafc";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    drawPolygon([[x + 7, y - 3], [x + 10, y - 1], [x + 7, y + 1]], "#f8fafc");
+  } else if (tower.id === "cannon") {
+    ctx.beginPath();
+    ctx.moveTo(x - 4, y + 5);
+    ctx.lineTo(x + 4, y - 4);
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - 4, y + 5);
+    ctx.lineTo(x + 4, y - 4);
+    ctx.strokeStyle = tower.color;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    drawPolygon([[x + 1, y - 8], [x + 8, y - 1], [x + 5, y + 2], [x - 2, y - 5]], "#334155", "#cbd5e1", 1);
+    ctx.beginPath();
+    ctx.arc(x - 3, y + 6, 2, 0, Math.PI * 2);
+    ctx.fillStyle = tower.color;
+    ctx.fill();
+  } else {
+    drawPolygon([[x, y - 8], [x + 6, y - 2], [x + 4, y + 6], [x, y + 9], [x - 4, y + 6], [x - 6, y - 2]], tower.color, "#e9d5ff", 1);
+    drawPolygon([[x, y - 5], [x + 3, y - 1], [x, y + 5], [x - 3, y - 1]], "#f5d0fe");
+  }
+}
+
+function drawEnemyIcon(enemy) {
+  if (enemy.type === "runner") {
+    drawPolygon([
+      [enemy.x - 9, enemy.y - 6], [enemy.x - 2, enemy.y - 5],
+      [enemy.x + 2, enemy.y - 9], [enemy.x + 3, enemy.y - 4],
+      [enemy.x + 9, enemy.y], [enemy.x + 3, enemy.y + 4],
+      [enemy.x + 2, enemy.y + 9], [enemy.x - 2, enemy.y + 5],
+      [enemy.x - 9, enemy.y + 6], [enemy.x - 6, enemy.y]
+    ], enemy.color || "#f59e0b", "#78350f", 1.5);
+    ctx.beginPath();
+    ctx.moveTo(enemy.x - 4, enemy.y - 2);
+    ctx.lineTo(enemy.x - 1, enemy.y);
+    ctx.lineTo(enemy.x - 4, enemy.y + 2);
+    ctx.strokeStyle = "#451a03";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  } else if (enemy.type === "armored") {
+    drawPolygon([
+      [enemy.x, enemy.y - 9], [enemy.x + 8, enemy.y - 5],
+      [enemy.x + 7, enemy.y + 3], [enemy.x, enemy.y + 9],
+      [enemy.x - 7, enemy.y + 3], [enemy.x - 8, enemy.y - 5]
+    ], "#475569", "#cbd5e1", 2);
+    drawPolygon([
+      [enemy.x, enemy.y - 5], [enemy.x + 4, enemy.y - 3],
+      [enemy.x + 4, enemy.y + 2], [enemy.x, enemy.y + 6],
+      [enemy.x - 4, enemy.y + 2], [enemy.x - 4, enemy.y - 3]
+    ], enemy.color || "#64748b", "#94a3b8", 1);
+  } else {
+    drawPolygon([
+      [enemy.x - 8, enemy.y - 4], [enemy.x - 10, enemy.y - 9],
+      [enemy.x - 3, enemy.y - 7], [enemy.x, enemy.y - 10],
+      [enemy.x + 3, enemy.y - 7], [enemy.x + 10, enemy.y - 9],
+      [enemy.x + 8, enemy.y - 3], [enemy.x + 8, enemy.y + 4],
+      [enemy.x + 4, enemy.y + 8], [enemy.x - 4, enemy.y + 8],
+      [enemy.x - 8, enemy.y + 4]
+    ], enemy.color || "#ef4444", "#7f1d1d", 1.5);
+    for (const eyeX of [enemy.x - 3, enemy.x + 3]) {
+      ctx.beginPath();
+      ctx.arc(eyeX, enemy.y, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff7ed";
+      ctx.fill();
+    }
+  }
+}
+
+function drawMapLandmarks() {
+  const entrance = { x: -2, y: path[0].y };
+  const base = { x: path[path.length - 1].x, y: H - 12 };
+
+  // Gate marks where enemies enter the path.
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(entrance.x + 5, entrance.y - 12, 4, 24);
+  ctx.fillRect(entrance.x + 19, entrance.y - 12, 4, 24);
+  drawPolygon([
+    [entrance.x + 2, entrance.y - 10], [entrance.x + 7, entrance.y - 17],
+    [entrance.x + 12, entrance.y - 10], [entrance.x + 17, entrance.y - 17],
+    [entrance.x + 25, entrance.y - 10]
+  ], "#fbbf24", "#78350f", 2);
+  ctx.fillStyle = "#fde68a";
+  ctx.fillRect(entrance.x + 11, entrance.y - 5, 6, 10);
+  drawPolygon([
+    [entrance.x + 25, entrance.y - 5],
+    [entrance.x + 34, entrance.y],
+    [entrance.x + 25, entrance.y + 5]
+  ], "#fef3c7");
+
+  // Fortress marks the end of the route.
+  ctx.fillStyle = "#64748b";
+  ctx.fillRect(base.x - 12, base.y - 16, 24, 25);
+  ctx.fillRect(base.x - 17, base.y - 12, 7, 9);
+  ctx.fillRect(base.x + 10, base.y - 12, 7, 9);
+  drawPolygon([
+    [base.x - 14, base.y - 16], [base.x - 14, base.y - 22],
+    [base.x - 8, base.y - 22], [base.x - 8, base.y - 16],
+    [base.x - 3, base.y - 16], [base.x - 3, base.y - 24],
+    [base.x + 4, base.y - 24], [base.x + 4, base.y - 16],
+    [base.x + 9, base.y - 16], [base.x + 9, base.y - 22],
+    [base.x + 15, base.y - 22], [base.x + 15, base.y - 16]
+  ], "#94a3b8", "#334155", 1.5);
+  ctx.fillStyle = "#fbbf24";
+  ctx.fillRect(base.x - 3, base.y - 5, 6, 14);
+  ctx.fillStyle = "#fef3c7";
+  ctx.fillRect(base.x - 1, base.y - 3, 2, 2);
+}
+
+function pointSegmentDistance(point, start, end) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSquared = dx * dx + dy * dy;
+  const projection = lengthSquared === 0
+    ? 0
+    : Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared));
+  return distance(point, { x: start.x + projection * dx, y: start.y + projection * dy });
+}
+
+function isNearPath(point, clearance) {
+  return path.slice(1).some((end, index) => pointSegmentDistance(point, path[index], end) < clearance);
+}
+
+function drawThemeGround() {
+  const palettes = {
+    jungle: ["#2d7650", "#55a96a", "#f9a8d4"],
+    ocean: ["#25839a", "#69c9c4", "#b9f3f0"],
+    meadow: ["#6b9850", "#a3bb58", "#f9a8d4"],
+    desert: ["#c39555", "#e4c477", "#f8e3a1"],
+    autumn: ["#9b623c", "#c27d45", "#e7b95f"],
+    snow: ["#83aebd", "#c4e3e8", "#f8fbff"],
+    swamp: ["#526d49", "#819452", "#b2c478"],
+    volcano: ["#815145", "#b06a4d", "#ed9b5a"],
+    ruins: ["#92916a", "#bab184", "#e1d3a0"],
+    crystal: ["#6e83bc", "#91b5dc", "#d6bbfa"],
+    moon: ["#586d9a", "#8495bd", "#e2d3ff"],
+    canyon: ["#b1744e", "#d19a64", "#efc482"]
+  };
+  const palette = palettes[currentLevelData.theme] || palettes.jungle;
+  const [primary, secondary, detail] = palette;
+  let index = 0;
+
+  for (let row = 0; row < 11; row++) {
+    for (let column = 0; column < 9; column++) {
+      const point = {
+        x: 18 + column * 34 + (row % 2) * 9,
+        y: 17 + row * 33
+      };
+      if (point.x > W - 10 || point.y > H - 10 || isNearPath(point, 23) ||
+          spots.some(spot => distance(point, spot) < 19)) continue;
+
+      const size = 3 + (index % 3);
+      ctx.fillStyle = index % 2 ? primary : secondary;
+      if (currentLevelData.theme === "ocean" || currentLevelData.theme === "snow" ||
+          currentLevelData.theme === "moon") {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
+        ctx.fill();
+        if (currentLevelData.theme === "ocean") {
+          ctx.strokeStyle = detail;
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, size + 2, Math.PI, Math.PI * 1.8);
+          ctx.stroke();
+        }
+      } else if (currentLevelData.theme === "desert" || currentLevelData.theme === "canyon" ||
+                 currentLevelData.theme === "volcano" || currentLevelData.theme === "ruins") {
+        drawPolygon([
+          [point.x - size, point.y + size],
+          [point.x - size / 2, point.y - size],
+          [point.x + size, point.y - size / 2],
+          [point.x + size, point.y + size]
+        ], primary, detail, 0.6);
+      } else if (currentLevelData.theme === "crystal") {
+        drawPolygon([
+          [point.x, point.y - size * 1.5],
+          [point.x + size, point.y],
+          [point.x, point.y + size],
+          [point.x - size, point.y]
+        ], primary, detail, 0.7);
+      } else {
+        drawPolygon([
+          [point.x - size, point.y + size],
+          [point.x, point.y - size],
+          [point.x + size, point.y + size]
+        ], primary);
+        if (currentLevelData.theme === "meadow" || currentLevelData.theme === "autumn") {
+          ctx.fillStyle = detail;
+          ctx.beginPath();
+          ctx.arc(point.x, point.y - size, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      index++;
+    }
+  }
+}
+
 function draw() {
   ctx.clearRect(0, 0, W, H);
 
-  // Grass background
-  ctx.fillStyle = "#173c35";
+  ctx.fillStyle = currentLevelData.ground;
   ctx.fillRect(0, 0, W, H);
+  drawThemeGround();
 
   // Enemy path
   ctx.beginPath();
@@ -535,12 +994,14 @@ function draw() {
   ctx.lineWidth = 30;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  ctx.strokeStyle = "#9b896a";
+  ctx.strokeStyle = currentLevelData.road;
   ctx.stroke();
 
   ctx.lineWidth = 2;
-  ctx.strokeStyle = "#c6b99a";
+  ctx.strokeStyle = currentLevelData.roadEdge;
   ctx.stroke();
+
+  drawMapLandmarks();
 
   // Build spots
   for (const spot of spots) {
@@ -578,13 +1039,7 @@ function draw() {
       ctx.fillStyle = ok ? "rgba(96,165,250,0.10)" : "rgba(239,68,68,0.10)";
       ctx.fill();
 
-      ctx.beginPath();
-      ctx.arc(spot.x, spot.y, 13, 0, Math.PI * 2);
-      ctx.fillStyle = ok ? st.color + "cc" : "rgba(239,68,68,0.55)";
-      ctx.fill();
-      ctx.strokeStyle = ok ? "#4ade80" : "#f87171";
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      drawTowerIcon(spot.x, spot.y, selectedTowerType, false);
 
       if (!ok) {
         ctx.fillStyle = "#fca5a5";
@@ -596,10 +1051,8 @@ function draw() {
   }
 
 // Towers
-  for (const tower of towers) {
-    const tt = getTowerType(tower.type);
-
-    ctx.beginPath();
+for (const tower of towers) {
+  ctx.beginPath();
     ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(96,165,250,0.07)";
     ctx.fill();
@@ -612,46 +1065,20 @@ function draw() {
       ctx.stroke();
     }
 
-    ctx.beginPath();
-    ctx.arc(tower.x, tower.y, 12, 0, Math.PI * 2);
-    ctx.fillStyle = tt.color;
-    ctx.fill();
-    ctx.strokeStyle = selectedTower === tower ? "#fef08a" : "rgba(15,23,42,0.6)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Type glyph distinguishes tower types without relying on color alone.
-    ctx.fillStyle = "#0f172a";
-    ctx.font = "bold 10px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(tt.glyph, tower.x, tower.y + 1);
+    drawTowerIcon(tower.x, tower.y, tower.type, selectedTower === tower);
 
     if (tower.level > 1) {
       ctx.fillStyle = "#fef08a";
       ctx.font = "bold 10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillText(tower.level, tower.x, tower.y - 7);
     }
   }
 
   // Enemies and health bars
   for (const enemy of enemies) {
-    ctx.beginPath();
-    ctx.arc(enemy.x, enemy.y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = enemy.color || "#ef4444";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(15,23,42,0.55)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Type glyph distinguishes archetypes without relying on color alone.
-    if (enemy.glyph) {
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "bold 10px sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(enemy.glyph, enemy.x, enemy.y + 1);
-    }
+    drawEnemyIcon(enemy);
 
     ctx.fillStyle = "#451a1a";
     ctx.fillRect(enemy.x - 10, enemy.y - 15, 20, 3);
@@ -792,45 +1219,51 @@ function updateWaveInfo() {
   const wEl = $("waveInfo");
   if (!wEl) return;
   if (mode === "won") {
-    wEl.innerHTML = '<span class="preview-title">Wave: ' + MAX_WAVE + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(MAX_WAVE) + buildWaveStatsHtml(MAX_WAVE);
+    wEl.innerHTML = '<span class="preview-title">Wave: ' + MAX_WAVE + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(MAX_WAVE) + buildWaveStatsHtml(MAX_WAVE) + buildWaveCountHtml(MAX_WAVE);
     return;
   }
   if (mode === "lost") {
-    wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Lost)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave);
+    wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Lost)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave) + buildWaveCountHtml(currentWave);
     return;
   }
   if (waveActive) {
     const enemiesLeft = (enemiesToSpawn - spawned) + enemies.length;
-    const wd = currentWave >= 1 && currentWave <= MAX_WAVE ? WAVE_DEFS[currentWave - 1] : null;
-    const totalEnemies = wd ? wd.enemies : 0;
-    wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Active)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave) + '<span class="preview-line">' + totalEnemies + ' enemies · ' + enemiesLeft + ' left</span>';
+    wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Active)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave) + buildWaveCountHtml(currentWave, enemiesLeft);
   } else {
     if (currentWave === 0) {
-      wEl.innerHTML = '<span class="preview-title">Wave: 1/' + MAX_WAVE + ' (Pending)</span>' + buildWaveTypeHtml(1) + buildWaveStatsHtml(1);
+      wEl.innerHTML = '<span class="preview-title">Wave: 1/' + MAX_WAVE + ' (Pending)</span>' + buildWaveTypeHtml(1) + buildWaveStatsHtml(1) + buildWaveCountHtml(1);
     } else {
-      wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave);
+      wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave) + buildWaveCountHtml(currentWave);
     }
   }
   updateWavePreview();
 }
 
+function buildWaveCountHtml(waveNum, enemiesLeft) {
+  const wd = getLevelWaveDef(waveNum, currentLevel);
+  if (!wd) return "";
+  const remaining = enemiesLeft === undefined ? "" : " · " + enemiesLeft + " left";
+  return '<span class="preview-line">' + wd.enemies + ' enemies' + remaining + '</span>';
+}
+
 // Builds the per-type enemy breakdown HTML spans (colored glyphs like the wave preview)
 // for a given wave number, e.g. <span class="preview-line" style="color:#ef4444">● Standard 6</span>.
 function buildWaveTypeHtml(waveNum) {
-  const wd = WAVE_DEFS[waveNum - 1];
+  const wd = getLevelWaveDef(waveNum, currentLevel);
   if (!wd) return "";
-  return wd.composition.map(function(entry) {
-    const t = getEnemyType(entry.type);
-    return '<span class="preview-line" style="color:' + t.color + '">' + t.glyph + ' ' + t.name + ' ' + entry.count + '</span>';
+  const counts = Object.create(null);
+  for (const entry of wd.composition) counts[entry.type] = entry.count;
+  return Object.keys(ENEMY_TYPES).map(function(type) {
+    const t = ENEMY_TYPES[type];
+    return '<span class="preview-line" style="color:' + t.color + '">' + t.glyph + ' ' + t.name + ' ' + (counts[type] || 0) + '</span>';
   }).join('');
 }
 
-// Builds the enemy stats HTML span (HP / speed / reward like the wave preview)
-// for a given wave number, e.g. <span class="preview-line">❤️ 35 HP · ⚡ 28 · 💰 Reward 40</span>.
+// Builds compact HP, speed, and reward details for both wave panels.
 function buildWaveStatsHtml(waveNum) {
-  const wd = WAVE_DEFS[waveNum - 1];
+  const wd = getLevelWaveDef(waveNum, currentLevel);
   if (!wd) return "";
-  return '<span class="preview-line">❤️ ' + wd.enemyHp + ' HP · ⚡ ' + wd.enemySpeed + ' · 💰 Reward ' + wd.reward + '</span>';
+  return '<span class="preview-line">❤️ ' + wd.enemyHp.toFixed(1) + ' HP · ⚡ ' + wd.enemySpeed.toFixed(1) + ' · 💰 ' + wd.reward + '</span>';
 }
 
 function loop(time) {
@@ -849,7 +1282,7 @@ function getNextWaveDef() {
   if (mode === "won" || mode === "lost") return null;
   const nextW = (currentWave === 0) ? 1 : currentWave + 1;
   if (nextW > MAX_WAVE) return null;
-  return WAVE_DEFS[nextW - 1];
+  return getLevelWaveDef(nextW, currentLevel);
 }
 
 // Renders a compact preview of the next wave into the preview panel.
@@ -876,19 +1309,16 @@ function updateWavePreview() {
   lastPreviewWave = nextW;
 
   // Per-type composition lines, derived from the authoritative composition.
-  const typeLines = w.composition.map(entry => {
-    const t = getEnemyType(entry.type);
-    return '<span class="preview-line" style="color:' + t.color + '">' + t.glyph + ' ' + t.name + ' ' + entry.count + '</span>';
-  }).join('');
-
   previewEl.innerHTML =
-    '<span class="preview-title">Next: Wave ' + nextW + '/' + MAX_WAVE + ' (' + w.enemies + ')</span>' +
-    typeLines +
-    '<span class="preview-line">❤️ ' + w.enemyHp + ' HP · ⚡ ' + w.enemySpeed + ' · 💰 Reward ' + w.reward + '</span>';
+    '<span class="preview-title">Next: Wave ' + nextW + '/' + MAX_WAVE + '</span>' +
+    buildWaveTypeHtml(nextW) +
+    buildWaveStatsHtml(nextW) +
+    buildWaveCountHtml(nextW);
 }
 
-$("startBtn").addEventListener("click", startWave);
+$("startBtn").addEventListener("click", handleStartButton);
 $("restartBtn").addEventListener("click", reset);
+$("roundContinue").addEventListener("click", closeRoundNotice);
 
 canvas.addEventListener("pointerdown", event => {
   const rect = canvas.getBoundingClientRect();
@@ -907,7 +1337,16 @@ canvas.addEventListener("pointerdown", event => {
     return;
   }
 
-  // Tapping empty canvas places a tower directly on a valid green spot.
+  // Tapping an empty green spot opens the tower chooser for that location.
+  const buildSpot = spots.find(s => distance(s, { x, y }) < 20);
+  if (buildSpot) {
+    selectedTower = null;
+    hidePanel();
+    updateUpgradePanel();
+    showBuildMenu(buildSpot);
+    return;
+  }
+
   selectedTower = null;
   updateUpgradePanel();
   placeTower(x, y);
@@ -946,9 +1385,10 @@ if (targetingPickerEl) {
 $("towerPicker").addEventListener("click", event => {
   const btn = event.target.closest ? event.target.closest("button[data-type]") : null;
   if (!btn) return;
+  const buildSpot = pendingBuildSpot;
+  closeBuildMenu();
   selectTowerType(btn.dataset.type);
-  const t = getTowerType(selectedTowerType);
-  $("status").textContent = t.name + " selected (" + t.cost + " coins). Tap a green spot.";
+  if (buildSpot) placeTower(buildSpot.x, buildSpot.y);
 });
 
 // Dismiss the upgrade popup via its close button, backdrop, or Escape key.
@@ -958,19 +1398,33 @@ const panelOverlay = $("panelOverlay");
 if (panelOverlay) {
   panelOverlay.addEventListener("pointerdown", event => {
     // Guarded so non-DOM contexts (deterministic test harness) never crash.
-    if (event.target && typeof event.target.closest === "function" && event.target.closest("#upgradePanel")) return; // panel content tap
-    hidePanel(); // backdrop or canvas area tap
+    if (event.target && typeof event.target.closest === "function" && event.target.closest("#upgradePanel, #buildPanel")) return; // panel content tap
+    if (buildMenuOpen) closeBuildMenu();
+    else hidePanel();
   });
 }
 const panelCloseBtn = $("panelClose");
 if (panelCloseBtn) {
   panelCloseBtn.addEventListener("click", hidePanel);
 }
+const buildCloseBtn = $("buildClose");
+if (buildCloseBtn) buildCloseBtn.addEventListener("click", closeBuildMenu);
+const buildCancelBtn = $("buildCancel");
+if (buildCancelBtn) buildCancelBtn.addEventListener("click", closeBuildMenu);
 // Escape dismisses the popup when a tower is selected. Guarded so non-DOM
 // contexts (deterministic test harness) never crash here.
 // Keyboard shortcuts: 1/2/3 select tower type, Space starts wave, R restarts.
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
   document.addEventListener("keydown", event => {
+    if (!$("roundOverlay").hidden) {
+      if (event.key === "Escape") closeRoundNotice();
+      else event.preventDefault();
+      return;
+    }
+    if (event.key === "Escape" && buildMenuOpen) {
+      closeBuildMenu();
+      return;
+    }
     if (event.key === "Escape" && selectedTower) {
       hidePanel();
       return;

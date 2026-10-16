@@ -14,11 +14,11 @@
     <header class="header">
       <div>
         <h1>myTowerDef</h1>
-        <p>LEVEL 01 · FIRST DEFENSE · v1.9.23</p>
+        <p id="levelTitle">ROUND #1 · LEVEL 01 · FIRST DEFENSE · v1.9.32</p>
       </div>
       <div class="stats">
-        <span>💰 <b id="coins">60</b></span>
-        <span>❤️ <b id="lives">10</b></span>
+        <span>💰 <b id="coins">80</b></span>
+        <span>❤️ <b id="lives">6</b></span>
       </div>
     </header>
 
@@ -26,8 +26,8 @@
     <div id="wavePanel" class="wave-panel">
       <div class="wave-info-row">
         <div id="waveInfo" class="wave-info">Wave: 1/3 (Pending)</div>
+        <div id="wavePreview" class="wave-preview"></div>
       </div>
-      <div id="wavePreview" class="wave-preview"></div>
     </div>
 
 <canvas id="game" aria-label="Tower defense game" width="300" height="360"></canvas>
@@ -66,12 +66,26 @@
         </div>
         <div id="upgradeMsg" class="upgrade-msg"></div>
       </section>
+      <section id="buildPanel" class="upgrade-panel build-panel" role="dialog" aria-modal="true" aria-labelledby="buildTitle" hidden>
+        <div class="upgrade-header">
+          <h2 id="buildTitle">Choose a tower</h2>
+          <button id="buildClose" class="panel-close" aria-label="Close tower menu" title="Close">✕</button>
+        </div>
+        <div id="towerPicker" class="tower-picker" role="group" aria-label="Tower types">
+          <button type="button" data-type="archer" class="active"><span class="tname">Archer</span><span class="tcost">50 coins</span></button>
+          <button type="button" data-type="cannon"><span class="tname">Cannon</span><span class="tcost">80 coins</span></button>
+          <button type="button" data-type="magic"><span class="tname">Magic</span><span class="tcost">80 coins</span></button>
+        </div>
+        <button id="buildCancel" class="secondary">Cancel</button>
+      </section>
     </div>
 
-    <div id="towerPicker" class="tower-picker">
-      <button data-type="archer" class="active"><span class="tname">Arch</span><span class="tcost">50</span></button>
-      <button data-type="cannon"><span class="tname">Cannon</span><span class="tcost">90</span></button>
-      <button data-type="magic"><span class="tname">Magic</span><span class="tcost">80</span></button>
+    <div id="roundOverlay" class="round-overlay" hidden>
+      <section class="round-dialog" role="dialog" aria-modal="true" aria-labelledby="roundTitle" aria-describedby="roundMessage">
+        <h2 id="roundTitle">Round Opened</h2>
+        <p id="roundMessage"></p>
+        <button id="roundContinue" type="button">Continue</button>
+      </section>
     </div>
 
     <section class="controls">
@@ -80,7 +94,7 @@
     </section>
 
     <p class="hint">
-      Pick a tower type, then tap a green spot to place it. Tap an existing
+      Tap a green spot and choose a tower to place it. Tap an existing
       tower to select and upgrade it, or sell it for a full refund.
       Defend your base!
     </p>

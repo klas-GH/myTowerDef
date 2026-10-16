@@ -1,18 +1,21 @@
-Quick Guide - myTowerDef v1.9.23
+Quick Guide - myTowerDef v1.9.32
 
 1. Run it
 Save files in same folder. Open index.html in browser.
 If local files blocked, use VS Code Live Server.
 
 2. How to play
-- Pick a tower type (Archer 50, Cannon 90, Magic 80) from the picker.
-- Tap a green spot on the field to place it.
+- Tap a green spot, then choose Archer (50), Cannon (80), or Magic (80) from the popup. Start with 80 coins, enough for any tower.
 - Tap an existing tower to select and upgrade it, or Sell it for a full refund.
 - Tap Start Wave to begin.
 - Targeting: tap a tower to select it, then change its target priority (First, Strongest, Fastest, Nearest) on the upgrade panel. Free to change; affects which enemy it attacks next.
 - The wave panel shows the next wave's enemy types and counts before you start it.
 - Enemy types: Standard (red), Runner (fast, low HP), Armored (slow, high HP).
 - Defend base with 6 starting lives. Survive all waves to win (+coins per wave).
+- Clear all 3 waves to move to the next level. There are 12 maps, and enemy strength increases with each level.
+- Tower firing sounds are enabled after you start the first wave.
+- Enemies begin with 50% more HP and 10% more speed; speed increases another 5% each wave.
+- Finish all 12 levels to open a new round. Enemy HP and speed increase by 1% each round, with a popup announcing the change. After 50 rounds, a special victory popup celebrates your run and announces the restart at Round #1.
 - Restart to play again.
 
 3. Notes

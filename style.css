@@ -77,17 +77,14 @@ h1 {
   font-weight: 600;
 }
 
-.next-wave-info {
-  color: #94a3b8;
-}
-
 .wave-preview {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  margin: 2px 0 0 36px;
-  padding-top: 4px;
-  border-top: 1px dashed #334155;
+  min-width: 0;
+  margin: 0;
+  padding-left: 8px;
+  border-left: 1px dashed #334155;
   font-size: 11px;
   line-height: 1.4;
 }
@@ -109,21 +106,39 @@ h1 {
   color: #94a3b8;
 }
 
-/* Wave panel info row: current wave only */
+/* Keep current-wave details and the next-wave preview side by side. */
 .wave-info-row {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   align-items: stretch;
 }
 
+.wave-info,
+.wave-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
 .wave-info {
-  flex: 1;
   min-width: 0;
   white-space: normal;
   overflow-wrap: break-word;
   word-wrap: break-word;
   font-weight: 600;
+}
+
+.wave-info > span {
+  display: block;
+}
+
+.wave-info .preview-title,
+.wave-preview .preview-title {
+  font-size: 12px;
 }
 
 /* ---- Upgrade panel as a context-style popup over the canvas ---- */
@@ -143,12 +158,69 @@ h1 {
   display: none;
 }
 
+#roundOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 6, 23, 0.72);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+#roundOverlay[hidden] {
+  display: none;
+}
+
+.round-dialog {
+  width: min(360px, 100%);
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #475569;
+  border-radius: 16px;
+  background: linear-gradient(150deg, #1e293b, #111827 75%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
+}
+
+.campaign-complete .round-dialog {
+  border-color: #fbbf24;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.22), transparent 68%),
+    linear-gradient(150deg, #292315, #111827 78%);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.18), 0 22px 70px rgba(245, 158, 11, 0.22);
+}
+
+.round-dialog h2 {
+  margin: 0 0 10px;
+  color: #fde68a;
+  font-size: 22px;
+}
+
+.campaign-complete .round-dialog h2 {
+  color: #fcd34d;
+  text-shadow: 0 0 18px rgba(251, 191, 36, 0.45);
+}
+
+.round-dialog p {
+  margin: 0 0 16px;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.upgrade-panel[hidden] {
+  display: none;
+}
+
 #panelBackdrop {
   position: absolute;
   inset: 0;
 }
 
-#upgradePanel {
+.upgrade-panel {
   position: relative;
   z-index: 1;
   width: min(340px, 92vw);
@@ -160,6 +232,18 @@ h1 {
   border-radius: 14px;
   background: #111827;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+
+.build-panel {
+  display: block;
+}
+
+.build-panel .tower-picker {
+  margin: 10px 0;
+}
+
+.build-panel .tower-picker button {
+  min-height: 52px;
 }
 
 .panel-close {
@@ -243,6 +327,11 @@ canvas {
   color: white;
 }
 
+.tower-picker button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 button {
   min-height: 48px;
   padding: 10px 6px;
@@ -269,6 +358,108 @@ button.secondary {
 button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+@media (max-height: 900px) {
+  body {
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .header p {
+    margin-top: 2px;
+    font-size: 9px;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .stats {
+    flex-shrink: 0;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .status {
+    margin: 8px 0 6px;
+    padding: 5px 9px;
+    font-size: 12px;
+  }
+
+  .wave-panel {
+    margin: 4px 0 4px;
+    padding: 4px 8px;
+  }
+
+  .wave-info-row {
+    gap: 6px;
+  }
+
+  .wave-info,
+  .wave-preview {
+    padding-left: 6px;
+    font-size: 10px;
+    line-height: 1.1;
+  }
+
+  .wave-info {
+    padding-left: 0;
+  }
+
+  .wave-info .preview-title,
+  .wave-preview .preview-title {
+    font-size: 11px;
+  }
+
+  canvas {
+    width: auto;
+    height: min(440px, max(180px, calc(102dvh - 295px)));
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  .tower-picker {
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .tower-picker button {
+    min-height: 36px;
+    padding: 3px 4px;
+  }
+
+  .controls {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .controls button {
+    min-height: 40px;
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+
+  .hint {
+    margin: 6px 0 0;
+    font-size: 10px;
+    line-height: 1.3;
+  }
+}
+
+@media (max-height: 640px) {
+  .wave-info,
+  .wave-preview {
+    font-size: 9px;
+    line-height: 1.05;
+  }
+
+  .wave-info .preview-title,
+  .wave-preview .preview-title {
+    font-size: 10px;
+  }
 }
 
 .hint {

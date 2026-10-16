@@ -15,9 +15,9 @@ vm.createContext(ctx);
 vm.runInContext(js,ctx);
 
 function assert(name,cond){ if(!cond) throw new Error('FAIL '+name); console.log('OK',name); }
-assert('init_coins', String(coins.textContent).trim()==='100');
+assert('init_coins', String(coins.textContent).trim()==='80');
 assert('init_lives', String(lives.textContent).trim()==='6');
 assert('init_status', String(status.textContent).trim()==='Build your defense!');
 if(typeof ctx.reset==='function') ctx.reset();
-assert('reset_ok', String(coins.textContent).trim()==='100' && String(lives.textContent).trim()==='6');
+assert('reset_ok', String(coins.textContent).trim()==='80' && String(lives.textContent).trim()==='6');
 console.log('SMOKE_OK');

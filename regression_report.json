@@ -1,20 +1,20 @@
 {
-  "ts": "2026-10-16T11:06:51.834Z",
+  "ts": "2026-10-16T18:46:23.469Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 3865
+      "size": 4814
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 32903
+      "size": 51260
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 5997
+      "size": 9155
     },
     {
       "name": "manifest.json",
@@ -29,12 +29,12 @@
     {
       "name": "quick_Guide.txt",
       "exists": true,
-      "size": 975
+      "size": 1486
     },
     {
       "name": "README.md",
       "exists": true,
-      "size": 884
+      "size": 1476
     },
     {
       "name": "icon.svg",
@@ -49,6 +49,38 @@
     },
     {
       "name": "html_utf8_emojis",
+      "ok": true
+    },
+    {
+      "name": "wave_panels_share_row",
+      "ok": true
+    },
+    {
+      "name": "wave_panels_use_two_columns",
+      "ok": true
+    },
+    {
+      "name": "wave_info_lines_are_separate",
+      "ok": true
+    },
+    {
+      "name": "affordable_tower_buttons_disable",
+      "ok": true
+    },
+    {
+      "name": "build_menu_contains_tower_picker",
+      "ok": true
+    },
+    {
+      "name": "build_spot_opens_menu",
+      "ok": true
+    },
+    {
+      "name": "short_display_layout",
+      "ok": true
+    },
+    {
+      "name": "short_display_compact_header",
       "ok": true
     },
     {
@@ -280,19 +312,67 @@
       "ok": true
     },
     {
-      "name": "html_v1923",
+      "name": "html_v1932_round_modal",
       "ok": true
     },
     {
-      "name": "manifest_v1923",
+      "name": "manifest_v1932",
       "ok": true
     },
     {
-      "name": "sw_v1923",
+      "name": "sw_v1932",
       "ok": true
     },
     {
-      "name": "docs_v1923",
+      "name": "docs_v1932",
+      "ok": true
+    },
+    {
+      "name": "twelve_unique_level_maps",
+      "ok": true
+    },
+    {
+      "name": "coral_bay_build_spots_clear_road",
+      "ok": true
+    },
+    {
+      "name": "level_wave_composition_scales",
+      "ok": true
+    },
+    {
+      "name": "enemy_stats_scale_by_level",
+      "ok": true
+    },
+    {
+      "name": "base_difficulty_bonuses_applied",
+      "ok": true
+    },
+    {
+      "name": "speed_increases_each_wave",
+      "ok": true
+    },
+    {
+      "name": "enemy_stats_increase_each_round",
+      "ok": true
+    },
+    {
+      "name": "next_level_button_advances_and_resets",
+      "ok": true
+    },
+    {
+      "name": "spawned_enemy_uses_level_stats",
+      "ok": true
+    },
+    {
+      "name": "round_two_opens_with_notice",
+      "ok": true
+    },
+    {
+      "name": "round_two_difficulty_and_coins_reset",
+      "ok": true
+    },
+    {
+      "name": "round_50_resets_to_baseline_round_one",
       "ok": true
     },
     {
@@ -300,13 +380,13 @@
       "ok": true
     },
     {
-      "name": "wave_preview_shifted_right",
+      "name": "wave_preview_side_border",
       "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 65,
-    "passed": 65
+    "total": 85,
+    "passed": 85
   }
 }

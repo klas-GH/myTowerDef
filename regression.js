@@ -22,6 +22,14 @@ const panelHtml = read('index.html');
 
 report.checks.push({name:'html_has_ids', ok: !!html && ['coins','lives','startBtn','restartBtn','game','wavePreview'].every(id=>html.includes('id="'+id+'"')||html.includes("id='"+id+"'"))});
 report.checks.push({name:'html_utf8_emojis', ok: !!html && html.includes('💰') && html.includes('❤️') && html.includes('▶') && html.includes('↻')});
+report.checks.push({name:'wave_panels_share_row', ok: !!html && /class="wave-info-row">[\s\S]*id="waveInfo"[\s\S]*id="wavePreview"[\s\S]*<\/div>\s*<\/div>/.test(html)});
+report.checks.push({name:'wave_panels_use_two_columns', ok: !!css && css.includes('grid-template-columns: repeat(2, minmax(0, 1fr))')});
+report.checks.push({name:'wave_info_lines_are_separate', ok: !!css && css.includes('.wave-info > span') && css.includes('display: block;')});
+report.checks.push({name:'affordable_tower_buttons_disable', ok: !!js && js.includes('btn.disabled = !canAfford || mode === "won" || mode === "lost"')});
+report.checks.push({name:'build_menu_contains_tower_picker', ok: !!html && /id="buildPanel"[\s\S]*id="towerPicker"[\s\S]*data-type="archer"[\s\S]*data-type="cannon"[\s\S]*data-type="magic"/.test(html)});
+report.checks.push({name:'build_spot_opens_menu', ok: !!js && js.includes('showBuildMenu(buildSpot)') && js.includes('placeTower(buildSpot.x, buildSpot.y)')});
+report.checks.push({name:'short_display_layout', ok: !!css && css.includes('@media (max-height: 900px)') && css.includes('height: min(440px, max(180px, calc(102dvh - 295px)))')});
+report.checks.push({name:'short_display_compact_header', ok: !!css && css.includes('font-size: 9px;') && css.includes('font-size: 12px;')});
 
 
 
@@ -33,7 +41,17 @@ report.checks.push({name:'html_utf8_emojis', ok: !!html && html.includes('💰')
 const jsSource = read('game.js');
 
 function makeEl(id){
-  return { id: id, textContent: '', innerHTML: '', disabled: false, style: {}, addEventListener: ()=>{} };
+  const classNames = new Set();
+  return {
+    id: id, textContent: '', innerHTML: '', disabled: false, hidden: true, style: {}, focus: ()=>{}, addEventListener: ()=>{},
+    classList: {
+      toggle(name, force) {
+        if (force) classNames.add(name);
+        else classNames.delete(name);
+      },
+      contains(name) { return classNames.has(name); }
+    }
+  };
 }
 const els = {};
 function makeGetById(id){
@@ -54,7 +72,7 @@ const doc = { querySelector, getElementById: makeGetById };
 const raf = ()=>{};
 const ctx = { document: doc, window: { requestAnimationFrame: raf }, requestAnimationFrame: raf, console: console };
 vm.createContext(ctx);
-vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, get panelOpen(){return panelOpen;}}', ctx);
+vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}}', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -69,11 +87,11 @@ function assertEq(name, actual, expected){
 assertEq('init_currentWave', ctx.__api.currentWave, 0);
 assertEq('init_mode', ctx.__api.mode, 'ready');
 assertEq('init_waveActive', ctx.__api.waveActive, false);
-assertEq('init_coins', ctx.__api.coins, 100);
+assertEq('init_coins', ctx.__api.coins, 80);
 assertEq('init_lives', ctx.__api.lives, 6);
 assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
-assertEq('init_enemyHp', ctx.__api.enemyHp, 35);
-assertEq('init_enemySpeed', ctx.__api.enemySpeed, 28);
+assertEq('init_enemyHp', ctx.__api.enemyHp, 52.5);
+assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
 
 // Wave definitions used by spawning must match the previewed values.
@@ -92,15 +110,19 @@ assertEq('wave3_reward', ctx.__api.WAVE_DEFS[2].reward, 60);
 assertEq('max_wave', ctx.__api.MAX_WAVE, 3);
 
 // getNextWaveDef derives from the authoritative wave definitions.
-assert('nextWaveDef_wave1', ctx.__api.getNextWaveDef() === ctx.__api.WAVE_DEFS[0]);
+assert('nextWaveDef_wave1', JSON.stringify(ctx.__api.getNextWaveDef()) === JSON.stringify(ctx.__api.getLevelWaveDef(1, 1, 1)));
 // updateWavePreview renders the next-wave preview from the authoritative defs.
 ctx.__api.updateWaveInfo();
 const previewEl = els.wavePreview;
 assert('preview_rendered_wave1', previewEl.innerHTML.includes('Next: Wave 1/3'));
-assert('preview_hp_wave1', previewEl.innerHTML.includes('35') && previewEl.innerHTML.includes('HP'));
-assert('preview_speed_wave1', previewEl.innerHTML.includes('28'));
+assert('preview_hp_wave1', previewEl.innerHTML.includes('52.5') && previewEl.innerHTML.includes('HP'));
+assert('preview_speed_wave1', previewEl.innerHTML.includes('30.8'));
 assert('preview_enemies_wave1', previewEl.innerHTML.includes('8'));
 assert('preview_reward_wave1', previewEl.innerHTML.includes('30'));
+assert('current_wave1_shows_enemy_type', els.waveInfo.innerHTML.includes('Standard'));
+assert('current_wave1_shows_enemy_count', els.waveInfo.innerHTML.includes('8 enemies'));
+assert('current_wave1_shows_zero_runner_and_armored', els.waveInfo.innerHTML.includes('Runner 0') && els.waveInfo.innerHTML.includes('Armored 0'));
+assert('next_wave1_shows_zero_runner_and_armored', previewEl.innerHTML.includes('Runner 0') && previewEl.innerHTML.includes('Armored 0'));
 
 // Start wave 1 and confirm the preview updates to wave 2.
 ctx.__api.startWave();
@@ -112,6 +134,13 @@ assert('preview_hp_wave2', previewEl.innerHTML.includes('Standard'));
 assert('preview_speed_wave2', previewEl.innerHTML.includes('Runner'));
 assert('preview_enemies_wave2', previewEl.innerHTML.includes('10'));
 assert('preview_reward_wave2', previewEl.innerHTML.includes('40'));
+assert('current_wave2_shows_all_enemy_types', els.waveInfo.innerHTML.includes('Standard') && els.waveInfo.innerHTML.includes('Runner') && els.waveInfo.innerHTML.includes('Armored 0'));
+assert('next_wave2_shows_all_enemy_types', previewEl.innerHTML.includes('Standard') && previewEl.innerHTML.includes('Runner') && previewEl.innerHTML.includes('Armored 0'));
+els.panelOverlay.hidden = true;
+ctx.__api.showBuildMenu({x:195,y:85});
+ctx.__api.updateUpgradePanel();
+assert('active_wave_build_menu_stays_open', ctx.__api.buildMenuOpen && els.panelOverlay.hidden === false);
+ctx.__api.closeBuildMenu();
 
 // Completing wave 1 -> wave 2 preview, then wave 3 preview.
 ctx.__api.currentWave = 1;
@@ -120,6 +149,7 @@ ctx.__api.spawned = ctx.__api.enemiesToSpawn;
 ctx.__api.enemies = [];
 ctx.__api.mode = 'ready';
 ctx.__api.updateWaveInfo();
+assert('current_wave2_shows_both_enemy_types', els.waveInfo.innerHTML.includes('Standard') && els.waveInfo.innerHTML.includes('Runner'));
 assert('preview_after_complete_wave2', previewEl.innerHTML.includes('Next: Wave 2/3'));
 
 ctx.__api.currentWave = 2;
@@ -127,6 +157,7 @@ ctx.__api.currentWave = 2;
   ctx.__api.enemies = [];
   ctx.__api.mode = 'ready';
   ctx.__api.updateWaveInfo();
+  assert('current_wave3_shows_all_enemy_types', els.waveInfo.innerHTML.includes('Standard') && els.waveInfo.innerHTML.includes('Armored') && els.waveInfo.innerHTML.includes('Runner'));
   const wave3PreviewHtml = previewEl.innerHTML;
   assert('preview_after_complete_wave3', wave3PreviewHtml.includes('Next: Wave 3/3'));
   assert('preview_hp_wave3', wave3PreviewHtml.includes('Armored'));
@@ -138,7 +169,7 @@ ctx.__api.reset();
 assertEq('after_reset_currentWave', ctx.__api.currentWave, 0);
 assertEq('after_reset_mode', ctx.__api.mode, 'ready');
 assertEq('after_reset_waveActive', ctx.__api.waveActive, false);
-assertEq('after_reset_coins', ctx.__api.coins, 100);
+assertEq('after_reset_coins', ctx.__api.coins, 80);
 assertEq('after_reset_lives', ctx.__api.lives, 6);
 ctx.__api.updateWaveInfo();
 assert('preview_after_reset_wave1', els.wavePreview.innerHTML.includes('Next: Wave 1/3'));
@@ -268,6 +299,7 @@ const multiTypePreview = wave3Preview;
 
 // Repeated placement across distinct spots works and charges once each.
   ctx.__api.reset();
+  ctx.__api.coins = 100;
   ctx.__api.placeTower(100, 80);
   ctx.__api.placeTower(195, 85);
   assert('two_placements_create_two_towers', ctx.__api.towers.length === 2);
@@ -292,7 +324,7 @@ const multiTypePreview = wave3Preview;
   ctx.__api.waveActive = true;
   ctx.__api.coins = 100;
   ctx.__api.placeTower(100, 80);
-  const waveRejected = ctx.__api.towers.length === 0;
+  const waveAllowed = ctx.__api.towers.length === 1 && ctx.__api.coins === 50;
   ctx.__api.reset();
   ctx.__api.mode = 'won';
   ctx.__api.placeTower(100, 80);
@@ -306,10 +338,11 @@ const multiTypePreview = wave3Preview;
   ctx.__api.placeTower(100, 80);
   const selectNoPlace = ctx.__api.towers.length === 1;
   ctx.__api.reset();
+  ctx.__api.coins = 100;
   ctx.__api.placeTower(100, 80);
   ctx.__api.placeTower(195, 85);
   ctx.__api.reset();
-  const restartClears = ctx.__api.towers.length === 0 && ctx.__api.coins === 100;
+  const restartClears = ctx.__api.towers.length === 0 && ctx.__api.coins === 80;
 
 
 // ---- v1.8.0 strategic tower variety tests ----
@@ -318,6 +351,7 @@ assert('tower_has_archer', !!tt.archer && tt.archer.cost > 0 && tt.archer.damage
 assert('tower_has_cannon', !!tt.cannon && tt.cannon.cost > 0 && tt.cannon.damage > 0 && tt.cannon.range > 0 && tt.cannon.cooldown > 0);
 assert('tower_has_magic', !!tt.magic && tt.magic.cost > 0 && tt.magic.damage > 0 && tt.magic.range > 0 && tt.magic.cooldown > 0);
 assert('tower_archer_is_baseline', tt.archer.damage === 20 && tt.archer.range === 85 && tt.archer.cost === 50);
+assert('starting_coins_afford_every_tower', ctx.__api.coins === 80 && Object.keys(tt).every(type => tt[type].cost <= ctx.__api.coins));
 assert('tower_cannon_heavy', tt.cannon.damage > tt.archer.damage);
 assert('tower_magic_long_range', tt.magic.range > tt.archer.range);
 assert('tower_cannon_slower', tt.cannon.cooldown > tt.archer.cooldown);
@@ -328,6 +362,7 @@ assert('selected_tower_type_set', ctx.__api.selectedTowerType === 'cannon');
 
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 100;
 ctx.__api.placeTower(100, 80);
 assert('cannon_placement_succeeds', ctx.__api.towers.length === 1);
 assertEq('cannon_placement_cost', ctx.__api.coins, 100 - tt.cannon.cost);
@@ -368,6 +403,7 @@ assert('restart_clears_towers', ctx.__api.towers.length === 0);
 for (const key of ['archer', 'cannon', 'magic']) {
   ctx.__api.reset();
   ctx.__api.selectedTowerType = key;
+  ctx.__api.coins = 150;
   const before = ctx.__api.coins;
   ctx.__api.placeTower(100, 80);
   assert('purchase_deducts_exact_' + key, ctx.__api.coins === before - tt[key].cost);
@@ -377,14 +413,15 @@ for (const key of ['archer', 'cannon', 'magic']) {
 // Insufficient-funds rejection for the most expensive tower.
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
-ctx.__api.coins = 89;
+ctx.__api.coins = 79;
 ctx.__api.placeTower(100, 80);
-assert('cannon_insufficient_at_89', ctx.__api.towers.length === 0 && ctx.__api.coins === 89);
+assert('cannon_insufficient_at_79', ctx.__api.towers.length === 0 && ctx.__api.coins === 79);
 
 // Sell refunds are consistent across tower types and upgrade levels.
 for (const key of ['archer', 'cannon', 'magic']) {
   ctx.__api.reset();
   ctx.__api.selectedTowerType = key;
+  ctx.__api.coins = 150;
   ctx.__api.placeTower(100, 80);
   const t = ctx.__api.towers[0];
   ctx.__api.selectedTower = t;
@@ -401,6 +438,7 @@ ctx.__api.reset();
 ctx.__api.selectedTowerType = 'archer';
 ctx.__api.placeTower(100, 80);
 ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 90;
 ctx.__api.placeTower(195, 85);
 const keep = ctx.__api.towers.find(t => t.type === 'archer');
 const sellCannon = ctx.__api.towers.find(t => t.type === 'cannon');
@@ -446,7 +484,7 @@ ctx.__api.selectedTower = ctx.__api.towers[0];
 ctx.__api.coins = 200;
 ctx.__api.upgradeTower();
 ctx.__api.reset();
-assert('restart_resets_currency', ctx.__api.coins === 100);
+assert('restart_resets_currency', ctx.__api.coins === 80);
 assert('restart_resets_towers', ctx.__api.towers.length === 0);
 assert('restart_resets_tower_type', ctx.__api.selectedTowerType === 'archer');
 // Capture v1.8.1 maintenance results before the reset below clears them.
@@ -461,12 +499,13 @@ for (const key of ['archer', 'cannon', 'magic']) {
 }
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
-ctx.__api.coins = 89;
+ctx.__api.coins = 79;
 ctx.__api.placeTower(100, 80);
-check('cannon_insufficient_at_89', ctx.__api.towers.length === 0 && ctx.__api.coins === 89);
+check('cannon_insufficient_at_79', ctx.__api.towers.length === 0 && ctx.__api.coins === 79);
 for (const key of ['archer', 'cannon', 'magic']) {
   ctx.__api.reset();
   ctx.__api.selectedTowerType = key;
+  ctx.__api.coins = 150;
   ctx.__api.placeTower(100, 80);
   const t = ctx.__api.towers[0];
   ctx.__api.selectedTower = t;
@@ -481,6 +520,7 @@ ctx.__api.reset();
 ctx.__api.selectedTowerType = 'archer';
 ctx.__api.placeTower(100, 80);
 ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 80;
 ctx.__api.placeTower(195, 85);
 const keepArcher = ctx.__api.towers.find(t => t.type === 'archer');
 const sellCannonB = ctx.__api.towers.find(t => t.type === 'cannon');
@@ -514,18 +554,20 @@ ctx.__api.selectTowerType('magic');
 check('switch_type_clears_tower_selection', ctx.__api.selectedTower === null && ctx.__api.selectedTowerType === 'magic');
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 80;
 ctx.__api.placeTower(100, 80);
 ctx.__api.selectedTower = ctx.__api.towers[0];
 ctx.__api.coins = 200;
 ctx.__api.upgradeTower();
 ctx.__api.reset();
-check('restart_resets_economy', ctx.__api.coins === 100 && ctx.__api.towers.length === 0 && ctx.__api.selectedTowerType === 'archer');
+check('restart_resets_economy', ctx.__api.coins === 80 && ctx.__api.towers.length === 0 && ctx.__api.selectedTowerType === 'archer');
 
 // ---- v1.9.0 configurable targeting tests ----
 // Every placed tower defaults to First targeting and carries its own mode.
 for (const key of ["archer","cannon","magic"]) {
   ctx.__api.reset();
   ctx.__api.selectedTowerType = key;
+  ctx.__api.coins = 150;
   ctx.__api.placeTower(100, 80);
   assert("default_targeting_first_" + key, ctx.__api.towers[0].targeting === "first");
 }
@@ -533,6 +575,7 @@ let defaultTargetingFirst = true;
 for (const key of ["archer","cannon","magic"]) {
   ctx.__api.reset();
   ctx.__api.selectedTowerType = key;
+  ctx.__api.coins = 150;
   ctx.__api.placeTower(100, 80);
   if (ctx.__api.towers[0].targeting !== "first") defaultTargetingFirst = false;
 }
@@ -599,6 +642,7 @@ for (const key of ["archer","cannon","magic"]) {
   for (const mode of ["first","strongest","fastest","nearest"]) {
     ctx.__api.reset();
     ctx.__api.selectedTowerType = key;
+    ctx.__api.coins = 150;
     ctx.__api.placeTower(100, 80);
     const tw = ctx.__api.towers[0];
     ctx.__api.selectTargetingMode(tw, mode);
@@ -643,6 +687,7 @@ assert("sell_removes_targeting_state", ctx.__api.towers.length === 0);
 // Selecting another tower shows its own mode; switching clears selection.
 ctx.__api.reset();
 ctx.__api.selectedTowerType = "archer";
+ctx.__api.coins = 100;
 ctx.__api.placeTower(100, 80);
 ctx.__api.placeTower(195, 85);
 const twA = ctx.__api.towers[0];
@@ -774,14 +819,14 @@ ctx.__api.placeTower(100, 80);
 const twArcher1 = ctx.__api.towers[0];
 ctx.__api.selectedTower = twArcher1;
 ctx.__api.sellTower(twArcher1);
-assert('sell_100pct_before_wave', ctx.__api.coins === 100);
+assert('sell_100pct_before_wave', ctx.__api.coins === 80);
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'archer';
 ctx.__api.placeTower(100, 80);
 const twArcher2 = ctx.__api.towers[0];
 ctx.__api.startWave();
 ctx.__api.sellTower(twArcher2);
-assert('sell_50pct_during_wave', ctx.__api.coins === 50 + Math.floor(50*0.5));
+assert('sell_50pct_during_wave', ctx.__api.coins === 80 - 50 + Math.floor(50*0.5));
 
 // Capture v1.8.0 results before the reset below clears them.
 const towerTypesValid = tt && tt.archer && tt.cannon && tt.magic &&
@@ -791,6 +836,7 @@ const towerTypesValid = tt && tt.archer && tt.cannon && tt.magic &&
 // Re-run the key placement/sell scenarios on a fresh board and capture results.
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 100;
 ctx.__api.placeTower(100, 80);
 const cannonPlacementWorks = ctx.__api.towers.length === 1 && ctx.__api.coins === 100 - tt.cannon.cost;
 ctx.__api.reset();
@@ -799,9 +845,9 @@ ctx.__api.placeTower(100, 80);
 const magicPlacementWorks = ctx.__api.towers.length === 1 && ctx.__api.towers[0].range === tt.magic.range;
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
-ctx.__api.coins = 50;
+ctx.__api.coins = 79;
 ctx.__api.placeTower(100, 80);
-const cannonInsufficientRejected = ctx.__api.towers.length === 0 && ctx.__api.coins === 50;
+const cannonInsufficientRejected = ctx.__api.towers.length === 0 && ctx.__api.coins === 79;
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'archer';
 ctx.__api.placeTower(100, 80);
@@ -842,7 +888,7 @@ const restartClearsTowerState = ctx.__api.selectedTowerType === 'archer' && ctx.
 // post-restart baseline rather than leftover victory state.
 ctx.__api.reset();
 report.checks.push({name:'wave_defs_authoritative', ok: ctx.__api.WAVE_DEFS && ctx.__api.WAVE_DEFS.length === 3});
-report.checks.push({name:'preview_wave1', ok: els.wavePreview.innerHTML.includes('Next: Wave 1/3') && els.wavePreview.innerHTML.includes('35')});
+report.checks.push({name:'preview_wave1', ok: els.wavePreview.innerHTML.includes('Next: Wave 1/3') && els.wavePreview.innerHTML.includes('52.5')});
 report.checks.push({name:'preview_wave2_after_start', ok: true});
 report.checks.push({name:'preview_wave3', ok: wave3PreviewHtml.includes('Next: Wave 3/3') && wave3PreviewHtml.includes('Armored')});
 report.checks.push({name:'preview_victory_empty', ok: victoryPreviewEmpty});
@@ -856,12 +902,13 @@ report.checks.push({name:'placement_deducts_currency', ok: placementDeducts});
 report.checks.push({name:'occupied_spot_rejected', ok: occupiedRejected});
 report.checks.push({name:'insufficient_funds_rejected', ok: insufficientRejected});
 report.checks.push({name:'off_spot_rejected', ok: offSpotRejected});report.checks.push({name:'off_spot_rejected', ok: offSpotRejected});
-let waveRejectedAfter = false;
+let waveAllowedAfter = false;
+ctx.__api.reset();
 ctx.__api.startWave();
 ctx.__api.placeTower(100, 80);
-waveRejectedAfter = ctx.__api.towers.length === 1;
+waveAllowedAfter = ctx.__api.towers.length === 1;
 
-report.checks.push({name:"placement_allowed_during_wave", ok: true});
+report.checks.push({name:"placement_allowed_during_wave", ok: waveAllowed && waveAllowedAfter});
 report.checks.push({name:'placement_rejected_victory_defeat', ok: victoryRejected && defeatRejected});
 report.checks.push({name:'selecting_tower_does_not_place', ok: selectNoPlace});
 report.checks.push({name:'restart_clears_placement', ok: restartClears});
@@ -907,12 +954,66 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v1923', ok: !!html && html.includes('v1.9.23')});
-report.checks.push({name:'manifest_v1923', ok: !!manifest});
-report.checks.push({name:'sw_v1923', ok: !!sw && sw.includes('v1.9.23')});
-report.checks.push({name:'docs_v1923', ok: (!!qg && qg.includes('v1.9.23')) || (!!readme && readme.includes('v1.9.23'))});
+report.checks.push({name:'html_v1932_round_modal', ok: !!html && html.includes('v1.9.32') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'manifest_v1932', ok: !!manifest && manifest.includes('"version":  "1.9.32"')});
+report.checks.push({name:'sw_v1932', ok: !!sw && sw.includes('v1.9.32')});
+report.checks.push({name:'docs_v1932', ok: (!!qg && qg.includes('v1.9.32')) || (!!readme && readme.includes('v1.9.32'))});
+report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
+const coralBay = ctx.__api.LEVELS[1];
+const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
+  const start = coralBay.path[index];
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSquared = dx * dx + dy * dy;
+  const projection = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1,
+    ((spot.x - start.x) * dx + (spot.y - start.y) * dy) / lengthSquared));
+  const nearest = {x:start.x + projection * dx,y:start.y + projection * dy};
+  return Math.hypot(spot.x - nearest.x, spot.y - nearest.y) >= 27;
+}));
+report.checks.push({name:'coral_bay_build_spots_clear_road', ok: coralBaySpotClearance});
+report.checks.push({name:'level_wave_composition_scales', ok: ctx.__api.getLevelWaveDef(1, 12).enemies > ctx.__api.getLevelWaveDef(1, 1).enemies && ctx.__api.getLevelWaveDef(3, 12).reward > ctx.__api.getLevelWaveDef(3, 1).reward});
+report.checks.push({name:'enemy_stats_scale_by_level', ok: ctx.__api.getScaledEnemyType('standard', 12).hp > ctx.__api.getScaledEnemyType('standard', 1).hp && ctx.__api.getScaledEnemyType('standard', 12).speed > ctx.__api.getScaledEnemyType('standard', 1).speed});
+const baseRoundEnemy = ctx.__api.getScaledEnemyType('standard', 1, 1, 1);
+const nextRoundEnemy = ctx.__api.getScaledEnemyType('standard', 1, 2, 1);
+const wave1Enemy = ctx.__api.getScaledEnemyType('standard', 1, 1, 1);
+const wave2Enemy = ctx.__api.getScaledEnemyType('standard', 1, 1, 2);
+const wave3Enemy = ctx.__api.getScaledEnemyType('standard', 1, 1, 3);
+report.checks.push({name:'base_difficulty_bonuses_applied', ok: baseRoundEnemy.hp === 52.5 && baseRoundEnemy.speed === 30.8});
+report.checks.push({name:'speed_increases_each_wave', ok: wave1Enemy.speed < wave2Enemy.speed && wave2Enemy.speed < wave3Enemy.speed});
+report.checks.push({name:'enemy_stats_increase_each_round', ok: nextRoundEnemy.hp > baseRoundEnemy.hp && nextRoundEnemy.speed > baseRoundEnemy.speed});
+ctx.__api.reset();
+ctx.__api.mode = 'won';
+ctx.__api.handleStartButton();
+report.checks.push({name:'next_level_button_advances_and_resets', ok: ctx.__api.currentLevel === 2 && ctx.__api.currentLevelData.name === 'Coral Bay' && ctx.__api.path === ctx.__api.LEVELS[1].path && ctx.__api.currentWave === 0 && ctx.__api.mode === 'ready'});
+ctx.__api.startWave();
+ctx.__api.addEnemy();
+report.checks.push({name:'spawned_enemy_uses_level_stats', ok: ctx.__api.enemies[0].hp === ctx.__api.getScaledEnemyType('standard', 2).hp && ctx.__api.enemies[0].speed === ctx.__api.getScaledEnemyType('standard', 2).speed});
+ctx.__api.currentLevel = ctx.__api.MAX_LEVEL;
+ctx.__api.currentRun = 1;
+ctx.__api.reset();
+ctx.__api.currentWave = ctx.__api.MAX_WAVE;
+ctx.__api.mode = 'playing';
+ctx.__api.waveActive = true;
+ctx.__api.enemiesToSpawn = 0;
+ctx.__api.spawned = 0;
+ctx.__api.enemies = [];
+ctx.__api.waveReward = 50;
+ctx.__api.update(0);
+report.checks.push({name:'round_two_opens_with_notice', ok: ctx.__api.currentLevel === 1 && ctx.__api.currentRun === 2 && ctx.__api.mode === 'ready' && els.roundOverlay.hidden === false && !els.roundOverlay.classList.contains('campaign-complete') && els.roundTitle.textContent === 'Round #2 Opened!' && els.levelTitle.textContent.includes('ROUND #2')});
+report.checks.push({name:'round_two_difficulty_and_coins_reset', ok: ctx.__api.coins === 80 && ctx.__api.getScaledEnemyType('standard', 1, 2, 1).hp > 52.5 && ctx.__api.getScaledEnemyType('standard', 1, 2, 1).speed > 30.8});
+ctx.__api.currentRun = ctx.__api.MAX_RUN;
+ctx.__api.currentLevel = ctx.__api.MAX_LEVEL;
+ctx.__api.reset();
+ctx.__api.currentWave = ctx.__api.MAX_WAVE;
+ctx.__api.mode = 'playing';
+ctx.__api.waveActive = true;
+ctx.__api.enemiesToSpawn = 0;
+ctx.__api.spawned = 0;
+ctx.__api.enemies = [];
+ctx.__api.update(0);
+report.checks.push({name:'round_50_resets_to_baseline_round_one', ok: ctx.__api.MAX_RUN === 50 && ctx.__api.currentRun === 1 && ctx.__api.currentLevel === 1 && ctx.__api.mode === 'ready' && ctx.__api.coins === 80 && ctx.__api.enemyHp === 52.5 && ctx.__api.enemySpeed === 30.8 && els.roundOverlay.classList.contains('campaign-complete') && els.roundTitle.textContent === '👑 LEGENDARY DEFENDER!' && els.roundMessage.textContent.includes('50 rounds conquered') && els.roundMessage.textContent.includes('Round #1')});
 report.checks.push({name:'panel_close_does_not_reopen', ok: true});
-report.checks.push({name:'wave_preview_shifted_right', ok: !!css && css.includes('margin: 2px 0 0 36px')});
+report.checks.push({name:'wave_preview_side_border', ok: !!css && css.includes('border-left: 1px dashed #334155')});
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
 }
