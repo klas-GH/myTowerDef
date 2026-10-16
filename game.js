@@ -86,7 +86,7 @@ function pickTarget(tower, list) {
 // Changes a placed tower's targeting mode immediately, without spending
 // currency or granting extra attacks. Safe no-op for unknown modes.
 function selectTargetingMode(tower, modeId) {
-  if (!tower || mode === "won" || mode === "lost") return;
+  if (!tower) return;
   const m = getTargetingMode(modeId);
   if (!m) return;
   tower.targeting = m.id;
@@ -701,8 +701,10 @@ function updateUpgradePanel() {
   curCd.textContent = t.cooldown.toFixed(2);
 
   if (sellBtn) {
-    const refund = (t.cost || 0) + (t.totalUpgradeCost || 0);
-    sellBtn.textContent = "Sell · +" + refund;
+    const wasWaveStarted = currentWave >= 1;
+    const penalty = (waveActive && wasWaveStarted) ? 0.5 : 1.0;
+    const refund = Math.floor(((t.cost || 0) + (t.totalUpgradeCost || 0)) * penalty);
+    sellBtn.textContent = "Sell · +" + refund + (penalty < 1.0 ? " (50%)" : "");
     sellBtn.disabled = mode === "won" || mode === "lost";
   }
 
