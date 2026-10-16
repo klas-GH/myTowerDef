@@ -793,12 +793,12 @@ function updateWaveInfo() {
   const nwEl = $("nextWaveInfo");
   if (!wEl && !nwEl) return;
   if (mode === "won") {
-    if (wEl) wEl.textContent = "Wave: " + MAX_WAVE + "/" + MAX_WAVE + " (Complete) · " + WAVE_DEFS[MAX_WAVE - 1].enemies + " enemies · " + buildWaveTypeLine(MAX_WAVE) + " · " + buildWaveStatsLine(MAX_WAVE);
+    if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: ' + MAX_WAVE + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(MAX_WAVE) + buildWaveStatsHtml(MAX_WAVE);
     if (nwEl) nwEl.textContent = "Next: -";
     return;
   }
   if (mode === "lost") {
-    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Lost) · " + WAVE_DEFS[currentWave - 1].enemies + " enemies · " + buildWaveTypeLine(currentWave) + " · " + buildWaveStatsLine(currentWave);
+    if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Lost)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave);
     if (nwEl) nwEl.textContent = "Next: -";
     return;
   }
@@ -806,9 +806,7 @@ function updateWaveInfo() {
     const enemiesLeft = (enemiesToSpawn - spawned) + enemies.length;
     const wd = currentWave >= 1 && currentWave <= MAX_WAVE ? WAVE_DEFS[currentWave - 1] : null;
     const totalEnemies = wd ? wd.enemies : 0;
-    const typeLines = wd ? buildWaveTypeLine(currentWave) : "";
-    const statsLine = wd ? buildWaveStatsLine(currentWave) : "";
-    if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Active) · " + totalEnemies + " enemies · " + typeLines + " · " + statsLine + " · " + enemiesLeft + " left";
+    if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Active)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave) + '<span class="preview-line">' + totalEnemies + ' enemies · ' + enemiesLeft + ' left</span>';
     const nextW = currentWave < MAX_WAVE ? currentWave + 1 : null;
     if (nwEl) {
       if (nextW) nwEl.textContent = "Next: Wave " + nextW + " (" + WAVE_DEFS[nextW - 1].enemies + " enemies)";
@@ -816,10 +814,10 @@ function updateWaveInfo() {
     }
   } else {
     if (currentWave === 0) {
-      if (wEl) wEl.textContent = "Wave: 1/" + MAX_WAVE + " (Pending) · " + WAVE_DEFS[0].enemies + " enemies · " + buildWaveTypeLine(1) + " · " + buildWaveStatsLine(1);
+      if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: 1/' + MAX_WAVE + ' (Pending)</span>' + buildWaveTypeHtml(1) + buildWaveStatsHtml(1);
       if (nwEl) nwEl.textContent = "Next: Wave 1 (" + WAVE_DEFS[0].enemies + " enemies)";
     } else {
-      if (wEl) wEl.textContent = "Wave: " + currentWave + "/" + MAX_WAVE + " (Complete) · " + WAVE_DEFS[currentWave - 1].enemies + " enemies · " + buildWaveTypeLine(currentWave) + " · " + buildWaveStatsLine(currentWave);
+      if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave);
       const nextW2 = currentWave < MAX_WAVE ? currentWave + 1 : null;
       if (nwEl) {
         if (nextW2) nwEl.textContent = "Next: Wave " + nextW2 + " (" + WAVE_DEFS[nextW2 - 1].enemies + " enemies)";
@@ -830,23 +828,23 @@ function updateWaveInfo() {
   updateWavePreview();
 }
 
-// Builds the per-type enemy breakdown string (mini icons like the wave preview)
-// for a given wave number, e.g. "● Standard 6 ◆ Runner 4".
-function buildWaveTypeLine(waveNum) {
+// Builds the per-type enemy breakdown HTML spans (colored glyphs like the wave preview)
+// for a given wave number, e.g. <span class="preview-line" style="color:#ef4444">● Standard 6</span>.
+function buildWaveTypeHtml(waveNum) {
   const wd = WAVE_DEFS[waveNum - 1];
   if (!wd) return "";
   return wd.composition.map(function(entry) {
     const t = getEnemyType(entry.type);
-    return t.glyph + " " + t.name + " " + entry.count;
-  }).join("  ");
+    return '<span class="preview-line" style="color:' + t.color + '">' + t.glyph + ' ' + t.name + ' ' + entry.count + '</span>';
+  }).join('');
 }
 
-// Builds the enemy stats line (HP / speed / reward like the wave preview)
-// for a given wave number, e.g. "❤️ 35 HP · ⚡ 28 · 💰 Reward 40".
-function buildWaveStatsLine(waveNum) {
+// Builds the enemy stats HTML span (HP / speed / reward like the wave preview)
+// for a given wave number, e.g. <span class="preview-line">❤️ 35 HP · ⚡ 28 · 💰 Reward 40</span>.
+function buildWaveStatsHtml(waveNum) {
   const wd = WAVE_DEFS[waveNum - 1];
   if (!wd) return "";
-  return "❤️ " + wd.enemyHp + " HP · ⚡ " + wd.enemySpeed + " · 💰 Reward " + wd.reward;
+  return '<span class="preview-line">❤️ ' + wd.enemyHp + ' HP · ⚡ ' + wd.enemySpeed + ' · 💰 Reward ' + wd.reward + '</span>';
 }
 
 function loop(time) {

@@ -109,21 +109,28 @@ h1 {
   color: #94a3b8;
 }
 
-/* Wave info + next-wave info always visible, stacked vertically so neither
-   can ever be cut off or hidden on any screen width. */
+/* Wave info + next-wave info side by side, robustly visible on all widths. */
 .wave-info-row {
-  display: block;
-  gap: 4px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.wave-info,
+.next-wave-info {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: visible;
 }
 
 .wave-info {
   font-weight: 600;
-  display: block;
 }
 
 .next-wave-info {
   color: #94a3b8;
-  display: block;
 }
 
 /* ---- Upgrade panel as a context-style popup over the canvas ---- */

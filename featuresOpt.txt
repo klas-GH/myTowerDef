@@ -1,7 +1,11 @@
-@version: 1.9.15
-@release: v1.9.15
+@version: 1.9.16
+@release: v1.9.16
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.16 ===
+- Current wave info now styled identically to the wave preview: colored glyph spans + stats line, side-by-side with next wave info via flex row layout (flex-wrap: wrap for narrow screens).
+- Bumped version to 1.9.16 across all files, docs, and changelog.
 
 === v 1.9.15 =====
 - Current wave info now shows the enemy stats line (HP / speed / reward) matching the wave preview: "❤️ 35 HP · ⚡ 28 · 💰 Reward 40", via buildWaveStatsLine().
