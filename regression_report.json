@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-16T06:58:26.413Z",
+  "ts": "2026-10-16T08:18:10.496Z",
   "files": [
     {
       "name": "index.html",
@@ -280,19 +280,19 @@
       "ok": true
     },
     {
-      "name": "html_v193",
+      "name": "html_v195",
       "ok": true
     },
     {
-      "name": "manifest_v193",
+      "name": "manifest_v195",
       "ok": true
     },
     {
-      "name": "sw_v193",
+      "name": "sw_v195",
       "ok": true
     },
     {
-      "name": "docs_v193",
+      "name": "docs_v195",
       "ok": true
     },
     {
