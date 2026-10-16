@@ -1,20 +1,20 @@
 {
-  "ts": "2026-10-16T10:44:10.252Z",
+  "ts": "2026-10-16T11:06:51.834Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 3951
+      "size": 3865
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 33665
+      "size": 32903
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 6161
+      "size": 5997
     },
     {
       "name": "manifest.json",
@@ -280,19 +280,19 @@
       "ok": true
     },
     {
-      "name": "html_v1921",
+      "name": "html_v1923",
       "ok": true
     },
     {
-      "name": "manifest_v1921",
+      "name": "manifest_v1923",
       "ok": true
     },
     {
-      "name": "sw_v1921",
+      "name": "sw_v1923",
       "ok": true
     },
     {
-      "name": "docs_v1921",
+      "name": "docs_v1923",
       "ok": true
     },
     {

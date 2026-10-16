@@ -109,7 +109,7 @@ h1 {
   color: #94a3b8;
 }
 
-/* Wave panel info row: current wave | next wave, side by side */
+/* Wave panel info row: current wave only */
 .wave-info-row {
   display: flex;
   flex-direction: row;
@@ -124,15 +124,6 @@ h1 {
   overflow-wrap: break-word;
   word-wrap: break-word;
   font-weight: 600;
-}
-
-.next-wave-info {
-  flex: 1;
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  color: #94a3b8;
 }
 
 /* ---- Upgrade panel as a context-style popup over the canvas ---- */

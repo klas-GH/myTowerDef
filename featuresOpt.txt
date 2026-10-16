@@ -1,7 +1,12 @@
-@version: 1.9.22
-@release: v1.9.22
+@version: 1.9.23
+@release: v1.9.23
 @status: fix, verification
 @scope: wave-panel
+
+=== v 1.9.23 ===
+- Removed redundant nextWaveInfo div (duplicated wavePreview info). wavePreview now solely shows next wave details.
+- Removed nextWaveInfo references from game.js updateWaveInfo and CSS.
+- Bumped version to 1.9.23 across all files, docs, and changelog.
 
 === v 1.9.22 ===
 - Wave panel CSS redone from scratch: flex row with flex: 1 on each cell and text wrapping, current wave and next wave side by side.

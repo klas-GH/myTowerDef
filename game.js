@@ -790,39 +790,25 @@ function updateUpgradePanel() {
 
 function updateWaveInfo() {
   const wEl = $("waveInfo");
-  const nwEl = $("nextWaveInfo");
-  if (!wEl && !nwEl) return;
+  if (!wEl) return;
   if (mode === "won") {
-    if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: ' + MAX_WAVE + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(MAX_WAVE) + buildWaveStatsHtml(MAX_WAVE);
-    if (nwEl) nwEl.textContent = "Next: -";
+    wEl.innerHTML = '<span class="preview-title">Wave: ' + MAX_WAVE + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(MAX_WAVE) + buildWaveStatsHtml(MAX_WAVE);
     return;
   }
   if (mode === "lost") {
-    if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Lost)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave);
-    if (nwEl) nwEl.textContent = "Next: -";
+    wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Lost)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave);
     return;
   }
   if (waveActive) {
     const enemiesLeft = (enemiesToSpawn - spawned) + enemies.length;
     const wd = currentWave >= 1 && currentWave <= MAX_WAVE ? WAVE_DEFS[currentWave - 1] : null;
     const totalEnemies = wd ? wd.enemies : 0;
-    if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Active)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave) + '<span class="preview-line">' + totalEnemies + ' enemies · ' + enemiesLeft + ' left</span>';
-    const nextW = currentWave < MAX_WAVE ? currentWave + 1 : null;
-    if (nwEl) {
-      if (nextW) nwEl.textContent = "Next: Wave " + nextW + " (" + WAVE_DEFS[nextW - 1].enemies + " enemies)";
-      else nwEl.textContent = "Next: -";
-    }
+    wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Active)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave) + '<span class="preview-line">' + totalEnemies + ' enemies · ' + enemiesLeft + ' left</span>';
   } else {
     if (currentWave === 0) {
-      if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: 1/' + MAX_WAVE + ' (Pending)</span>' + buildWaveTypeHtml(1) + buildWaveStatsHtml(1);
-      if (nwEl) nwEl.textContent = "Next: Wave 1 (" + WAVE_DEFS[0].enemies + " enemies)";
+      wEl.innerHTML = '<span class="preview-title">Wave: 1/' + MAX_WAVE + ' (Pending)</span>' + buildWaveTypeHtml(1) + buildWaveStatsHtml(1);
     } else {
-      if (wEl) wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave);
-      const nextW2 = currentWave < MAX_WAVE ? currentWave + 1 : null;
-      if (nwEl) {
-        if (nextW2) nwEl.textContent = "Next: Wave " + nextW2 + " (" + WAVE_DEFS[nextW2 - 1].enemies + " enemies)";
-        else nwEl.textContent = "Next: -";
-      }
+      wEl.innerHTML = '<span class="preview-title">Wave: ' + currentWave + '/' + MAX_WAVE + ' (Complete)</span>' + buildWaveTypeHtml(currentWave) + buildWaveStatsHtml(currentWave);
     }
   }
   updateWavePreview();
