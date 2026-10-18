@@ -137,7 +137,7 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}, get CHALLENGE_DEFS(){return CHALLENGE_DEFS;}, get challengeMode(){return challengeMode;}, set challengeMode(v){challengeMode=v;}, get activeChallenge(){return activeChallenge;}, set activeChallenge(v){activeChallenge=v;}, get challengeState(){return challengeState;}, set challengeState(v){challengeState=v;}, get challengeRecords(){return challengeRecords;}, set challengeRecords(v){challengeRecords=v;}, isChallengeUnlocked, getChallenge, getChallengeRecord, startChallenge, endChallenge, evaluateChallengeObjective, finalizeChallengeResult, abandonChallenge, getChallengeMedalLabel, getChallengeMedalGlyph, describeChallengeObjective}', ctx);
-vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;},set(v){paused=v;}} }); Object.assign(this.__api, {saveGame, restoreSavedGame, resetSave, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD})', ctx);
+vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;},set(v){paused=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD})', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -158,6 +158,7 @@ assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
 assertEq('init_enemyHp', ctx.__api.enemyHp, 52.5);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
+assert('live_heading_uses_v230', els.levelTitle.textContent.includes('v2.3.0'));
 
 // Wave definitions used by spawning must match the previewed values.
 assertEq('wave1_hp', ctx.__api.WAVE_DEFS[0].enemyHp, 35);
@@ -1303,6 +1304,18 @@ const beforeProgress = {
   currentLevel: challengeApi.campaignState.currentLevel,
   currentRun: challengeApi.campaignState.currentRun
 };
+challengeApi.currentLevel = 7;
+challengeApi.currentRun = 3;
+challengeApi.campaignState.currentLevel = 7;
+challengeApi.campaignState.currentRun = 3;
+challengeApi.campaignState.levelsCompleted = 6;
+challengeApi.campaignState.highestRunReached = 3;
+beforeProgress.currentLevel = 7;
+beforeProgress.currentRun = 3;
+beforeProgress.levelsCompleted = 6;
+beforeProgress.highestRunReached = 3;
+const beforeCampaignStats = JSON.stringify(challengeApi.statsState);
+const beforeCampaignAchievements = JSON.stringify(challengeApi.achievements);
 challengeApi.startChallenge('budget_defender');
 const afterProgress = {
   levelsCompleted: challengeApi.campaignState.levelsCompleted,
@@ -1312,11 +1325,13 @@ const afterProgress = {
   currentRun: challengeApi.campaignState.currentRun
 };
 console.log('CHALLENGE_DEBUG before=' + JSON.stringify(beforeProgress) + ' after=' + JSON.stringify(afterProgress));
-report.checks.push({name:'challenge_debug_progress', ok: true, before: JSON.stringify(beforeProgress), after: JSON.stringify(afterProgress)});
+report.checks.push({name:'challenge_debug_progress', ok: JSON.stringify(afterProgress) === JSON.stringify(beforeProgress), before: JSON.stringify(beforeProgress), after: JSON.stringify(afterProgress)});
 report.checks.push({name:'challenge_start_sets_mode', ok: challengeApi.challengeMode === true && challengeApi.activeChallenge === 'budget_defender'});
 report.checks.push({name:'challenge_start_sets_level', ok: challengeApi.currentLevel === 1});
 report.checks.push({name:'challenge_start_sets_coins', ok: challengeApi.coins === 50});
 report.checks.push({name:'challenge_start_isolates_campaign_state', ok: afterProgress.levelsCompleted === beforeProgress.levelsCompleted && afterProgress.highestRunReached === beforeProgress.highestRunReached && afterProgress.campaignCompleted === beforeProgress.campaignCompleted});
+const challengeSave = JSON.parse(storageData.get('myTowerDef.save.v3'));
+report.checks.push({name:'challenge_save_preserves_campaign_position', ok: challengeSave.campaign.currentLevel === 7 && challengeSave.campaign.currentRun === 3});
 challengeApi.reset();
 report.checks.push({name:'challenge_reset_keeps_mode', ok: challengeApi.challengeMode === true && challengeApi.activeChallenge === 'budget_defender'});
 report.checks.push({name:'challenge_reset_applies_starting_coins', ok: challengeApi.coins === 50 && challengeApi.challengeState.coins === 50});
@@ -1325,6 +1340,16 @@ report.checks.push({name:'challenge_reset_applies_starting_coins', ok: challenge
 const spot = challengeApi.spots[0];
 challengeApi.placeTower(spot.x, spot.y);
 report.checks.push({name:'challenge_allows_archer_placement', ok: challengeApi.towers.length === 1 && challengeApi.towers[0].type === 'archer'});
+challengeApi.recordCoinSpend(500);
+report.checks.push({name:'challenge_build_and_spend_do_not_change_campaign_stats', ok: JSON.stringify(challengeApi.statsState) === beforeCampaignStats && JSON.stringify(challengeApi.achievements) === beforeCampaignAchievements && challengeApi.challengeState.coinsSpent >= 500});
+const challengeRunner = {x: challengeApi.path[0].x, y: challengeApi.path[0].y, point: 0, speed: 0, hp: 1, type: 'runner', reward: 0, color: '#f00'};
+challengeApi.mode = 'playing';
+challengeApi.enemiesToSpawn = 0;
+challengeApi.spawned = 0;
+challengeApi.enemies = [challengeRunner];
+challengeApi.shots = [{x: challengeRunner.x, y: challengeRunner.y, target: challengeRunner, damage: 1, speed: 220}];
+challengeApi.update(0.016);
+report.checks.push({name:'challenge_kills_do_not_change_campaign_stats', ok: JSON.stringify(challengeApi.statsState) === beforeCampaignStats && JSON.stringify(challengeApi.achievements) === beforeCampaignAchievements});
 challengeApi.selectedTowerType = 'cannon';
 challengeApi.placeTower(spot.x, spot.y);
 report.checks.push({name:'challenge_rejects_disallowed_tower_type', ok: challengeApi.towers.length === 1});
@@ -1359,6 +1384,7 @@ const result = challengeApi.finalizeChallengeResult();
 report.checks.push({name:'challenge_finalize_awards_bronze', ok: result.completed === true && result.medal >= 1});
 report.checks.push({name:'challenge_finalize_records_attempt', ok: challengeApi.challengeRecords.budget_defender && challengeApi.challengeRecords.budget_defender.attempts >= 1});
 report.checks.push({name:'challenge_finalize_ended_mode', ok: challengeApi.challengeMode === false && challengeApi.activeChallenge === null});
+report.checks.push({name:'challenge_finalize_restores_campaign_position', ok: challengeApi.currentLevel === 7 && challengeApi.currentRun === 3});
 
 // Campaign progress must be untouched by the challenge attempt.
 report.checks.push({name:'challenge_isolates_campaign_state', ok: challengeApi.campaignState.levelsCompleted === beforeProgress.levelsCompleted && challengeApi.campaignState.highestRunReached === beforeProgress.highestRunReached && challengeApi.campaignState.campaignCompleted === beforeProgress.campaignCompleted});
@@ -1372,12 +1398,45 @@ challengeApi.challengeState.lives = 6;
 const result2 = challengeApi.finalizeChallengeResult();
 report.checks.push({name:'challenge_last_stand_gold_threshold', ok: result2.completed === true && result2.medal === 3 && challengeApi.challengeRecords.last_stand.bestMedal === 3});
 
+const priorLastStandAttempts = challengeApi.challengeRecords.last_stand.attempts;
+const priorLastStandCompletions = challengeApi.challengeRecords.last_stand.completions;
+challengeApi.startChallenge('last_stand');
+challengeApi.mode = 'won';
+challengeApi.currentLevel = 3;
+challengeApi.lives = 3;
+challengeApi.challengeState.lives = 3;
+const failedCompletion = challengeApi.finalizeChallengeResult();
+challengeApi.showChallengeResultOverlay(failedCompletion);
+report.checks.push({name:'challenge_failed_completion_keeps_id_and_records_attempt', ok: failedCompletion.challenge === 'last_stand' && failedCompletion.completed === false && challengeApi.challengeRecords.last_stand.attempts === priorLastStandAttempts + 1 && challengeApi.challengeRecords.last_stand.completions === priorLastStandCompletions});
+report.checks.push({name:'challenge_failed_completion_overlay_shows_challenge', ok: !els.challengeOverlay.hidden && els.challengeMessage.textContent.includes('Last Stand')});
+challengeApi.closeChallengeResult();
+
+report.checks.push({name:'tactical_specialist_allows_cannon_and_magic', ok: JSON.stringify(challengeApi.CHALLENGE_DEFS.tactical_specialist.allowedTowerTypes) === JSON.stringify(['cannon', 'magic']) && JSON.stringify(challengeApi.CHALLENGE_DEFS.tactical_specialist.objective.allowed) === JSON.stringify(['cannon', 'magic'])});
+challengeApi.startChallenge('shieldbreaker');
+challengeApi.challengeState.bossDefeated = true;
+challengeApi.challengeState.shieldBroken = false;
+report.checks.push({name:'shieldbreaker_requires_broken_shield', ok: challengeApi.evaluateChallengeObjective() === false});
+challengeApi.challengeState.shieldBroken = true;
+report.checks.push({name:'shieldbreaker_succeeds_after_shield_break', ok: challengeApi.evaluateChallengeObjective() === true});
+challengeApi.abandonChallenge();
+
 // Abandon records an attempt without a medal.
 challengeApi.startChallenge('shieldbreaker');
 challengeApi.challengeState.lives = 0;
 challengeApi.lives = 0;
 const abandoned = challengeApi.abandonChallenge();
-report.checks.push({name:'challenge_abandon_records_attempt', ok: abandoned.completed === false && challengeApi.challengeRecords.shieldbreaker.attempts >= 1 && challengeApi.challengeRecords.shieldbreaker.bestMedal === 0});
+report.checks.push({name:'challenge_abandon_records_attempt', ok: abandoned.challenge === 'shieldbreaker' && abandoned.completed === false && challengeApi.challengeRecords.shieldbreaker.attempts >= 1 && challengeApi.challengeRecords.shieldbreaker.bestMedal === 0});
+
+const priorBudgetAttempts = challengeApi.challengeRecords.budget_defender.attempts;
+challengeApi.startChallenge('budget_defender');
+challengeApi.mode = 'playing';
+challengeApi.lives = 1;
+challengeApi.challengeState.lives = 1;
+challengeApi.enemies = [{x: challengeApi.path[challengeApi.path.length - 1].x, y: challengeApi.path[challengeApi.path.length - 1].y, point: challengeApi.path.length - 1, speed: 1, hp: 1, type: 'standard', reward: 0}];
+challengeApi.enemiesToSpawn = 0;
+challengeApi.spawned = 0;
+challengeApi.update(0.1);
+report.checks.push({name:'challenge_defeat_overlay_keeps_challenge_identity', ok: !els.challengeOverlay.hidden && els.challengeMessage.textContent.includes('Budget Defender') && challengeApi.challengeRecords.budget_defender.attempts === priorBudgetAttempts + 1 && challengeApi.activeChallenge === null});
 
 // Locked challenges (none by default, but verify the unlock predicate is safe).
 report.checks.push({name:'challenge_unknown_id_not_unlocked', ok: challengeApi.isChallengeUnlocked('does_not_exist') === false});
@@ -1385,6 +1444,20 @@ report.checks.push({name:'challenge_unknown_id_not_unlocked', ok: challengeApi.i
 // Restore a clean campaign state for the remaining tests.
 challengeApi.resetSave();
 report.checks.push({name:'challenge_reset_save_restores_campaign', ok: challengeApi.challengeMode === false && challengeApi.activeChallenge === null && challengeApi.currentLevel === 1 && challengeApi.coins === 80});
+report.checks.push({name:'challenge_reset_save_clears_records', ok: Object.keys(challengeApi.challengeRecords).length === 0});
+
+storageData.set('myTowerDef.save.v2', JSON.stringify({
+  version: 2,
+  campaign: {currentRun: 3, currentLevel: 4, highestRunReached: 5, campaignCompleted: false, levelsCompleted: 2},
+  settings: {soundEnabled: false, reducedMotion: true},
+  stats: {enemiesDefeated: 12},
+  achievements: ['first_defense']
+}));
+const migrated = challengeApi.loadSave();
+const migratedSave = JSON.parse(storageData.get('myTowerDef.save.v3'));
+report.checks.push({name:'v2_legacy_key_migrates_to_v3', ok: migrated && challengeApi.campaignState.currentRun === 3 && challengeApi.campaignState.currentLevel === 4 && migratedSave.version === 3 && !storageData.has('myTowerDef.save.v2')});
+report.checks.push({name:'v2_migration_preserves_settings_stats_and_achievements', ok: challengeApi.settings.soundEnabled === false && challengeApi.settings.reducedMotion === true && challengeApi.statsState.enemiesDefeated === 12 && challengeApi.achievements.includes('first_defense')});
+challengeApi.resetSave();
 
 // The challenge panel renders a card per defined challenge and can be toggled.
 challengeApi.showChallengePanel();

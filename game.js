@@ -336,18 +336,18 @@ const CHALLENGE_DEFS = {
     level: 5,
     startingCoins: 80,
     allowedTowerTypes: ["archer", "cannon", "magic"],
-    objective: { type: "defeat_boss", level: 5 },
+    objective: { type: "defeat_boss", level: 5, requireShieldBreak: true },
     medals: { bronze: 1, silver: 1, gold: 1 },
     unlocked: true
   },
   tactical_specialist: {
     id: "tactical_specialist",
     name: "Tactical Specialist",
-    desc: "Complete Level 2 using only Archer towers.",
+    desc: "Complete Level 2 using only Cannon and Magic towers.",
     level: 2,
     startingCoins: 80,
-    allowedTowerTypes: ["archer"],
-    objective: { type: "restricted_towers", level: 2, allowed: ["archer"] },
+    allowedTowerTypes: ["cannon", "magic"],
+    objective: { type: "restricted_towers", level: 2, allowed: ["cannon", "magic"] },
     medals: { bronze: 1, silver: 1, gold: 1 },
     unlocked: true
   },
@@ -378,6 +378,7 @@ const CHALLENGE_DEFS = {
 // Challenge mode state. Isolated from campaign state.
 let challengeMode = false;
 let activeChallenge = null;
+let challengeReturnState = null;
 let challengeState = {
   lives: 6,
   coins: 80,
@@ -435,7 +436,9 @@ function resetChallengeState() {
 
 function startChallenge(id) {
   const def = getChallenge(id);
-  if (!def || !isChallengeUnlocked(id)) return false;
+  if (!def || !isChallengeUnlocked(id) || challengeMode) return false;
+  saveGame();
+  challengeReturnState = { currentLevel, currentRun };
   challengeMode = true;
   activeChallenge = id;
   resetChallengeState();
@@ -453,6 +456,11 @@ function endChallenge() {
   challengeMode = false;
   activeChallenge = null;
   challengeState.resultFinalized = true;
+  if (challengeReturnState) {
+    currentLevel = challengeReturnState.currentLevel;
+    currentRun = challengeReturnState.currentRun;
+    challengeReturnState = null;
+  }
 }
 
 // Evaluate whether the active challenge's objective is currently satisfied.
@@ -472,7 +480,7 @@ function evaluateChallengeObjective() {
     case "min_lives_no_sales":
       return mode === "won" && currentLevel === obj.level && lives >= obj.minLives && s.towersSold === 0;
     case "defeat_boss":
-      return s.bossDefeated === true;
+      return s.bossDefeated === true && (!obj.requireShieldBreak || s.shieldBroken === true);
     case "restricted_towers":
       // Satisfied when the level completes and every placed tower was one of
       // the allowed types. Empty allowed list means no towers may be placed.
@@ -493,13 +501,14 @@ function evaluateChallengeObjective() {
 // completion; silver and gold require meeting the medal threshold.
 function finalizeChallengeResult() {
   if (!challengeMode || !activeChallenge) return null;
-  const def = getChallenge(activeChallenge);
+  const id = activeChallenge;
+  const def = getChallenge(id);
   if (!def) return null;
   const s = challengeState;
   const met = evaluateChallengeObjective();
   if (!met) {
-    endChallenge();
-    return { challenge: activeChallenge, medal: 0, completed: false };
+    const result = abandonChallenge();
+    return { challenge: id, medal: 0, completed: false, lives: s.lives, attempts: result.attempts };
   }
 
   // Medal tiers: bronze = complete, silver = meet threshold, gold = meet gold threshold.
@@ -511,7 +520,6 @@ function finalizeChallengeResult() {
   if (s.lives >= silver) medal = Math.max(medal, 2);
   if (s.lives >= gold) medal = Math.max(medal, 3);
 
-  const id = activeChallenge;
   const prev = challengeRecords[id] || { bestMedal: 0, bestLives: 0, attempts: 0, completions: 0 };
   prev.attempts = (prev.attempts || 0) + 1;
   prev.completions = (prev.completions || 0) + 1;
@@ -519,21 +527,20 @@ function finalizeChallengeResult() {
   if (medal > (prev.bestMedal || 0)) prev.bestMedal = medal;
   challengeRecords[id] = prev;
 
-  endChallenge();
   saveGame();
+  endChallenge();
   return { challenge: id, medal, completed: true, lives: s.lives };
 }
 
 function abandonChallenge() {
   if (!challengeMode || !activeChallenge) return null;
   const id = activeChallenge;
-  const s = challengeState;
   const prev = challengeRecords[id] || { bestMedal: 0, bestLives: 0, attempts: 0, completions: 0 };
   prev.attempts = (prev.attempts || 0) + 1;
   challengeRecords[id] = prev;
-  endChallenge();
   saveGame();
-  return { challenge: id, completed: false };
+  endChallenge();
+  return { challenge: id, completed: false, attempts: prev.attempts };
 }
 
 function getChallengeMedalLabel(medal) {
@@ -632,6 +639,7 @@ const MAX_SHOTS = 200;
 
 // ---- v2.0.0: Persistence, Settings, Achievements ----
 const SAVE_KEY = "myTowerDef.save.v3";
+const LEGACY_SAVE_KEY = "myTowerDef.save.v2";
 const SAVE_VERSION = 3;
 const ACHIEVEMENTS_DEFS = {
   first_defense: { id: "first_defense", name: "First Defense", desc: "Complete Level 1" },
@@ -713,7 +721,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.2.1";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.0";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -722,6 +730,7 @@ function loadSave() {
   let raw;
   try {
     raw = window.localStorage.getItem(SAVE_KEY);
+    if (!raw) raw = window.localStorage.getItem(LEGACY_SAVE_KEY);
   } catch (e) {
     console.warn("Could not read save data:", e);
     return false;
@@ -770,6 +779,15 @@ function loadSave() {
         achievements = [...new Set(data.achievements.filter(a => Object.prototype.hasOwnProperty.call(ACHIEVEMENTS_DEFS, a)))];
       }
       challengeRecords = {};
+      currentRun = campaignState.currentRun;
+      currentLevel = campaignState.currentLevel;
+      if (saveGame()) {
+        try {
+          window.localStorage.removeItem(LEGACY_SAVE_KEY);
+        } catch (e) {
+          console.warn("Could not remove migrated save data:", e);
+        }
+      }
       return true;
     }
     console.warn("Save data is outdated or invalid, ignoring.");
@@ -927,8 +945,10 @@ function restoreSavedGame() {
 
 function saveGame() {
   if (typeof window === "undefined" || typeof window.localStorage === "undefined") return false;
-  campaignState.currentRun = currentRun;
-  campaignState.currentLevel = currentLevel;
+  if (!challengeMode) {
+    campaignState.currentRun = currentRun;
+    campaignState.currentLevel = currentLevel;
+  }
   const data = {
     version: SAVE_VERSION,
     ts: new Date().toISOString(),
@@ -951,6 +971,7 @@ function resetSave() {
   if (typeof window === "undefined" || typeof window.localStorage === "undefined") return false;
   try {
     window.localStorage.removeItem(SAVE_KEY);
+    window.localStorage.removeItem(LEGACY_SAVE_KEY);
   } catch (e) {
     console.warn("Could not remove save data:", e);
     return false;
@@ -960,25 +981,33 @@ function resetSave() {
   currentLevel = 1;
   settings = { soundEnabled: true, reducedMotion: false };
   statsState = { roundsCompleted: 0, enemiesDefeated: 0, towersBuilt: 0, towersUpgraded: 0, campaignVictories: 0, bossesDefeated: 0, runnersDefeated: 0, armoredDefeated: 0, archerBuilt: 0, cannonBuilt: 0, magicBuilt: 0, maxCoinsSpent: 0, levelCoinsSpent: 0 };
+  challengeMode = false;
+  activeChallenge = null;
+  challengeReturnState = null;
+  challengeRecords = {};
+  resetChallengeState();
   achievements = [];
+  const challengeOverlay = $("challengeOverlay");
+  if (challengeOverlay) challengeOverlay.hidden = true;
+  hideChallengePanel();
   applyMotionSetting();
   reset();
   return true;
 }
 
 function recordCoinSpend(amount) {
+  if (challengeMode) {
+    challengeState.coinsSpent = (challengeState.coinsSpent || 0) + amount;
+    return;
+  }
   statsState.levelCoinsSpent += amount;
   statsState.maxCoinsSpent = Math.max(statsState.maxCoinsSpent, statsState.levelCoinsSpent);
   if (statsState.maxCoinsSpent >= 500) awardAchievement("big_spender");
-  // Challenge mode tracks its own spending separately so campaign stats
-  // cannot be inflated by challenge attempts.
-  if (challengeMode) {
-    challengeState.coinsSpent = (challengeState.coinsSpent || 0) + amount;
-  }
 }
 
 // ---- v2.0.0 Achievements ----
 function awardAchievement(id) {
+  if (challengeMode) return false;
   if (!ACHIEVEMENTS_DEFS[id]) return false;
   if (achievements.includes(id)) return false;
   achievements.push(id);
@@ -987,6 +1016,7 @@ function awardAchievement(id) {
 }
 
 function checkAchievements(context) {
+  if (challengeMode) return;
   if (context && context.completedLevel) {
     if (context.level === 1) awardAchievement("first_defense");
     if (context.level === MAX_LEVEL) awardAchievement("all_twelve");
@@ -1221,7 +1251,7 @@ function startWave() {
 }
 
 function advanceLevel() {
-  if (mode !== "won" || currentLevel >= MAX_LEVEL) return;
+  if (challengeMode || mode !== "won" || currentLevel >= MAX_LEVEL) return;
   currentLevel++;
   statsState.levelCoinsSpent = 0;
   saveGame();
@@ -1263,6 +1293,7 @@ function closeRoundNotice() {
 }
 
 function openNextRun() {
+  if (challengeMode) return;
   if (currentRun >= MAX_RUN) {
     currentRun = 1;
     currentLevel = 1;
@@ -1404,19 +1435,21 @@ function placeTower(x, y) {
 
   coins -= t.cost;
   recordCoinSpend(t.cost);
-  statsState.towersBuilt++;
+  if (!challengeMode) statsState.towersBuilt++;
   if (challengeMode && activeChallenge) {
     challengeState.towersBuilt++;
     challengeState.coins = coins;
     challengeState.towersUsed = challengeState.towersUsed || new Set();
     challengeState.towersUsed.add(t.id);
   }
-  if (t.id === "archer") statsState.archerBuilt++;
-  else if (t.id === "cannon") statsState.cannonBuilt++;
-  else if (t.id === "magic") statsState.magicBuilt++;
-  if (statsState.archerBuilt >= 20) awardAchievement("master_archer");
-  if (statsState.cannonBuilt >= 15) awardAchievement("cannon_master");
-  if (statsState.magicBuilt >= 15) awardAchievement("wizard");
+  if (!challengeMode) {
+    if (t.id === "archer") statsState.archerBuilt++;
+    else if (t.id === "cannon") statsState.cannonBuilt++;
+    else if (t.id === "magic") statsState.magicBuilt++;
+    if (statsState.archerBuilt >= 20) awardAchievement("master_archer");
+    if (statsState.cannonBuilt >= 15) awardAchievement("cannon_master");
+    if (statsState.magicBuilt >= 15) awardAchievement("wizard");
+  }
   checkAchievements();
   saveGame();
   $("status").textContent = t.name + " tower built! Ready to defend.";
@@ -1515,8 +1548,8 @@ function update(dt) {
     // attempt but award no medal. The result overlay explains the failure.
     if (challengeMode && activeChallenge) {
       challengeState.lives = 0;
-      abandonChallenge();
-      showChallengeResultOverlay({ challenge: activeChallenge, medal: 0, completed: false, lives: 0 });
+      const result = abandonChallenge();
+      showChallengeResultOverlay({ ...result, medal: 0, lives: 0 });
       $("status").textContent = "💥 Base destroyed — challenge failed.";
       $("startBtn").disabled = true;
       const pauseBtnEl = $("pauseBtn");
@@ -1611,20 +1644,24 @@ function update(dt) {
         target.dead = true;
         coins += target.reward;
         // Track stats and achievements for defeated enemies.
-        statsState.enemiesDefeated++;
+        if (!challengeMode) {
+          statsState.enemiesDefeated++;
+          if (target.boss) {
+            statsState.bossesDefeated++;
+          } else if (target.type === "runner") {
+            statsState.runnersDefeated++;
+          } else if (target.type === "armored" || target.type === "elite_armored") {
+            statsState.armoredDefeated++;
+          }
+          if (statsState.bossesDefeated >= 10) awardAchievement("boss_slayer");
+          if (statsState.runnersDefeated >= 100) awardAchievement("speed_demon");
+          if (statsState.armoredDefeated >= 50) awardAchievement("tank_buster");
+        }
         if (target.boss) {
-          statsState.bossesDefeated++;
           if (challengeMode && activeChallenge) {
             challengeState.bossDefeated = true;
             challengeState.coins = coins;
           }
-          if (statsState.bossesDefeated >= 10) awardAchievement("boss_slayer");
-        } else if (target.type === "runner") {
-          statsState.runnersDefeated++;
-          if (statsState.runnersDefeated >= 100) awardAchievement("speed_demon");
-        } else if (target.type === "armored" || target.type === "elite_armored") {
-          statsState.armoredDefeated++;
-          if (statsState.armoredDefeated >= 50) awardAchievement("tank_buster");
         }
         // Distinct kill burst: larger and colored by enemy type.
         spawnParticles(target.x, target.y, target.color || "#ef4444", target.boss ? 14 : 7);
@@ -2189,7 +2226,7 @@ function upgradeTower(){
   const upgradeCost = selectedTower.upgradeCost;
   coins -= upgradeCost;
   recordCoinSpend(upgradeCost);
-  statsState.towersUpgraded++;
+  if (!challengeMode) statsState.towersUpgraded++;
   selectedTower.totalUpgradeCost = (selectedTower.totalUpgradeCost || 0) + selectedTower.upgradeCost;
   selectedTower.level++;
   selectedTower.range += 20;
