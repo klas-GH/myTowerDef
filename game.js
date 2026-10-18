@@ -296,6 +296,97 @@ let enemiesToSpawn, enemyHp, enemySpeed, waveReward;
 let waveActive = false;
 let lastPreviewWave = -1; // cached next-wave number rendered in the preview
 let soundContext = null;
+
+// ---- v2.3.0: Challenge Mode ----
+// A small set of curated, replayable challenges that reuse the existing
+// game engine. Each challenge has explicit objectives, medal thresholds,
+// and unlock requirements. Challenge state is isolated from the campaign.
+const CHALLENGE_DEFS = {
+  budget_defender: {
+    id: "budget_defender",
+    name: "Budget Defender",
+    desc: "Complete Level 1 with only 50 coins. No towers may be sold.",
+    level: 1,
+    startingCoins: 50,
+    allowedTowerTypes: ["archer"],
+    objective: { type: "complete_level", level: 1 },
+    medals: { bronze: 1, silver: 1, gold: 1 },
+    unlocked: true
+  },
+  last_stand: {
+    id: "last_stand",
+    name: "Last Stand",
+    desc: "Complete Level 3 with at least 4 lives remaining.",
+    level: 3,
+    startingCoins: 80,
+    allowedTowerTypes: ["archer", "cannon", "magic"],
+    objective: { type: "min_lives", level: 3, minLives: 4 },
+    medals: { bronze: 4, silver: 5, gold: 6 },
+    unlocked: true
+  },
+  shieldbreaker: {
+    id: "shieldbreaker",
+    name: "Shieldbreaker",
+    desc: "Defeat the boss on Level 5. The boss shield must be broken first.",
+    level: 5,
+    startingCoins: 80,
+    allowedTowerTypes: ["archer", "cannon", "magic"],
+    objective: { type: "defeat_boss", level: 5 },
+    medals: { bronze: 1, silver: 1, gold: 1 },
+    unlocked: true
+  },
+  tactical_specialist: {
+    id: "tactical_specialist",
+    name: "Tactical Specialist",
+    desc: "Complete Level 2 using only Archer towers.",
+    level: 2,
+    startingCoins: 80,
+    allowedTowerTypes: ["archer"],
+    objective: { type: "restricted_towers", level: 2, allowed: ["archer"] },
+    medals: { bronze: 1, silver: 1, gold: 1 },
+    unlocked: true
+  },
+  endurance_trial: {
+    id: "endurance_trial",
+    name: "Endurance Trial",
+    desc: "Survive all 3 waves of Level 4.",
+    level: 4,
+    startingCoins: 80,
+    allowedTowerTypes: ["archer", "cannon", "magic"],
+    objective: { type: "survive_waves", level: 4, waves: 3 },
+    medals: { bronze: 1, silver: 1, gold: 1 },
+    unlocked: true
+  },
+  precision_defense: {
+    id: "precision_defense",
+    name: "Precision Defense",
+    desc: "Complete Level 6 with at least 5 lives and no tower sales.",
+    level: 6,
+    startingCoins: 80,
+    allowedTowerTypes: ["archer", "cannon", "magic"],
+    objective: { type: "min_lives_no_sales", level: 6, minLives: 5 },
+    medals: { bronze: 5, silver: 5, gold: 6 },
+    unlocked: true
+  }
+};
+
+// Challenge mode state. Isolated from campaign state.
+let challengeMode = false;
+let activeChallenge = null;
+let challengeState = {
+  lives: 6,
+  coins: 80,
+  towersBuilt: 0,
+  towersSold: 0,
+  shieldBroken: false,
+  bossDefeated: false,
+  objectiveMet: false,
+  startTime: 0,
+  elapsedMs: 0,
+  resultFinalized: false
+};
+// Persistent best results per challenge ID.
+let challengeRecords = {};
 let particles = []; // transient hit/kill effects, capped per frame
 
 // ---- v2.1.0: Performance caps and particle budget ----
@@ -385,7 +476,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.2.0";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.2.1";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -547,6 +638,11 @@ function recordCoinSpend(amount) {
   statsState.levelCoinsSpent += amount;
   statsState.maxCoinsSpent = Math.max(statsState.maxCoinsSpent, statsState.levelCoinsSpent);
   if (statsState.maxCoinsSpent >= 500) awardAchievement("big_spender");
+  // Challenge mode tracks its own spending separately so campaign stats
+  // cannot be inflated by challenge attempts.
+  if (challengeMode) {
+    challengeState.coinsSpent = (challengeState.coinsSpent || 0) + amount;
+  }
 }
 
 // ---- v2.0.0 Achievements ----
@@ -784,7 +880,7 @@ function showBossNotice() {
   if (statusEl) statusEl.textContent = "👑 BOSS APPROACHING — focus fire!";
   if (bossNoticeTimer) clearTimeout(bossNoticeTimer);
   bossNoticeTimer = setTimeout(() => {
-    if (mode === "playing" && waveActive) {
+    if (mode === "playing" && waveActive && !paused) {
       if (statusEl) statusEl.textContent = "Wave " + currentWave + ": enemies incoming!";
     }
   }, 2500);

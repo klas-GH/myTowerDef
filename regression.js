@@ -77,6 +77,8 @@ const storage = {
   removeItem(key) { storageData.delete(key); }
 };
 const rootClasses = new Set();
+const scheduledTimers = new Map();
+let nextTimerId = 1;
 doc.documentElement = { classList: {
   toggle(name, force) {
     if (force) rootClasses.add(name);
@@ -84,10 +86,21 @@ doc.documentElement = { classList: {
   },
   contains(name) { return rootClasses.has(name); }
 } };
-const ctx = { document: doc, window: { requestAnimationFrame: raf, localStorage: storage }, requestAnimationFrame: raf, console: console };
+const ctx = {
+  document: doc,
+  window: { requestAnimationFrame: raf, localStorage: storage },
+  requestAnimationFrame: raf,
+  setTimeout(callback) {
+    const id = nextTimerId++;
+    scheduledTimers.set(id, callback);
+    return id;
+  },
+  clearTimeout(id) { scheduledTimers.delete(id); },
+  console: console
+};
 vm.createContext(ctx);
 vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}}', ctx);
-vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;},set(v){paused=v;}} }); Object.assign(this.__api, {saveGame, restoreSavedGame, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, draw})', ctx);
+vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;},set(v){paused=v;}} }); Object.assign(this.__api, {saveGame, restoreSavedGame, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw})', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -971,10 +984,10 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v2200_round_modal', ok: !!html && html.includes('v2.2.0') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
-report.checks.push({name:'manifest_v2200', ok: !!manifest && manifest.includes('"version":  "2.2.0"')});
-report.checks.push({name:'sw_v2200', ok: !!sw && sw.includes('v2.2.0')});
-report.checks.push({name:'docs_v2200', ok: (!!qg && qg.includes('v2.2.0')) || (!!readme && readme.includes('v2.2.0'))});
+report.checks.push({name:'html_v2210_round_modal', ok: !!html && html.includes('v2.2.1') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'manifest_v2210', ok: !!manifest && manifest.includes('"version":  "2.2.1"')});
+report.checks.push({name:'sw_v2210', ok: !!sw && sw.includes('v2.2.1')});
+report.checks.push({name:'docs_v2210', ok: (!!qg && qg.includes('v2.2.1')) || (!!readme && readme.includes('v2.2.1'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1151,6 +1164,18 @@ api.spawned = 1;
 api.enemies = [{x:api.path[api.path.length - 1].x,y:api.path[api.path.length - 1].y,point:api.path.length,speed:0,hp:10,maxHp:10}];
 api.update(0);
 report.checks.push({name:'pause_disabled_after_wave_and_defeat', ok:pauseDisabledAfterWave && api.mode === 'lost' && els.pauseBtn.disabled && els.pauseBtn.textContent === '⏸ Pause' && !api.paused});
+
+api.reset();
+api.mode = 'playing';
+api.waveActive = true;
+api.currentWave = 3;
+api.showBossNotice();
+const bossNoticeTimerId = nextTimerId - 1;
+api.togglePause();
+scheduledTimers.get(bossNoticeTimerId)();
+const pausedBossNoticePreserved = api.paused && els.status.textContent === '⏸ Paused';
+api.togglePause();
+report.checks.push({name:'boss_notice_timeout_preserves_paused_status', ok:pausedBossNoticePreserved && !api.paused && els.status.textContent === 'Wave 3: enemies incoming!'});
 
 // ---- v2.2.0: Boss shield phase tests ----
 // Bosses now have a shield phase that reduces damage and shows a purple

@@ -1,5 +1,17 @@
 # myTowerDef Changelog
 
+## Version 2.2.1
+
+### Bug Fixes
+
+- **Boss notification while paused**: The boss spawn notification timeout no longer replaces the paused status message. The normal wave status returns after play resumes.
+
+### Validation
+
+- All 103 regression checks pass.
+- Smoke test passes.
+- Save-data version remains at 2 (no schema change).
+
 ## Version 2.2.0
 
 ### New Features

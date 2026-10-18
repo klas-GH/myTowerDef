@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-18T08:29:08.761Z",
+  "ts": "2026-10-18T08:39:23.403Z",
   "files": [
     {
       "name": "index.html",
@@ -9,7 +9,7 @@
     {
       "name": "game.js",
       "exists": true,
-      "size": 80838
+      "size": 80850
     },
     {
       "name": "style.css",
@@ -24,7 +24,7 @@
     {
       "name": "sw.js",
       "exists": true,
-      "size": 501
+      "size": 500
     },
     {
       "name": "quick_Guide.txt",
@@ -316,19 +316,19 @@
       "ok": true
     },
     {
-      "name": "html_v2200_round_modal",
+      "name": "html_v2210_round_modal",
       "ok": true
     },
     {
-      "name": "manifest_v2200",
+      "name": "manifest_v2210",
       "ok": true
     },
     {
-      "name": "sw_v2200",
+      "name": "sw_v2210",
       "ok": true
     },
     {
-      "name": "docs_v2200",
+      "name": "docs_v2210",
       "ok": true
     },
     {
@@ -428,6 +428,10 @@
       "ok": true
     },
     {
+      "name": "boss_notice_timeout_preserves_paused_status",
+      "ok": true
+    },
+    {
       "name": "boss_has_shield_phase",
       "ok": true
     },
@@ -454,7 +458,7 @@
   ],
   "summary": {
     "allOk": true,
-    "total": 102,
-    "passed": 102
+    "total": 103,
+    "passed": 103
   }
 }
