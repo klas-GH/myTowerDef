@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-18T09:51:00.755Z",
+  "ts": "2026-10-18T10:08:51.654Z",
   "files": [
     {
       "name": "index.html",
@@ -9,7 +9,7 @@
     {
       "name": "game.js",
       "exists": true,
-      "size": 102700
+      "size": 104083
     },
     {
       "name": "style.css",
@@ -494,8 +494,8 @@
     {
       "name": "challenge_debug_progress",
       "ok": true,
-      "before": "{\"levelsCompleted\":0,\"highestRunReached\":1,\"campaignCompleted\":false,\"currentLevel\":1,\"currentRun\":1}",
-      "after": "{\"levelsCompleted\":0,\"highestRunReached\":1,\"campaignCompleted\":false,\"currentLevel\":1,\"currentRun\":1}"
+      "before": "{\"levelsCompleted\":6,\"highestRunReached\":3,\"campaignCompleted\":false,\"currentLevel\":7,\"currentRun\":3}",
+      "after": "{\"levelsCompleted\":6,\"highestRunReached\":3,\"campaignCompleted\":false,\"currentLevel\":7,\"currentRun\":3}"
     },
     {
       "name": "challenge_start_sets_mode",
@@ -514,6 +514,10 @@
       "ok": true
     },
     {
+      "name": "challenge_save_preserves_campaign_position",
+      "ok": true
+    },
+    {
       "name": "challenge_reset_keeps_mode",
       "ok": true
     },
@@ -523,6 +527,14 @@
     },
     {
       "name": "challenge_allows_archer_placement",
+      "ok": true
+    },
+    {
+      "name": "challenge_build_and_spend_do_not_change_campaign_stats",
+      "ok": true
+    },
+    {
+      "name": "challenge_kills_do_not_change_campaign_stats",
       "ok": true
     },
     {
@@ -558,6 +570,10 @@
       "ok": true
     },
     {
+      "name": "challenge_finalize_restores_campaign_position",
+      "ok": true
+    },
+    {
       "name": "challenge_isolates_campaign_state",
       "ok": true
     },
@@ -566,7 +582,31 @@
       "ok": true
     },
     {
+      "name": "challenge_failed_completion_keeps_id_and_records_attempt",
+      "ok": true
+    },
+    {
+      "name": "challenge_failed_completion_overlay_shows_challenge",
+      "ok": true
+    },
+    {
+      "name": "tactical_specialist_allows_cannon_and_magic",
+      "ok": true
+    },
+    {
+      "name": "shieldbreaker_requires_broken_shield",
+      "ok": true
+    },
+    {
+      "name": "shieldbreaker_succeeds_after_shield_break",
+      "ok": true
+    },
+    {
       "name": "challenge_abandon_records_attempt",
+      "ok": true
+    },
+    {
+      "name": "challenge_defeat_overlay_keeps_challenge_identity",
       "ok": true
     },
     {
@@ -575,6 +615,18 @@
     },
     {
       "name": "challenge_reset_save_restores_campaign",
+      "ok": true
+    },
+    {
+      "name": "challenge_reset_save_clears_records",
+      "ok": true
+    },
+    {
+      "name": "v2_legacy_key_migrates_to_v3",
+      "ok": true
+    },
+    {
+      "name": "v2_migration_preserves_settings_stats_and_achievements",
       "ok": true
     },
     {
@@ -620,7 +672,7 @@
   ],
   "summary": {
     "allOk": true,
-    "total": 143,
-    "passed": 143
+    "total": 156,
+    "passed": 156
   }
 }
