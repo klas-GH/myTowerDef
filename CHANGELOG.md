@@ -1,6 +1,21 @@
 # myTowerDef Changelog
 
-## Version 2.2.1
+## Version 2.3.2
+
+### New Features
+
+- **Themed background PNGs**: Generated 12 background PNGs (one per level theme) via `gen_assets.py` + PIL. Each draws the level's ground color, road polyline, and decorative layer items (palm trees, coral, flowers, cacti, etc.) so every level has a distinct base layer.
+- **Unit icon PNGs**: Generated 7 unit icon PNGs — `enemy_standard`, `enemy_runner`, `enemy_armored`, `enemy_boss`, `tower_archer`, `tower_cannon`, `tower_magic`. Each is a 28x28 RGBA icon with a distinct silhouette: round body for Standard, sleek diamond with speed streak for Runner, heavy hexagon with plate line for Armored, crowned boss body for Boss, bow for Archer, barrel for Cannon, crystal facet for Magic.
+- `drawTowerIcon` and `drawEnemyIcon` now prefer the pre-rendered PNG via `ctx.drawImage`, falling back to the procedural drawing when an asset is missing or still loading.
+- Assets are loaded lazily and cached (`loadBg`/`loadUnit`) so repeated draws do not re-decode.
+
+### Validation
+
+- All 178 regression checks pass.
+- Smoke test passes.
+- `git diff --check` is clean.
+
+## Version 2.3.1
 
 ### Bug Fixes
 
