@@ -296,6 +296,11 @@ let enemiesToSpawn, enemyHp, enemySpeed, waveReward;
 let waveActive = false;
 let lastPreviewWave = -1; // cached next-wave number rendered in the preview
 let soundContext = null;
+let particles = []; // transient hit/kill effects, capped per frame
+
+// ---- v2.1.0: Performance caps and particle budget ----
+const MAX_PARTICLES = 120;
+const MAX_SHOTS = 200;
 
 // ---- v2.0.0: Persistence, Settings, Achievements ----
 const SAVE_KEY = "myTowerDef.save.v2";
@@ -380,7 +385,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.0.0";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.1.0";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -441,6 +446,48 @@ function applyMotionSetting() {
   if (document.documentElement) {
     document.documentElement.classList.toggle("reduced-motion", settings.reducedMotion);
   }
+}
+
+// ---- v2.1.0: Campaign selection menu ----
+// Presents all 12 levels in a readable grid so the player can see which
+// levels are locked, completed, or currently selected. Derived from the
+// authoritative LEVELS array so it cannot disagree with gameplay.
+function showCampaignMenu() {
+  const panel = $("campaignPanel");
+  if (!panel) return;
+  const grid = $("campaignGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  for (let i = 0; i < LEVELS.length; i++) {
+    const level = LEVELS[i];
+    const num = i + 1;
+    const locked = num > campaignState.levelsCompleted + 1 && campaignState.levelsCompleted < MAX_LEVEL;
+    const completed = num <= campaignState.levelsCompleted;
+    const current = num === currentLevel;
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "campaign-card" + (current ? " current" : "") + (completed ? " completed" : "") + (locked ? " locked" : "");
+    card.disabled = locked;
+    card.innerHTML =
+      '<span class="campaign-num">L' + String(num).padStart(2, "0") + '</span>' +
+      '<span class="campaign-name">' + level.name + '</span>' +
+      '<span class="campaign-status">' + (completed ? "✓" : locked ? "🔒" : "▶") + '</span>';
+    card.title = locked ? "Complete the previous level first" : level.name;
+    card.addEventListener("click", () => {
+      if (locked) return;
+      currentLevel = num;
+      hideCampaignMenu();
+      reset();
+      $("status").textContent = "Level " + num + ": " + level.name + ". Build your defense!";
+    });
+    grid.appendChild(card);
+  }
+  panel.hidden = false;
+}
+
+function hideCampaignMenu() {
+  const panel = $("campaignPanel");
+  if (panel) panel.hidden = true;
 }
 
 function restoreSavedGame() {
@@ -617,6 +664,7 @@ function reset() {
   towers = [];
   enemies = [];
   shots = [];
+  particles = [];
   spawned = 0;
   spawnTimer = 0;
   spawnQueue = [];
@@ -626,6 +674,7 @@ function reset() {
   mode = "ready";
   currentWave = 0;
   waveActive = false;
+  paused = false;
   lastPreviewWave = -1;
   const firstWave = getLevelWaveDef(1, currentLevel);
   enemiesToSpawn = firstWave.enemies;
@@ -637,6 +686,11 @@ function reset() {
   $("status").textContent = "Build your defense!";
   $("startBtn").disabled = false;
   $("startBtn").textContent = "▶ Start Wave";
+  const pauseBtnEl = $("pauseBtn");
+  if (pauseBtnEl) {
+    pauseBtnEl.disabled = true;
+    pauseBtnEl.textContent = "⏸ Pause";
+  }
   updateTowerPicker();
 
   updateUI();
@@ -687,9 +741,15 @@ function startWave() {
   waveActive = true;
   spawned = 0;
   spawnTimer = 0;
+  paused = false;
   unlockSound();
 
   $("status").textContent = `Wave ${currentWave}: enemies incoming!`;
+  const pauseBtnEl = $("pauseBtn");
+  if (pauseBtnEl) {
+    pauseBtnEl.disabled = false;
+    pauseBtnEl.textContent = "⏸ Pause";
+  }
   $("startBtn").disabled = true;
   $("startBtn").textContent = "⚔ Wave in progress";
   updateUI();
@@ -904,6 +964,13 @@ function moveEnemy(enemy, dt) {
 
 function update(dt) {
   if (mode !== "playing") return;
+  if (paused) {
+    // While paused, only the visual particle effects decay so the player
+    // can still see feedback from the moment they paused. All gameplay
+    // simulation (movement, spawning, combat) is frozen.
+    updateParticles(dt);
+    return;
+  }
 
   spawnTimer -= dt;
 
@@ -975,6 +1042,10 @@ function update(dt) {
       target.hp -= shot.damage;
       shot.done = true;
 
+      // Spawn a small hit burst so combat feedback is readable even when
+      // many units are present. Particles are capped per frame below.
+      spawnParticles(target.x, target.y, target.boss ? "#fde68a" : "#fef08a", target.boss ? 6 : 3);
+
       if (target.hp <= 0) {
         target.dead = true;
         coins += target.reward;
@@ -990,6 +1061,8 @@ function update(dt) {
           statsState.armoredDefeated++;
           if (statsState.armoredDefeated >= 50) awardAchievement("tank_buster");
         }
+        // Distinct kill burst: larger and colored by enemy type.
+        spawnParticles(target.x, target.y, target.color || "#ef4444", target.boss ? 14 : 7);
         saveGame();
       }
     } else if (d > 0) {
@@ -1000,6 +1073,9 @@ function update(dt) {
 
   enemies = enemies.filter(e => !e.dead);
   shots = shots.filter(s => !s.done);
+  // Cap transient effects so their arrays cannot grow indefinitely.
+  if (shots.length > MAX_SHOTS) shots = shots.slice(0, MAX_SHOTS);
+  if (particles.length > MAX_PARTICLES) particles = particles.slice(0, MAX_PARTICLES);
   updateUI();
 
   if (spawned === enemiesToSpawn && enemies.length === 0) {
@@ -1101,6 +1177,51 @@ function drawTowerIcon(x, y, type, selected) {
     drawPolygon([[x, y - 8], [x + 6, y - 2], [x + 4, y + 6], [x, y + 9], [x - 4, y + 6], [x - 6, y - 2]], tower.color, "#e9d5ff", 1);
     drawPolygon([[x, y - 5], [x + 3, y - 1], [x, y + 5], [x - 3, y - 1]], "#f5d0fe");
   }
+}
+
+// ---- v2.1.0: Transient combat-feedback particles ----
+// Small, short-lived bursts spawned on hit and kill so combat feedback is
+// readable even when many units are on screen. Particles are capped per
+// frame so their array cannot grow indefinitely.
+function spawnParticles(x, y, color, count) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 20 + Math.random() * 60;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 0.4 + Math.random() * 0.3,
+      maxLife: 0.7,
+      color,
+      size: 1.5 + Math.random() * 2
+    });
+  }
+}
+
+function updateParticles(dt) {
+  for (const p of particles) {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vx *= 0.92;
+    p.vy *= 0.92;
+    p.life -= dt;
+  }
+  particles = particles.filter(p => p.life > 0);
+  if (particles.length > MAX_PARTICLES) particles = particles.slice(0, MAX_PARTICLES);
+}
+
+function drawParticles() {
+  if (settings.reducedMotion) return;
+  for (const p of particles) {
+    const alpha = Math.max(0, p.life / p.maxLife);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 }
 
 function drawEnemyIcon(enemy) {
@@ -1408,7 +1529,22 @@ for (const tower of towers) {
       healthBarWidth * Math.max(0, enemy.hp / enemy.maxHp),
       3
     );
+
+    // Bosses get a distinct purple frame and a larger HP label so their
+    // threat level is readable even when many units are on screen.
+    if (enemy.boss) {
+      ctx.strokeStyle = "rgba(168,85,247,0.8)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(enemy.x - healthBarWidth / 2 - 1, healthBarY - 1, healthBarWidth + 2, 5);
+      ctx.fillStyle = "#fde68a";
+      ctx.font = "bold 8px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("BOSS", enemy.x, healthBarY - 4);
+    }
   }
+
+  // Transient combat-feedback particles (hit/kill bursts).
+  drawParticles();
 
   // Projectiles
   ctx.fillStyle = "#fef08a";
@@ -1643,6 +1779,35 @@ function updateWavePreview() {
 
 $("startBtn").addEventListener("click", handleStartButton);
 $("restartBtn").addEventListener("click", reset);
+const pauseBtn = $("pauseBtn");
+if (pauseBtn) {
+  pauseBtn.addEventListener("click", togglePause);
+}
+
+// ---- v2.1.0: Pause state ----
+// Pausing freezes all gameplay-affecting simulation: enemy movement,
+// projectiles, spawns, and combat timers. Resuming does not duplicate
+// loops or scheduled spawns.
+let paused = false;
+
+function togglePause() {
+  if (mode !== "playing") return;
+  paused = !paused;
+  const btn = $("pauseBtn");
+  if (btn) btn.textContent = paused ? "▶ Resume" : "⏸ Pause";
+  if (paused) {
+    $("status").textContent = "⏸ Paused";
+  } else {
+    $("status").textContent = "Wave " + currentWave + ": enemies incoming!";
+  }
+}
+
+function setPause(state) {
+  if (mode !== "playing") return;
+  paused = state;
+  const btn = $("pauseBtn");
+  if (btn) btn.textContent = paused ? "▶ Resume" : "⏸ Pause";
+}
 $("roundContinue").addEventListener("click", closeRoundNotice);
 
 canvas.addEventListener("pointerdown", event => {
@@ -1837,6 +2002,14 @@ if (settingsBtn) {
     if ($("settingsPanel")) showSettings();
   });
 }
+const campaignBtn = $("campaignBtn");
+if (campaignBtn) {
+  campaignBtn.addEventListener("click", () => {
+    if ($("campaignPanel")) showCampaignMenu();
+  });
+}
+const campaignCloseBtn = $("campaignClose");
+if (campaignCloseBtn) campaignCloseBtn.addEventListener("click", hideCampaignMenu);
 const settingsCloseBtn = $("settingsClose");
 if (settingsCloseBtn) settingsCloseBtn.addEventListener("click", hideSettings);
 const soundToggleEl = $("soundToggle");
