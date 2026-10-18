@@ -1,11 +1,11 @@
-﻿Quick Guide - myTowerDef v2.2.1
+﻿Quick Guide - myTowerDef v2.3.0
 
 1. Run it
 Save files in same folder. Open index.html in browser.
 If local files blocked, use VS Code Live Server.
 
 2. How to play
-- Tap a green spot, then choose Archer (50), Cannon (80), or Magic (80) from the popup. Start with 80 coins, enough for any tower.
+- Tap a green spot, then choose Archer (50), Cannon (80), or Magic (80) from the popup. Start with 80 coins + 3% per level above 1, enough for any tower.
 - Tap an existing tower to select and upgrade it, or Sell it for a full refund.
 - Tap Start Wave to begin.
 - Targeting: tap a tower to select it, then change its target priority (First, Strongest, Fastest, Nearest) on the upgrade panel. Free to change; affects which enemy it attacks next.
@@ -18,7 +18,12 @@ If local files blocked, use VS Code Live Server.
 - Finish all 12 levels to open a new round. Enemy HP and speed increase by 1% each round, with a popup announcing the change. After 50 rounds, a special victory popup celebrates your run and announces the restart at Round #1.
 - Restart to play again.
 
-3. Notes
+3. Challenges (v2.3.0)
+- Tap the 🏆 button to open the challenge panel. Each challenge is a one-attempt test on a specific level with its own starting coins, tower restrictions, and objective.
+- Completing a challenge awards Bronze, Silver, or Gold medals based on lives remaining. Your best medal and attempt count persist across reloads.
+- Challenge attempts never affect campaign progress, achievements, or statistics.
+
+4. Notes
 - Mobile-first responsive layout with touch input.
 - Offline-capable via service worker.
 - Towers can be upgraded up to level 3.

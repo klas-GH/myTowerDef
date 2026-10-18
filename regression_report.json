@@ -1,40 +1,40 @@
 {
-  "ts": "2026-10-18T08:39:23.403Z",
+  "ts": "2026-10-18T09:51:00.755Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 7333
+      "size": 8412
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 80850
+      "size": 102700
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 14063
+      "size": 14070
     },
     {
       "name": "manifest.json",
       "exists": true,
-      "size": 426
+      "size": 409
     },
     {
       "name": "sw.js",
       "exists": true,
-      "size": 500
+      "size": 495
     },
     {
       "name": "quick_Guide.txt",
       "exists": true,
-      "size": 1511
+      "size": 1932
     },
     {
       "name": "README.md",
       "exists": true,
-      "size": 1476
+      "size": 1921
     },
     {
       "name": "icon.svg",
@@ -316,19 +316,19 @@
       "ok": true
     },
     {
-      "name": "html_v2210_round_modal",
+      "name": "html_v230_round_modal",
       "ok": true
     },
     {
-      "name": "manifest_v2210",
+      "name": "manifest_v230",
       "ok": true
     },
     {
-      "name": "sw_v2210",
+      "name": "sw_v230",
       "ok": true
     },
     {
-      "name": "docs_v2210",
+      "name": "docs_v230",
       "ok": true
     },
     {
@@ -454,11 +454,173 @@
     {
       "name": "boss_spawns_on_final_wave_of_every_level",
       "ok": true
+    },
+    {
+      "name": "challenge_reset_save_succeeds",
+      "ok": true
+    },
+    {
+      "name": "challenge_reset_save_clears_campaign",
+      "ok": true
+    },
+    {
+      "name": "challenge_defs_present",
+      "ok": true
+    },
+    {
+      "name": "challenge_unlocked_budget_defender",
+      "ok": true
+    },
+    {
+      "name": "challenge_unlocked_last_stand",
+      "ok": true
+    },
+    {
+      "name": "challenge_unlocked_shieldbreaker",
+      "ok": true
+    },
+    {
+      "name": "challenge_unlocked_tactical_specialist",
+      "ok": true
+    },
+    {
+      "name": "challenge_unlocked_endurance_trial",
+      "ok": true
+    },
+    {
+      "name": "challenge_unlocked_precision_defense",
+      "ok": true
+    },
+    {
+      "name": "challenge_debug_progress",
+      "ok": true,
+      "before": "{\"levelsCompleted\":0,\"highestRunReached\":1,\"campaignCompleted\":false,\"currentLevel\":1,\"currentRun\":1}",
+      "after": "{\"levelsCompleted\":0,\"highestRunReached\":1,\"campaignCompleted\":false,\"currentLevel\":1,\"currentRun\":1}"
+    },
+    {
+      "name": "challenge_start_sets_mode",
+      "ok": true
+    },
+    {
+      "name": "challenge_start_sets_level",
+      "ok": true
+    },
+    {
+      "name": "challenge_start_sets_coins",
+      "ok": true
+    },
+    {
+      "name": "challenge_start_isolates_campaign_state",
+      "ok": true
+    },
+    {
+      "name": "challenge_reset_keeps_mode",
+      "ok": true
+    },
+    {
+      "name": "challenge_reset_applies_starting_coins",
+      "ok": true
+    },
+    {
+      "name": "challenge_allows_archer_placement",
+      "ok": true
+    },
+    {
+      "name": "challenge_rejects_disallowed_tower_type",
+      "ok": true
+    },
+    {
+      "name": "challenge_rejects_tower_sale",
+      "ok": true
+    },
+    {
+      "name": "challenge_reset_clears_towers",
+      "ok": true
+    },
+    {
+      "name": "challenge_reset_preserves_mode",
+      "ok": true
+    },
+    {
+      "name": "challenge_objective_complete_level",
+      "ok": true
+    },
+    {
+      "name": "challenge_finalize_awards_bronze",
+      "ok": true
+    },
+    {
+      "name": "challenge_finalize_records_attempt",
+      "ok": true
+    },
+    {
+      "name": "challenge_finalize_ended_mode",
+      "ok": true
+    },
+    {
+      "name": "challenge_isolates_campaign_state",
+      "ok": true
+    },
+    {
+      "name": "challenge_last_stand_gold_threshold",
+      "ok": true
+    },
+    {
+      "name": "challenge_abandon_records_attempt",
+      "ok": true
+    },
+    {
+      "name": "challenge_unknown_id_not_unlocked",
+      "ok": true
+    },
+    {
+      "name": "challenge_reset_save_restores_campaign",
+      "ok": true
+    },
+    {
+      "name": "challenge_panel_opens",
+      "ok": true
+    },
+    {
+      "name": "challenge_panel_renders_all_cards",
+      "ok": true
+    },
+    {
+      "name": "challenge_panel_closes",
+      "ok": true
+    },
+    {
+      "name": "challenge_hud_hidden_when_inactive",
+      "ok": true
+    },
+    {
+      "name": "challenge_hud_shows_active_challenge",
+      "ok": true
+    },
+    {
+      "name": "challenge_result_overlay_elements_exist",
+      "ok": true
+    },
+    {
+      "name": "challenge_result_overlay_shows_gold",
+      "ok": true
+    },
+    {
+      "name": "challenge_result_overlay_closes",
+      "ok": true
+    },
+    {
+      "name": "controls_row_is_single_row",
+      "ok": true
+    },
+    {
+      "name": "controls_use_three_columns",
+      "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 103,
-    "passed": 103
+    "total": 143,
+    "passed": 143
   }
 }

@@ -1,7 +1,31 @@
-﻿@version: 2.2.1
-@release: v2.2.1
+﻿@version: 2.3.0
+@release: v2.3.0
 @status: feature
-@scope: difficulty, replay
+@scope: challenges, difficulty
+
+=== v 2.3.0 ===
+- Added a challenge mode: a 🏆 button opens a panel of six self-contained challenges (Budget Defender, Last Stand, Shieldbreaker, Tactical Specialist, Endurance Trial, Precision Defense).
+- Each challenge runs on a specific level with its own starting coins, tower-type restrictions, and objective. Some challenges forbid selling towers entirely.
+- Completing a challenge awards Bronze, Silver, or Gold medals based on lives remaining; the player's best medal and attempt count persist across reloads.
+- Challenge attempts never touch campaign progress, achievements, or statistics — only challengeState and challengeRecords.
+- Added an active-challenge HUD showing the objective, lives, coins, shield status, and best medal.
+- Added a challenge result overlay with the medal glyph, completion message, and best-record summary.
+- Bumped SAVE_VERSION to 3 with a migration path from v2 saves (challenge records start empty).
+- Starting coins now scale with level: 80 base + 3% per level above 1, rounded down.
+- Bumped manifest, service-worker cache, README, quick_Guide, and index.html to v2.3.0.
+
+=== v 2.2.1 ===
+- Bug fix release on top of v2.2.0.
+
+=== v 2.2.0 ===
+- Added a boss shield phase: bosses spawn with a shield that absorbs damage and reduces incoming damage until broken.
+- Added boss spawn notifications and shield-break particle effects.
+- Extended regression.js with six boss-shield regression tests (103/103 passing).
+
+=== v 2.0.0 ===
+- Added persistence: campaign progress, settings, statistics, and achievements save to localStorage.
+- Added a settings panel with sound/reduced-motion toggles, statistics display, achievement list, and reset-progress confirmation.
+- Added achievements system with 12 unlockable achievements.
 
 === v 1.9.32 ===
 - Set starting coins to 80 and lower Cannon cost to 80 so any tower can be chosen immediately.

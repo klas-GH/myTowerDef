@@ -141,8 +141,10 @@ function showPanel() {
   const overlay = $("panelOverlay");
   const buildPanel = $("buildPanel");
   const upgradePanel = $("upgradePanel");
+  const settingsPanel = $("settingsPanel");
   if (buildPanel) buildPanel.hidden = true;
   if (upgradePanel) upgradePanel.hidden = false;
+  if (settingsPanel) settingsPanel.hidden = true;
   if (overlay) overlay.hidden = false;
   buildMenuOpen = false;
   pendingBuildSpot = null;
@@ -160,8 +162,10 @@ function showBuildMenu(spot) {
   const overlay = $("panelOverlay");
   const buildPanel = $("buildPanel");
   const upgradePanel = $("upgradePanel");
+  const settingsPanel = $("settingsPanel");
   if (buildPanel) buildPanel.hidden = false;
   if (upgradePanel) upgradePanel.hidden = true;
+  if (settingsPanel) settingsPanel.hidden = true;
   if (overlay) overlay.hidden = false;
 }
 function closeBuildMenu() {
@@ -309,6 +313,7 @@ const CHALLENGE_DEFS = {
     level: 1,
     startingCoins: 50,
     allowedTowerTypes: ["archer"],
+    forbidSales: true,
     objective: { type: "complete_level", level: 1 },
     medals: { bronze: 1, silver: 1, gold: 1 },
     unlocked: true
@@ -387,6 +392,238 @@ let challengeState = {
 };
 // Persistent best results per challenge ID.
 let challengeRecords = {};
+
+// ---- v2.3.0: Challenge engine ----
+// The challenge engine is a thin layer over the existing game loop. It
+// activates a challenge, enforces its constraints during play, evaluates the
+// objective at the end of the attempt, and awards medals based on the
+// objective's medal thresholds. Challenge attempts never touch campaign
+// state, achievements, or statsState — only challengeState/challengeRecords.
+function getChallenge(id) {
+  return CHALLENGE_DEFS[id] || null;
+}
+
+function isChallengeUnlocked(id) {
+  const def = getChallenge(id);
+  if (!def) return false;
+  if (def.unlocked) return true;
+  // A challenge is unlockable by completing a prerequisite challenge.
+  return Array.isArray(def.requires) && def.requires.every(r => challengeRecords[r] && challengeRecords[r].bestMedal >= 1);
+}
+
+function getChallengeRecord(id) {
+  return challengeRecords[id] || null;
+}
+
+function resetChallengeState() {
+  challengeState = {
+    lives: 6,
+    coins: 80,
+    towersBuilt: 0,
+    towersSold: 0,
+    shieldBroken: false,
+    bossDefeated: false,
+    objectiveMet: false,
+    startTime: 0,
+    elapsedMs: 0,
+    resultFinalized: false,
+    coinsSpent: 0,
+    wavesSurvived: 0,
+    towersUsed: new Set()
+  };
+}
+
+function startChallenge(id) {
+  const def = getChallenge(id);
+  if (!def || !isChallengeUnlocked(id)) return false;
+  challengeMode = true;
+  activeChallenge = id;
+  resetChallengeState();
+  challengeState.coins = def.startingCoins;
+  challengeState.startTime = (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+  currentLevel = def.level;
+  currentRun = 1;
+  reset();
+  updateChallengeHUD();
+  saveGame();
+  return true;
+}
+
+function endChallenge() {
+  challengeMode = false;
+  activeChallenge = null;
+  challengeState.resultFinalized = true;
+}
+
+// Evaluate whether the active challenge's objective is currently satisfied.
+// Returns true when the objective has been met at least once this attempt.
+function evaluateChallengeObjective() {
+  if (!challengeMode || !activeChallenge) return false;
+  const def = getChallenge(activeChallenge);
+  if (!def) return false;
+  const obj = def.objective || {};
+  const s = challengeState;
+
+  switch (obj.type) {
+    case "complete_level":
+      return mode === "won" && currentLevel === obj.level;
+    case "min_lives":
+      return mode === "won" && currentLevel === obj.level && lives >= obj.minLives;
+    case "min_lives_no_sales":
+      return mode === "won" && currentLevel === obj.level && lives >= obj.minLives && s.towersSold === 0;
+    case "defeat_boss":
+      return s.bossDefeated === true;
+    case "restricted_towers":
+      // Satisfied when the level completes and every placed tower was one of
+      // the allowed types. Empty allowed list means no towers may be placed.
+      if (mode !== "won" || currentLevel !== obj.level) return false;
+      if (obj.allowed.length === 0) return s.towersBuilt === 0;
+      for (const t of towers) {
+        if (!obj.allowed.includes(t.type)) return false;
+      }
+      return true;
+    case "survive_waves":
+      return s.wavesSurvived >= obj.waves;
+    default:
+      return false;
+  }
+}
+
+// Award medals for a finished challenge attempt. Bronze is always awarded on
+// completion; silver and gold require meeting the medal threshold.
+function finalizeChallengeResult() {
+  if (!challengeMode || !activeChallenge) return null;
+  const def = getChallenge(activeChallenge);
+  if (!def) return null;
+  const s = challengeState;
+  const met = evaluateChallengeObjective();
+  if (!met) {
+    endChallenge();
+    return { challenge: activeChallenge, medal: 0, completed: false };
+  }
+
+  // Medal tiers: bronze = complete, silver = meet threshold, gold = meet gold threshold.
+  const m = def.medals || {};
+  const bronze = m.bronze != null ? m.bronze : 1;
+  const silver = m.silver != null ? m.silver : 1;
+  const gold = m.gold != null ? m.gold : 1;
+  let medal = 1; // bronze
+  if (s.lives >= silver) medal = Math.max(medal, 2);
+  if (s.lives >= gold) medal = Math.max(medal, 3);
+
+  const id = activeChallenge;
+  const prev = challengeRecords[id] || { bestMedal: 0, bestLives: 0, attempts: 0, completions: 0 };
+  prev.attempts = (prev.attempts || 0) + 1;
+  prev.completions = (prev.completions || 0) + 1;
+  prev.bestLives = Math.max(prev.bestLives || 0, s.lives);
+  if (medal > (prev.bestMedal || 0)) prev.bestMedal = medal;
+  challengeRecords[id] = prev;
+
+  endChallenge();
+  saveGame();
+  return { challenge: id, medal, completed: true, lives: s.lives };
+}
+
+function abandonChallenge() {
+  if (!challengeMode || !activeChallenge) return null;
+  const id = activeChallenge;
+  const s = challengeState;
+  const prev = challengeRecords[id] || { bestMedal: 0, bestLives: 0, attempts: 0, completions: 0 };
+  prev.attempts = (prev.attempts || 0) + 1;
+  challengeRecords[id] = prev;
+  endChallenge();
+  saveGame();
+  return { challenge: id, completed: false };
+}
+
+function getChallengeMedalLabel(medal) {
+  if (medal >= 3) return "Gold";
+  if (medal >= 2) return "Silver";
+  if (medal >= 1) return "Bronze";
+  return "None";
+}
+
+function getChallengeMedalGlyph(medal) {
+  if (medal >= 3) return "🥇";
+  if (medal >= 2) return "🥈";
+  if (medal >= 1) return "🥉";
+  return "☐";
+}
+
+// ---- v2.3.0: Challenge HUD and result overlay ----
+// The HUD shows the active challenge name, objective, and current medal
+// progress. The result overlay appears after a challenge attempt finishes.
+function updateChallengeHUD() {
+  const el = $("challengeHud");
+  if (!el) return;
+  if (!challengeMode || !activeChallenge) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+  const def = getChallenge(activeChallenge);
+  if (!def) { el.hidden = true; return; }
+  const s = challengeState;
+  const obj = def.objective || {};
+  const objText = describeChallengeObjective(obj);
+  const best = challengeRecords[activeChallenge];
+  const bestLabel = best && best.bestMedal ? getChallengeMedalLabel(best.bestMedal) : "None";
+  const bestGlyph = best && best.bestMedal ? getChallengeMedalGlyph(best.bestMedal) : "☐";
+  el.hidden = false;
+  el.innerHTML =
+    '<div class="challenge-hud-title">⚔ ' + def.name + '</div>' +
+    '<div class="challenge-hud-obj">' + objText + '</div>' +
+    '<div class="challenge-hud-stats">' +
+      '<span>❤️ ' + s.lives + '</span>' +
+      '<span>💰 ' + s.coins + '</span>' +
+      '<span>🛡 ' + (s.shieldBroken ? "broken" : "intact") + '</span>' +
+      '<span>🏆 ' + bestGlyph + " " + bestLabel + '</span>' +
+    '</div>';
+}
+
+function describeChallengeObjective(obj) {
+  if (!obj) return "Objective: unknown";
+  switch (obj.type) {
+    case "complete_level": return "Objective: complete level " + obj.level;
+    case "min_lives": return "Objective: complete level " + obj.level + " with ≥" + obj.minLives + " lives";
+    case "min_lives_no_sales": return "Objective: complete level " + obj.level + " with ≥" + obj.minLives + " lives, no sales";
+    case "defeat_boss": return "Objective: defeat the boss on level " + obj.level;
+    case "restricted_towers": return "Objective: complete level " + obj.level + " using only " + (obj.allowed.length ? obj.allowed.join(", ") : "no towers");
+    case "survive_waves": return "Objective: survive " + obj.waves + " wave" + (obj.waves === 1 ? "" : "s") + " on level " + obj.level;
+    default: return "Objective: " + (obj.type || "unknown");
+  }
+}
+
+function showChallengeResultOverlay(result) {
+  const overlay = $("challengeOverlay");
+  if (!overlay) return;
+  const def = getChallenge(result.challenge);
+  if (!def) return;
+  overlay.classList.remove("campaign-complete");
+  $("challengeTitle").textContent = result.completed ? "Challenge Complete!" : "Challenge Failed";
+  const glyph = result.completed ? getChallengeMedalGlyph(result.medal) : "❌";
+  $("challengeMedal").textContent = glyph;
+  $("challengeMedal").className = "challenge-medal " + (result.completed ? getChallengeMedalLabel(result.medal).toLowerCase() : "failed");
+  $("challengeMessage").textContent = result.completed
+    ? (def.name + " cleared with " + result.lives + " life" + (result.lives === 1 ? "" : "s") + ". Best: " + getChallengeMedalLabel(result.medal) + ".")
+    : (def.name + " not completed this attempt. Try again.");
+  $("challengeRecords").textContent = "Best: " + (challengeRecords[result.challenge] ? getChallengeMedalLabel(challengeRecords[result.challenge].bestMedal) : "None") +
+    " · Attempts: " + (challengeRecords[result.challenge] ? challengeRecords[result.challenge].attempts : 0);
+  overlay.hidden = false;
+  $("challengeContinue").focus();
+}
+
+function closeChallengeResult() {
+  const overlay = $("challengeOverlay");
+  if (overlay) overlay.hidden = true;
+  if (challengeMode) {
+    // A fresh attempt restarts the same challenge in place.
+    startChallenge(activeChallenge);
+  } else {
+    reset();
+  }
+}
+
 let particles = []; // transient hit/kill effects, capped per frame
 
 // ---- v2.1.0: Performance caps and particle budget ----
@@ -394,8 +631,8 @@ const MAX_PARTICLES = 120;
 const MAX_SHOTS = 200;
 
 // ---- v2.0.0: Persistence, Settings, Achievements ----
-const SAVE_KEY = "myTowerDef.save.v2";
-const SAVE_VERSION = 2;
+const SAVE_KEY = "myTowerDef.save.v3";
+const SAVE_VERSION = 3;
 const ACHIEVEMENTS_DEFS = {
   first_defense: { id: "first_defense", name: "First Defense", desc: "Complete Level 1" },
   all_twelve: { id: "all_twelve", name: "All Twelve", desc: "Complete all 12 levels in a round" },
@@ -498,6 +735,43 @@ function loadSave() {
     return false;
   }
   if (!data || typeof data !== "object" || data.version !== SAVE_VERSION) {
+    // v2.3.0 introduced challenge mode. A v2 save is still valid campaign
+    // data; migrate it in place rather than discarding progress. Challenge
+    // records start empty because they did not exist before this version.
+    if (data && typeof data === "object" && data.version === 2) {
+      console.info("Migrating v2 save to v3 (challenge mode).");
+      if (data.campaign && typeof data.campaign === "object") {
+        const c = data.campaign;
+        if (Number.isInteger(c.currentRun) && c.currentRun >= 1 && c.currentRun <= MAX_RUN) {
+          campaignState.currentRun = c.currentRun;
+        }
+        if (Number.isInteger(c.currentLevel) && c.currentLevel >= 1 && c.currentLevel <= MAX_LEVEL) {
+          campaignState.currentLevel = c.currentLevel;
+        }
+        if (Number.isInteger(c.highestRunReached) && c.highestRunReached >= 1 && c.highestRunReached <= MAX_RUN) {
+          campaignState.highestRunReached = c.highestRunReached;
+        }
+        campaignState.campaignCompleted = !!c.campaignCompleted;
+        campaignState.levelsCompleted = Number.isInteger(c.levelsCompleted) && c.levelsCompleted >= 0 && c.levelsCompleted <= MAX_LEVEL
+          ? c.levelsCompleted
+          : 0;
+      }
+      if (data.settings && typeof data.settings === "object") {
+        if (typeof data.settings.soundEnabled === "boolean") settings.soundEnabled = data.settings.soundEnabled;
+        if (typeof data.settings.reducedMotion === "boolean") settings.reducedMotion = data.settings.reducedMotion;
+      }
+      if (data.stats && typeof data.stats === "object") {
+        const s = data.stats;
+        for (const key of Object.keys(statsState)) {
+          statsState[key] = Number.isSafeInteger(s[key]) && s[key] >= 0 ? s[key] : 0;
+        }
+      }
+      if (Array.isArray(data.achievements)) {
+        achievements = [...new Set(data.achievements.filter(a => Object.prototype.hasOwnProperty.call(ACHIEVEMENTS_DEFS, a)))];
+      }
+      challengeRecords = {};
+      return true;
+    }
     console.warn("Save data is outdated or invalid, ignoring.");
     return false;
   }
@@ -529,6 +803,21 @@ function loadSave() {
   }
   if (Array.isArray(data.achievements)) {
     achievements = [...new Set(data.achievements.filter(a => Object.prototype.hasOwnProperty.call(ACHIEVEMENTS_DEFS, a)))];
+  }
+  // v2.3.0: Challenge records persist across sessions so the player's best
+  // medals and attempt counts survive reloads. Unknown keys are ignored.
+  if (data.challenges && typeof data.challenges === "object") {
+    for (const key of Object.keys(data.challenges)) {
+      if (!CHALLENGE_DEFS[key]) continue;
+      const rec = data.challenges[key];
+      if (!rec || typeof rec !== "object") continue;
+      challengeRecords[key] = {
+        bestMedal: Number.isSafeInteger(rec.bestMedal) && rec.bestMedal >= 0 ? rec.bestMedal : 0,
+        bestLives: Number.isSafeInteger(rec.bestLives) && rec.bestLives >= 0 ? rec.bestLives : 0,
+        attempts: Number.isSafeInteger(rec.attempts) && rec.attempts >= 0 ? rec.attempts : 0,
+        completions: Number.isSafeInteger(rec.completions) && rec.completions >= 0 ? rec.completions : 0
+      };
+    }
   }
   return true;
 }
@@ -581,6 +870,48 @@ function hideCampaignMenu() {
   if (panel) panel.hidden = true;
 }
 
+// ---- v2.3.0: Challenge selection panel ----
+// Lists every defined challenge with its unlock status, objective, and the
+// player's best medal. Clicking an unlocked challenge starts it immediately.
+function showChallengePanel() {
+  const panel = $("challengePanel");
+  if (!panel) return;
+  const list = $("challengeList");
+  if (!list) return;
+  list.innerHTML = "";
+  const ids = Object.keys(CHALLENGE_DEFS);
+  for (const id of ids) {
+    const def = CHALLENGE_DEFS[id];
+    const unlocked = isChallengeUnlocked(id);
+    const record = challengeRecords[id];
+    const bestMedal = record ? record.bestMedal : 0;
+    const bestGlyph = bestMedal ? getChallengeMedalGlyph(bestMedal) : "☐";
+    const bestLabel = bestMedal ? getChallengeMedalLabel(bestMedal) : "None";
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "challenge-card" + (unlocked ? "" : " locked");
+    card.disabled = !unlocked;
+    card.innerHTML =
+      '<span class="challenge-name">' + def.name + '</span>' +
+      '<span class="challenge-desc">' + def.desc + '</span>' +
+      '<span class="challenge-meta">L' + String(def.level).padStart(2, "0") + ' · 💰' + def.startingCoins + '</span>' +
+      '<span class="challenge-best">' + bestGlyph + " " + bestLabel + '</span>';
+    card.title = unlocked ? "Start " + def.name : "Locked";
+    card.addEventListener("click", () => {
+      if (!unlocked) return;
+      hideChallengePanel();
+      startChallenge(id);
+    });
+    list.appendChild(card);
+  }
+  panel.hidden = false;
+}
+
+function hideChallengePanel() {
+  const panel = $("challengePanel");
+  if (panel) panel.hidden = true;
+}
+
 function restoreSavedGame() {
   if (!loadSave()) return false;
   currentRun = campaignState.currentRun;
@@ -604,7 +935,8 @@ function saveGame() {
     campaign: { ...campaignState },
     settings: { ...settings },
     stats: { ...statsState },
-    achievements: achievements.slice()
+    achievements: achievements.slice(),
+    challenges: { ...challengeRecords }
   };
   try {
     window.localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -766,8 +1098,31 @@ function reset() {
   currentLevelData = LEVELS[currentLevel - 1];
   path = currentLevelData.path;
   spots = currentLevelData.spots;
-  coins = 80;
-  lives = 6;
+  // Challenge mode overrides the default starting coins and lives; campaign
+  // always uses the baseline 80/6. The challenge state counters are reset
+  // here too so a restart within a challenge starts clean.
+  if (challengeMode && activeChallenge) {
+    const def = getChallenge(activeChallenge);
+    coins = def ? def.startingCoins : 80;
+    challengeState.coins = coins;
+    challengeState.lives = 6;
+    lives = 6;
+    challengeState.towersBuilt = 0;
+    challengeState.towersSold = 0;
+    challengeState.shieldBroken = false;
+    challengeState.bossDefeated = false;
+    challengeState.objectiveMet = false;
+    challengeState.wavesSurvived = 0;
+    challengeState.coinsSpent = 0;
+    challengeState.towersUsed = new Set();
+  } else {
+    // Starting coins scale with level: 80 base + 3% per level above 1,
+    // rounded down. Level 10+ gets a noticeable bump so the early-game
+    // economy of 80 coins is not enough by itself.
+    const levelBonus = Math.floor(80 * 0.03 * (currentLevel - 1));
+    coins = 80 + levelBonus;
+    lives = 6;
+  }
   towers = [];
   enemies = [];
   shots = [];
@@ -790,7 +1145,9 @@ function reset() {
   waveReward = firstWave.reward;
 
   updateLevelHeading();
-  $("status").textContent = "Build your defense!";
+  $("status").textContent = challengeMode
+    ? "Challenge: " + getChallenge(activeChallenge).name + " — build your defense!"
+    : "Build your defense!";
   $("startBtn").disabled = false;
   $("startBtn").textContent = "▶ Start Wave";
   const pauseBtnEl = $("pauseBtn");
@@ -803,6 +1160,7 @@ function reset() {
   updateUI();
   updateUpgradePanel();
   updateWaveInfo();
+  if (challengeMode) updateChallengeHUD();
 }
 
 function updateUI() {
@@ -1016,6 +1374,15 @@ function placeTower(x, y) {
   }
 
   const t = getTowerType(selectedTowerType);
+  // v2.3.0: Challenge constraints. Some challenges restrict which tower
+  // types may be built; others forbid selling towers entirely.
+  if (challengeMode && activeChallenge) {
+    const def = getChallenge(activeChallenge);
+    if (def && def.allowedTowerTypes && !def.allowedTowerTypes.includes(t.id)) {
+      $("status").textContent = def.name + " only allows: " + def.allowedTowerTypes.join(", ") + ".";
+      return;
+    }
+  }
   if (coins < t.cost) {
     $("status").textContent = "Need " + t.cost + " coins for " + t.name + "!";
     return;
@@ -1038,6 +1405,12 @@ function placeTower(x, y) {
   coins -= t.cost;
   recordCoinSpend(t.cost);
   statsState.towersBuilt++;
+  if (challengeMode && activeChallenge) {
+    challengeState.towersBuilt++;
+    challengeState.coins = coins;
+    challengeState.towersUsed = challengeState.towersUsed || new Set();
+    challengeState.towersUsed.add(t.id);
+  }
   if (t.id === "archer") statsState.archerBuilt++;
   else if (t.id === "cannon") statsState.cannonBuilt++;
   else if (t.id === "magic") statsState.magicBuilt++;
@@ -1048,6 +1421,7 @@ function placeTower(x, y) {
   saveGame();
   $("status").textContent = t.name + " tower built! Ready to defend.";
   updateUI();
+  if (challengeMode) updateChallengeHUD();
 }
 
 // Sell/demolish a placed tower, refunding its full purchase cost plus every
@@ -1057,6 +1431,14 @@ function placeTower(x, y) {
 function sellTower(tower) {
   if (!tower || mode === "won" || mode === "lost") return;
   if (!towers.includes(tower)) return;
+  // v2.3.0: Some challenges forbid tower sales entirely.
+  if (challengeMode && activeChallenge) {
+    const def = getChallenge(activeChallenge);
+    if (def && def.forbidSales) {
+      $("status").textContent = def.name + " does not allow selling towers.";
+      return;
+    }
+  }
   // 50% refund if selling while a wave is active; 100% refund if selling
   // before any wave has started or in non-playing/preparation states.
   const wasWaveStarted = currentWave >= 1;
@@ -1065,9 +1447,14 @@ function sellTower(tower) {
   coins += refund;
   towers = towers.filter(t => t !== tower);
   if (selectedTower === tower) selectedTower = null;
+  if (challengeMode && activeChallenge) {
+    challengeState.towersSold++;
+    challengeState.coins = coins;
+  }
   $("status").textContent = "Tower sold. +" + refund + " coins" + (penalty < 1.0 ? " (50%)" : "");
   updateUI();
   updateUpgradePanel();
+  if (challengeMode) updateChallengeHUD();
 }
 
 function moveEnemy(enemy, dt) {
@@ -1124,6 +1511,24 @@ function update(dt) {
   if (lives <= 0) {
     mode = "lost";
     paused = false;
+    // v2.3.0: Challenge attempts that lose before completing record the
+    // attempt but award no medal. The result overlay explains the failure.
+    if (challengeMode && activeChallenge) {
+      challengeState.lives = 0;
+      abandonChallenge();
+      showChallengeResultOverlay({ challenge: activeChallenge, medal: 0, completed: false, lives: 0 });
+      $("status").textContent = "💥 Base destroyed — challenge failed.";
+      $("startBtn").disabled = true;
+      const pauseBtnEl = $("pauseBtn");
+      if (pauseBtnEl) {
+        pauseBtnEl.disabled = true;
+        pauseBtnEl.textContent = "⏸ Pause";
+      }
+      updateUpgradePanel();
+      saveGame();
+      updateChallengeHUD();
+      return;
+    }
     $("status").textContent = "💥 Base destroyed! Try again.";
     $("startBtn").disabled = true;
     const pauseBtnEl = $("pauseBtn");
@@ -1189,6 +1594,10 @@ function update(dt) {
           target.shieldActive = false;
           target.shieldHp = 0;
           spawnParticles(target.x, target.y, "#c084fc", 10);
+          // v2.3.0: Track shield break for the Shieldbreaker challenge.
+          if (challengeMode && activeChallenge) {
+            challengeState.shieldBroken = true;
+          }
         }
       }
       target.hp -= damage;
@@ -1205,6 +1614,10 @@ function update(dt) {
         statsState.enemiesDefeated++;
         if (target.boss) {
           statsState.bossesDefeated++;
+          if (challengeMode && activeChallenge) {
+            challengeState.bossDefeated = true;
+            challengeState.coins = coins;
+          }
           if (statsState.bossesDefeated >= 10) awardAchievement("boss_slayer");
         } else if (target.type === "runner") {
           statsState.runnersDefeated++;
@@ -1228,6 +1641,7 @@ function update(dt) {
   // Cap transient effects so their arrays cannot grow indefinitely.
   if (shots.length > MAX_SHOTS) shots = shots.slice(0, MAX_SHOTS);
   if (particles.length > MAX_PARTICLES) particles = particles.slice(0, MAX_PARTICLES);
+  if (challengeMode && activeChallenge) challengeState.coins = coins;
   updateUI();
 
   if (spawned === enemiesToSpawn && enemies.length === 0) {
@@ -1238,12 +1652,29 @@ function update(dt) {
       pauseBtnEl.disabled = true;
       pauseBtnEl.textContent = "⏸ Pause";
     }
+    // v2.3.0: Challenge attempts track waves survived and finalize on the
+    // final wave. Campaign progress is untouched.
+    if (challengeMode && activeChallenge) {
+      challengeState.wavesSurvived++;
+      challengeState.coins = coins;
+      challengeState.lives = lives;
+    }
     const lastWave = currentWave >= MAX_WAVE;
     mode = lastWave ? "won" : "ready";
     coins += waveReward;
     updateUI();
     updateUpgradePanel();
     updateWaveInfo();
+
+    if (challengeMode && activeChallenge) {
+      if (lastWave) {
+        const result = finalizeChallengeResult();
+        showChallengeResultOverlay(result);
+      }
+      saveGame();
+      if (challengeMode) updateChallengeHUD();
+      return;
+    }
 
     if (lastWave) {
       // Track campaign progress and achievements.
@@ -2083,6 +2514,8 @@ if (panelOverlay) {
     // Guarded so non-DOM contexts (deterministic test harness) never crash.
     if (event.target && typeof event.target.closest === "function" && event.target.closest("#upgradePanel, #buildPanel, #settingsPanel")) return; // panel content tap
     if (buildMenuOpen) closeBuildMenu();
+    const settingsPanel = $("settingsPanel");
+    if (settingsPanel && !settingsPanel.hidden) hideSettings();
     else hidePanel();
   });
 }
@@ -2133,6 +2566,7 @@ if (typeof document !== "undefined" && typeof document.addEventListener === "fun
 function showSettings() {
   closeBuildMenu();
   hidePanel();
+  panelOpen = true;
   const panel = $("settingsPanel");
   if (!panel) return;
   const overlay = $("panelOverlay");
@@ -2153,6 +2587,7 @@ function showSettings() {
 function hideSettings() {
   const panel = $("settingsPanel");
   if (panel) panel.hidden = true;
+  panelOpen = false;
   refreshPanelContent();
 }
 
@@ -2262,5 +2697,21 @@ if (gameOverRestart) {
   gameOverRestart.addEventListener("click", () => {
     if (gameOverOverlay) gameOverOverlay.hidden = true;
     reset();
+  });
+}
+
+// ---- v2.3.0: Challenge button, panel, and result overlay wiring ----
+const challengeBtn = $("challengeBtn");
+if (challengeBtn) {
+  challengeBtn.addEventListener("click", () => {
+    if ($("challengePanel")) showChallengePanel();
+  });
+}
+const challengeCloseBtn = $("challengeClose");
+if (challengeCloseBtn) challengeCloseBtn.addEventListener("click", hideChallengePanel);
+const challengeContinueBtn = $("challengeContinue");
+if (challengeContinueBtn) {
+  challengeContinueBtn.addEventListener("click", () => {
+    closeChallengeResult();
   });
 }
