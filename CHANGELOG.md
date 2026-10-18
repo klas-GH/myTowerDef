@@ -1,5 +1,17 @@
 # myTowerDef Changelog
 
+## Version 2.3.3
+
+### Bug Fixes
+
+- **Header overflow on narrow phones**: The header is now locked to a single row on every screen width. The title, subtitle, and stats all shrink via `clamp()` and never wrap, so the header cannot overflow the viewport even on the narrowest phones. The old `@media (max-width: 380px)` override was removed since the clamp values already handle small screens.
+
+### Validation
+
+- All 189 regression checks pass.
+- Smoke test passes.
+- `git diff --check` is clean.
+
 ## Version 2.3.2
 
 ### New Features

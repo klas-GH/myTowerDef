@@ -2,7 +2,7 @@
 
 A lightweight, mobile-first tower defense mini-game.
 
-- Version: 2.3.2
+- Version: 2.3.3
 - Run: open index.html in a browser (or use Live Server)
 - Controls: pick a tower type, tap a green spot to place it, Start Wave, Restart
 - Towers: Archer (50, fast), Cannon (80, heavy, slow), Magic (80, long range)

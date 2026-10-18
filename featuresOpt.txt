@@ -1,7 +1,13 @@
-﻿@version: 2.3.2
-@release: v2.3.2
-@status: feature, art
-@scope: visuals, assets
+﻿@version: 2.3.3
+@release: v2.3.3
+@status: bugfix, responsive
+@scope: header, mobile
+
+=== v 2.3.3 ===
+- Fixed header overflow on narrow phones: the header is locked to a single row and the title, subtitle, and stats shrink via clamp() so they never wrap or overflow the viewport, even on the narrowest screens.
+- Removed the @media (max-width: 380px) override since the clamp values already handle small screens.
+- Added 4 regression checks asserting the one-row header behavior (header_one_row, header_title_nowraps, header_stats_nowraps, header_no_narrow_media_query).
+- Bumped manifest, service-worker cache, README, quick_Guide, index.html, and game.js level title to v2.3.3.
 
 === v 2.3.2 ===
 - Generated 12 themed background PNGs (one per level) via gen_assets.py + PIL. Each background draws the level's ground color, road polyline, and decorative layer items (palm trees, coral, flowers, cacti, etc.) so every level has a distinct base layer.
