@@ -1,20 +1,20 @@
 {
-  "ts": "2026-10-18T10:08:51.654Z",
+  "ts": "2026-10-18T10:42:45.732Z",
   "files": [
     {
       "name": "index.html",
       "exists": true,
-      "size": 8412
+      "size": 9044
     },
     {
       "name": "game.js",
       "exists": true,
-      "size": 104083
+      "size": 106821
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 14070
+      "size": 15769
     },
     {
       "name": "manifest.json",
@@ -316,19 +316,19 @@
       "ok": true
     },
     {
-      "name": "html_v230_round_modal",
+      "name": "html_v231_round_modal",
       "ok": true
     },
     {
-      "name": "manifest_v230",
+      "name": "manifest_v231",
       "ok": true
     },
     {
-      "name": "sw_v230",
+      "name": "sw_v231",
       "ok": true
     },
     {
-      "name": "docs_v230",
+      "name": "docs_v231",
       "ok": true
     },
     {
@@ -668,11 +668,99 @@
     {
       "name": "controls_use_three_columns",
       "ok": true
+    },
+    {
+      "name": "install_banner_elements_exist",
+      "ok": true
+    },
+    {
+      "name": "install_isStandalone_false_in_harness",
+      "ok": true
+    },
+    {
+      "name": "install_show_banner_reveals",
+      "ok": true
+    },
+    {
+      "name": "install_hide_banner_hides",
+      "ok": true
+    },
+    {
+      "name": "install_dismiss_sets_flag",
+      "ok": true
+    },
+    {
+      "name": "install_dismiss_persists_to_storage",
+      "ok": true
+    },
+    {
+      "name": "install_dismiss_hides_banner",
+      "ok": true
+    },
+    {
+      "name": "install_restore_reads_persisted_flag",
+      "ok": true
+    },
+    {
+      "name": "install_beforeinstallprompt_stores_prompt",
+      "ok": true
+    },
+    {
+      "name": "install_banner_shows_after_prompt",
+      "ok": true
+    },
+    {
+      "name": "install_tryInstallPWA_invokes_prompt",
+      "ok": true
+    },
+    {
+      "name": "install_tryInstallPWA_clears_prompt",
+      "ok": true
+    },
+    {
+      "name": "install_tryInstallPWA_dismisses_banner",
+      "ok": true
+    },
+    {
+      "name": "install_appinstalled_clears_prompt",
+      "ok": true
+    },
+    {
+      "name": "install_appinstalled_dismisses_banner",
+      "ok": true
+    },
+    {
+      "name": "install_isStandalone_true_when_matchMedia_matches",
+      "ok": true
+    },
+    {
+      "name": "install_banner_hidden_in_standalone_mode",
+      "ok": true
+    },
+    {
+      "name": "install_isStandalone_false_without_matchMedia",
+      "ok": true
+    },
+    {
+      "name": "html_v231",
+      "ok": true
+    },
+    {
+      "name": "manifest_v231",
+      "ok": true
+    },
+    {
+      "name": "sw_v231",
+      "ok": true
+    },
+    {
+      "name": "docs_v231",
+      "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 156,
-    "passed": 156
+    "total": 178,
+    "passed": 178
   }
 }

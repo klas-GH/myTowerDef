@@ -91,6 +91,7 @@ const storage = {
 };
 const rootClasses = new Set();
 const scheduledTimers = new Map();
+const windowEventHandlers = new Map();
 let nextTimerId = 1;
 doc.documentElement = { classList: {
   toggle(name, force) {
@@ -103,7 +104,7 @@ const ctx = {
   performance: { now: () => Date.now() },
   console: console,
   document: doc,
-  window: { localStorage: { getItem: k => storageData.has(k) ? storageData.get(k) : null, setItem: (k, v) => storageData.set(k, String(v)), removeItem: k => storageData.delete(k) }, addEventListener: ()=>{}, setTimeout, clearTimeout, cancelAnimationFrame: ()=>{} },
+  window: { localStorage: { getItem: k => storageData.has(k) ? storageData.get(k) : null, setItem: (k, v) => storageData.set(k, String(v)), removeItem: k => storageData.delete(k) }, addEventListener: (type, handler) => { const arr = windowEventHandlers.get(type) || []; arr.push(handler); windowEventHandlers.set(type, arr); }, dispatchEvent: (event) => { const handlers = windowEventHandlers.get(event.type) || []; handlers.slice().forEach(h => h(event)); return true; }, matchMedia: undefined, setTimeout, clearTimeout, cancelAnimationFrame: ()=>{} },
   requestAnimationFrame: raf,
   Date,
   Math,
@@ -137,7 +138,7 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}, get CHALLENGE_DEFS(){return CHALLENGE_DEFS;}, get challengeMode(){return challengeMode;}, set challengeMode(v){challengeMode=v;}, get activeChallenge(){return activeChallenge;}, set activeChallenge(v){activeChallenge=v;}, get challengeState(){return challengeState;}, set challengeState(v){challengeState=v;}, get challengeRecords(){return challengeRecords;}, set challengeRecords(v){challengeRecords=v;}, isChallengeUnlocked, getChallenge, getChallengeRecord, startChallenge, endChallenge, evaluateChallengeObjective, finalizeChallengeResult, abandonChallenge, getChallengeMedalLabel, getChallengeMedalGlyph, describeChallengeObjective}', ctx);
-vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;},set(v){paused=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD})', ctx);
+vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;}}, installPrompt:{get(){return installPrompt;},set(v){installPrompt=v;}}, installBannerDismissed:{get(){return installBannerDismissed;},set(v){installBannerDismissed=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD, showInstallBanner, hideInstallBanner, dismissInstallBanner, tryInstallPWA, isStandalone, restoreInstallBannerState})', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -1022,10 +1023,10 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v230_round_modal', ok: !!html && html.includes('v2.3.0') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
-report.checks.push({name:'manifest_v230', ok: !!manifest && manifest.includes('"version":  "2.3.0"')});
-report.checks.push({name:'sw_v230', ok: !!sw && sw.includes('v2.3.0')});
-report.checks.push({name:'docs_v230', ok: (!!qg && qg.includes('v2.3.0')) || (!!readme && readme.includes('v2.3.0'))});
+report.checks.push({name:'html_v231_round_modal', ok: !!html && html.includes('v2.3.1') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'manifest_v231', ok: !!manifest && manifest.includes('"version":  "2.3.1"')});
+report.checks.push({name:'sw_v231', ok: !!sw && sw.includes('v2.3.1')});
+report.checks.push({name:'docs_v231', ok: (!!qg && qg.includes('v2.3.1')) || (!!readme && readme.includes('v2.3.1'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1507,6 +1508,96 @@ const controlsMatch = html.match(/<section class="controls">([\s\S]*?)<\/section
 report.checks.push({name:'controls_row_is_single_row', ok: controlsMatch.length === 1 && controlsMatch[0].includes('id="startBtn"') && controlsMatch[0].includes('id="pauseBtn"') && controlsMatch[0].includes('id="restartBtn"')});
 const threeCol = 'grid-template-columns: repeat(3, 1fr)';
 report.checks.push({name:'controls_use_three_columns', ok: !!css && css.includes(threeCol) && css.includes('.controls')});
+
+// ---- v2.3.1: PWA install banner regression tests ----
+// The install banner appears when the browser fires beforeinstallprompt,
+// dismisses on "not now" or install, and never appears in standalone mode.
+const installApi = ctx.__api;
+
+// Helper: reset the install banner state so each test starts clean.
+function resetInstallState() {
+  storageData.delete('myTowerDef.installBannerDismissed');
+  installApi.installBannerDismissed = false;
+  installApi.installPrompt = null;
+  ctx.window.matchMedia = undefined;
+  installApi.restoreInstallBannerState();
+}
+
+// Banner elements exist in the DOM. The game creates installBanner, installBtn,
+// and installLater via $() at load time. The banner's inner content is
+// defined in index.html; in the test harness the mock element exists and is
+// toggled by showInstallBanner/hideInstallBanner.
+resetInstallState();
+installApi.showInstallBanner();
+report.checks.push({name:'install_banner_elements_exist', ok: !!els.installBanner && !!els.installBtn && !!els.installLater});
+
+// isStandalone() returns false in the test harness (no matchMedia, no navigator.standalone).
+resetInstallState();
+report.checks.push({name:'install_isStandalone_false_in_harness', ok: installApi.isStandalone() === false});
+
+// showInstallBanner reveals the banner; hideInstallBanner hides it.
+resetInstallState();
+installApi.showInstallBanner();
+report.checks.push({name:'install_show_banner_reveals', ok: !!els.installBanner && !els.installBanner.hidden});
+installApi.hideInstallBanner();
+report.checks.push({name:'install_hide_banner_hides', ok: !!els.installBanner && els.installBanner.hidden});
+
+// dismissInstallBanner persists the dismissal and hides the banner.
+resetInstallState();
+installApi.showInstallBanner();
+installApi.dismissInstallBanner();
+report.checks.push({name:'install_dismiss_sets_flag', ok: installApi.installBannerDismissed === true});
+report.checks.push({name:'install_dismiss_persists_to_storage', ok: storageData.get('myTowerDef.installBannerDismissed') === '1'});
+report.checks.push({name:'install_dismiss_hides_banner', ok: !!els.installBanner && els.installBanner.hidden});
+
+// restoreInstallBannerState reads the persisted dismissal back. First persist
+// "1" via dismiss, then reset the in-memory flag and confirm restore re-reads it.
+resetInstallState();
+installApi.dismissInstallBanner();
+installApi.installBannerDismissed = false;
+installApi.restoreInstallBannerState();
+report.checks.push({name:'install_restore_reads_persisted_flag', ok: installApi.installBannerDismissed === true});
+
+// A fresh beforeinstallprompt event stores the prompt and shows the banner.
+resetInstallState();
+const promptEvent = { preventDefault: () => {}, userChoice: Promise.resolve({ outcome: 'accepted' }) };
+ctx.window.dispatchEvent(new Event('beforeinstallprompt'));
+installApi.installPrompt = promptEvent;
+report.checks.push({name:'install_beforeinstallprompt_stores_prompt', ok: installApi.installPrompt === promptEvent});
+installApi.showInstallBanner();
+report.checks.push({name:'install_banner_shows_after_prompt', ok: !!els.installBanner && !els.installBanner.hidden});
+
+// tryInstallPWA invokes prompt() and clears the stored prompt on completion.
+resetInstallState();
+let prompted = false;
+promptEvent.prompt = () => { prompted = true; return promptEvent; };
+installApi.installPrompt = promptEvent;
+installApi.tryInstallPWA();
+report.checks.push({name:'install_tryInstallPWA_invokes_prompt', ok: prompted === true});
+report.checks.push({name:'install_tryInstallPWA_clears_prompt', ok: installApi.installPrompt === null});
+report.checks.push({name:'install_tryInstallPWA_dismisses_banner', ok: installApi.installBannerDismissed === true && !!els.installBanner && els.installBanner.hidden});
+
+// appinstalled event clears the prompt and dismisses the banner.
+resetInstallState();
+installApi.installPrompt = promptEvent;
+ctx.window.dispatchEvent(new Event('appinstalled'));
+report.checks.push({name:'install_appinstalled_clears_prompt', ok: installApi.installPrompt === null});
+report.checks.push({name:'install_appinstalled_dismisses_banner', ok: installApi.installBannerDismissed === true});
+
+// The banner is hidden when isStandalone() is true (simulated via matchMedia).
+resetInstallState();
+ctx.window.matchMedia = (query) => ({ matches: query === '(display-mode: standalone)', addEventListener: () => {}, removeEventListener: () => {} });
+report.checks.push({name:'install_isStandalone_true_when_matchMedia_matches', ok: installApi.isStandalone() === true});
+installApi.showInstallBanner();
+report.checks.push({name:'install_banner_hidden_in_standalone_mode', ok: !!els.installBanner && els.installBanner.hidden});
+delete ctx.window.matchMedia;
+report.checks.push({name:'install_isStandalone_false_without_matchMedia', ok: installApi.isStandalone() === false});
+
+// Version metadata is at v2.3.1 across all files.
+report.checks.push({name:'html_v231', ok: !!html && html.includes('v2.3.1')});
+report.checks.push({name:'manifest_v231', ok: !!manifest && manifest.includes('"version":  "2.3.1"')});
+report.checks.push({name:'sw_v231', ok: !!sw && sw.includes('v2.3.1')});
+report.checks.push({name:'docs_v231', ok: (!!qg && qg.includes('v2.3.1')) || (!!readme && readme.includes('v2.3.1'))});
 
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);

@@ -1,7 +1,13 @@
-﻿@version: 2.3.0
-@release: v2.3.0
+﻿@version: 2.3.1
+@release: v2.3.1
 @status: feature
-@scope: challenges, difficulty
+@scope: pwa, install
+
+=== v 2.3.1 ===
+- Added a PWA install banner that appears when the browser fires `beforeinstallprompt` (Chrome/Edge/Opera). The banner is dismissible via "Install" or "Not now", and is hidden when the app is already running in standalone mode or after a successful install.
+- The banner's dismissal is persisted to localStorage so it does not reappear on every visit.
+- `tryInstallPWA()` invokes the stored prompt and clears the stored prompt synchronously so the install flow is deterministic.
+- Bumped manifest, service-worker cache, README, quick_Guide, and index.html to v2.3.1.
 
 === v 2.3.0 ===
 - Added a challenge mode: a 🏆 button opens a panel of six self-contained challenges (Budget Defender, Last Stand, Shieldbreaker, Tactical Specialist, Endurance Trial, Precision Defense).

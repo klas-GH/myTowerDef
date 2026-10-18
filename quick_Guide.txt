@@ -1,4 +1,4 @@
-﻿Quick Guide - myTowerDef v2.3.0
+﻿Quick Guide - myTowerDef v2.3.1
 
 1. Run it
 Save files in same folder. Open index.html in browser.

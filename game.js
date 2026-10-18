@@ -2752,3 +2752,76 @@ if (challengeContinueBtn) {
     closeChallengeResult();
   });
 }
+
+// ---- v2.3.1: PWA install banner ----
+// Shows a non-blocking install banner when the browser fires `beforeinstallprompt`
+// (Chrome/Edge/Opera) and dismisses it on install or "not now". The banner is
+// also hidden if the app is already running in standalone mode (installed).
+let installPrompt = null;
+let installBannerDismissed = false;
+function isStandalone() {
+  if (typeof window === "undefined") return false;
+  if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) return true;
+  try {
+    if (typeof navigator !== "undefined" && navigator && navigator.standalone === true) return true;
+  } catch (e) {}
+  return false;
+}
+function showInstallBanner() {
+  const banner = $("installBanner");
+  if (!banner) return;
+  if (isStandalone()) { banner.hidden = true; return; }
+  if (installBannerDismissed) { banner.hidden = true; return; }
+  banner.hidden = false;
+}
+function hideInstallBanner() {
+  const banner = $("installBanner");
+  if (banner) banner.hidden = true;
+}
+function dismissInstallBanner() {
+  installBannerDismissed = true;
+  hideInstallBanner();
+  try { if (window && window.localStorage) window.localStorage.setItem("myTowerDef.installBannerDismissed", "1"); } catch (e) {}
+}
+function restoreInstallBannerState() {
+  try {
+    if (window && window.localStorage && window.localStorage.getItem("myTowerDef.installBannerDismissed") === "1") {
+      installBannerDismissed = true;
+    }
+  } catch (e) {}
+}
+function tryInstallPWA() {
+  if (!installPrompt) return false;
+  installPrompt.prompt();
+  // Clear the stored prompt and dismiss the banner synchronously so the
+  // install flow is deterministic even before the userChoice promise
+  // resolves. The promise is still awaited for any post-install cleanup.
+  const chosen = installPrompt.userChoice;
+  installPrompt = null;
+  dismissInstallBanner();
+  if (chosen && typeof chosen.then === "function") {
+    chosen.then(() => {});
+  }
+  return true;
+}
+
+const installBtn = $("installBtn");
+if (installBtn) installBtn.addEventListener("click", () => { tryInstallPWA(); });
+const installLaterBtn = $("installLater");
+if (installLaterBtn) installLaterBtn.addEventListener("click", dismissInstallBanner);
+
+if (typeof window !== "undefined") {
+  restoreInstallBannerState();
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    installPrompt = event;
+    showInstallBanner();
+  });
+  window.addEventListener("appinstalled", () => {
+    installPrompt = null;
+    dismissInstallBanner();
+  });
+  window.addEventListener("load", () => {
+    if (installPrompt && !installBannerDismissed && !isStandalone()) showInstallBanner();
+  });
+}

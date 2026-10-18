@@ -554,6 +554,95 @@ button:disabled {
   background: #991b1b;
 }
 
+/* ---- v2.3.1: PWA install banner ---- */
+#installBanner[hidden] {
+  display: none;
+}
+
+#installBanner {
+  position: fixed;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 50%;
+  right: auto;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(150deg, #1e293b, #111827 80%);
+  border: 1px solid #334155;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  max-width: 520px;
+  width: calc(100% - 24px);
+  transform: translateX(-50%);
+}
+
+.install-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.install-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 12px;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.install-text {
+  min-width: 0;
+}
+
+.install-text h3 {
+  margin: 0 0 2px;
+  font-size: 14px;
+  color: #fde68a;
+}
+
+.install-text p {
+  margin: 0;
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.install-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+#installBanner .primary {
+  background: #2563eb;
+  border-color: #3b82f6;
+}
+
+#installBanner .primary:hover {
+  background: #3b82f6;
+}
+
+@media (max-width: 420px) {
+  #installBanner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .install-banner-content { width: 100%; }
+  .install-actions { width: 100%; }
+  #installBanner .primary,
+  #installBanner .secondary { width: 100%; }
+}
+
 /* ---- v2.1.0: Campaign selection menu ---- */
 .campaign-panel {
   max-height: min(80vh, 600px);
