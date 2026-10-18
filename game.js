@@ -972,6 +972,7 @@ function update(dt) {
     return;
   }
 
+  updateParticles(dt);
   spawnTimer -= dt;
 
   if (spawned < enemiesToSpawn && spawnTimer <= 0) {
@@ -992,8 +993,14 @@ function update(dt) {
 
   if (lives <= 0) {
     mode = "lost";
+    paused = false;
     $("status").textContent = "💥 Base destroyed! Try again.";
     $("startBtn").disabled = true;
+    const pauseBtnEl = $("pauseBtn");
+    if (pauseBtnEl) {
+      pauseBtnEl.disabled = true;
+      pauseBtnEl.textContent = "⏸ Pause";
+    }
     updateUpgradePanel();
     const goOverlay = $("gameOverOverlay");
     if (goOverlay) {
@@ -1080,6 +1087,12 @@ function update(dt) {
 
   if (spawned === enemiesToSpawn && enemies.length === 0) {
     waveActive = false;
+    paused = false;
+    const pauseBtnEl = $("pauseBtn");
+    if (pauseBtnEl) {
+      pauseBtnEl.disabled = true;
+      pauseBtnEl.textContent = "⏸ Pause";
+    }
     const lastWave = currentWave >= MAX_WAVE;
     mode = lastWave ? "won" : "ready";
     coins += waveReward;
@@ -1089,7 +1102,7 @@ function update(dt) {
 
     if (lastWave) {
       // Track campaign progress and achievements.
-      campaignState.levelsCompleted = currentLevel;
+      campaignState.levelsCompleted = Math.max(campaignState.levelsCompleted, currentLevel);
       if (currentLevel >= MAX_LEVEL) {
         campaignState.campaignCompleted = true;
         statsState.campaignVictories++;

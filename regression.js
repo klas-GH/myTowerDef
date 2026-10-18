@@ -87,7 +87,7 @@ doc.documentElement = { classList: {
 const ctx = { document: doc, window: { requestAnimationFrame: raf, localStorage: storage }, requestAnimationFrame: raf, console: console };
 vm.createContext(ctx);
 vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}}', ctx);
-vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}} }); Object.assign(this.__api, {saveGame, restoreSavedGame, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, draw})', ctx);
+vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;},set(v){paused=v;}} }); Object.assign(this.__api, {saveGame, restoreSavedGame, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, draw})', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -1108,6 +1108,49 @@ api.shots = [
 const coinsBeforeBossKill = api.coins;
 api.update(0);
 report.checks.push({name:'same_frame_projectiles_reward_enemy_once', ok: bossAchievementWaitsForTen && api.statsState.enemiesDefeated === 1 && api.statsState.bossesDefeated === 10 && api.coins === coinsBeforeBossKill + 100 && api.achievements.includes('boss_slayer')});
+
+api.reset();
+api.mode = 'playing';
+api.waveActive = true;
+api.enemiesToSpawn = 1;
+api.spawned = 1;
+api.enemies = [{x:api.path[0].x,y:api.path[0].y,point:1,speed:0,hp:10,maxHp:10}];
+api.particles = [{x:10,y:10,vx:20,vy:0,life:0.5,maxLife:0.7,color:'#fff',size:2}];
+api.update(0.1);
+report.checks.push({name:'particles_decay_during_active_wave', ok:api.particles.length === 1 && api.particles[0].life < 0.5 && api.particles[0].x > 10});
+
+api.currentLevel = 2;
+api.campaignState.levelsCompleted = 7;
+api.reset();
+api.currentWave = api.MAX_WAVE;
+api.mode = 'playing';
+api.waveActive = true;
+api.enemiesToSpawn = 0;
+api.spawned = 0;
+api.enemies = [];
+api.update(0);
+report.checks.push({name:'replaying_level_preserves_campaign_unlock_progress', ok:api.campaignState.levelsCompleted === 7});
+
+api.reset();
+api.mode = 'playing';
+api.waveActive = true;
+api.currentWave = 1;
+api.enemiesToSpawn = 0;
+api.spawned = 0;
+api.enemies = [];
+api.togglePause();
+api.togglePause();
+api.update(0);
+const pauseDisabledAfterWave = els.pauseBtn.disabled && els.pauseBtn.textContent === '⏸ Pause' && !api.paused;
+
+api.mode = 'playing';
+api.waveActive = true;
+api.lives = 1;
+api.enemiesToSpawn = 1;
+api.spawned = 1;
+api.enemies = [{x:api.path[api.path.length - 1].x,y:api.path[api.path.length - 1].y,point:api.path.length,speed:0,hp:10,maxHp:10}];
+api.update(0);
+report.checks.push({name:'pause_disabled_after_wave_and_defeat', ok:pauseDisabledAfterWave && api.mode === 'lost' && els.pauseBtn.disabled && els.pauseBtn.textContent === '⏸ Pause' && !api.paused});
 
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);

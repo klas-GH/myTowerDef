@@ -17,6 +17,9 @@
 ### Bug Fixes
 
 - **Regression test pattern fix**: The `manifest_v2100` regression check was still asserting against the old `"version":  "2.0.0"` string. Updated to check for `"version":  "2.1.0"`.
+- **Combat particle updates**: Particle motion and lifetime now update during active waves as well as while paused.
+- **Campaign unlock preservation**: Replaying a completed level no longer reduces campaign completion progress or relocks later levels.
+- **Pause control state**: The pause button is reset and disabled when a wave ends or the base is defeated.
 
 ### Backward Compatibility
 
