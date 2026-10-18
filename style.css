@@ -554,6 +554,21 @@ button:disabled {
   background: #991b1b;
 }
 
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+.reduced-motion button:active,
+.reduced-motion .tmode-btn:active,
+.reduced-motion .icon-btn:active {
+  transform: none;
+}
+
 .upgrade-header {
   display: flex;
   align-items: center;

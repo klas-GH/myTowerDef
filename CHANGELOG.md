@@ -21,6 +21,9 @@
 ### Bug Fixes
 
 - **Mojibake emoji fix**: Fixed 15+ mojibake emoji sequences in game.js that were causing the "round_50_resets_to_baseline_round_one" regression test to fail. The crown emoji (👑) in the legendary defender message was mojibake, causing a string comparison failure.
+- **Persistence and tracking fixes**: Restore saved campaign/settings/statistics on startup, resume after completed levels, track upgrades and per-level spending, and ensure one enemy kill awards rewards only once.
+- **Achievement and boss fixes**: Enforce the 10-boss achievement threshold, unlock clean-level achievements, and give bosses their own high-HP armored stats, large bounty, and crown visual.
+- **Reduced motion**: Apply the setting to interface motion and projectile visuals.
 
 ### Backward Compatibility
 
@@ -29,7 +32,7 @@
 - 80 starting coins, Cannon cost of 80 coins preserved.
 - 50% initial enemy HP increase and 10% initial speed increase preserved.
 - Legendary defender victory celebration preserved.
-- All 85 regression tests pass.
+- All 92 regression tests pass.
 - Smoke test passes.
 
 ### Files Changed

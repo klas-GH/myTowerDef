@@ -70,9 +70,24 @@ const querySelector = (sel) => {
 
 const doc = { querySelector, getElementById: makeGetById };
 const raf = ()=>{};
-const ctx = { document: doc, window: { requestAnimationFrame: raf }, requestAnimationFrame: raf, console: console };
+const storageData = new Map();
+const storage = {
+  getItem(key) { return storageData.has(key) ? storageData.get(key) : null; },
+  setItem(key, value) { storageData.set(key, String(value)); },
+  removeItem(key) { storageData.delete(key); }
+};
+const rootClasses = new Set();
+doc.documentElement = { classList: {
+  toggle(name, force) {
+    if (force) rootClasses.add(name);
+    else rootClasses.delete(name);
+  },
+  contains(name) { return rootClasses.has(name); }
+} };
+const ctx = { document: doc, window: { requestAnimationFrame: raf, localStorage: storage }, requestAnimationFrame: raf, console: console };
 vm.createContext(ctx);
 vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}}', ctx);
+vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}} }); Object.assign(this.__api, {saveGame, restoreSavedGame, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, draw})', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -924,6 +939,8 @@ report.checks.push({name:'restart_clears_tower_state', ok: restartClearsTowerSta
 // v1.8.0 enemy archetype and composition checks.
 report.checks.push({name:'enemy_types_valid', ok: ctx.__api.ENEMY_TYPES.standard.hp > 0 && ctx.__api.ENEMY_TYPES.runner.speed > ctx.__api.ENEMY_TYPES.standard.speed && ctx.__api.ENEMY_TYPES.armored.hp > ctx.__api.ENEMY_TYPES.standard.hp});
 report.checks.push({name:'enemy_baseline_preserved', ok: ctx.__api.ENEMY_TYPES.standard.hp === 35 && ctx.__api.ENEMY_TYPES.standard.speed === 28 && ctx.__api.ENEMY_TYPES.standard.reward === 10});
+const baselineBoss = ctx.__api.buildBossDef(1, 1);
+report.checks.push({name:'boss_is_armored_high_hp_high_bounty_and_crowned', ok: baselineBoss.hp > ctx.__api.getScaledEnemyType('armored', 1, 1, 3).hp && baselineBoss.reward >= ctx.__api.getScaledEnemyType('armored', 1, 1, 3).reward * 5 && baselineBoss.speed < ctx.__api.getScaledEnemyType('armored', 1, 1, 3).speed && baselineBoss.color === '#a855f7' && baselineBoss.glyph === '👑' && baselineBoss.boss === true});
 report.checks.push({name:'enemy_unknown_falls_back', ok: ctx.__api.getEnemyType('nope') === ctx.__api.ENEMY_TYPES.standard});
 report.checks.push({name:'wave_compositions_deterministic', ok: ctx.__api.WAVE_DEFS[0].enemies === 8 && ctx.__api.WAVE_DEFS[1].enemies === 10 && ctx.__api.WAVE_DEFS[2].enemies === 12});
 report.checks.push({name:'spawn_queue_authoritative', ok: ctx.__api.WAVE_DEFS[0].composition[0].count > 0 && ctx.__api.WAVE_DEFS[0].composition[0].type === 'standard'});
@@ -1014,6 +1031,84 @@ ctx.__api.update(0);
 report.checks.push({name:'round_50_resets_to_baseline_round_one', ok: ctx.__api.MAX_RUN === 50 && ctx.__api.currentRun === 1 && ctx.__api.currentLevel === 1 && ctx.__api.mode === 'ready' && ctx.__api.coins === 80 && ctx.__api.enemyHp === 52.5 && ctx.__api.enemySpeed === 30.8 && els.roundOverlay.classList.contains('campaign-complete') && els.roundTitle.textContent === '👑 LEGENDARY DEFENDER!' && els.roundMessage.textContent.includes('50 rounds conquered') && els.roundMessage.textContent.includes('Round #1')});
 report.checks.push({name:'panel_close_does_not_reopen', ok: true});
 report.checks.push({name:'wave_preview_side_border', ok: !!css && css.includes('border-left: 1px dashed #334155')});
+
+// v2.0.0 persistence, new tracking, and reduced-motion behavior.
+const api = ctx.__api;
+api.currentRun = 7;
+api.currentLevel = 4;
+api.campaignState.highestRunReached = 7;
+api.campaignState.levelsCompleted = 3;
+api.settings.soundEnabled = false;
+api.settings.reducedMotion = true;
+api.statsState.roundsCompleted = 3;
+api.statsState.levelCoinsSpent = 125;
+api.achievements = ['first_defense'];
+const savedSuccessfully = api.saveGame();
+api.currentRun = 1;
+api.currentLevel = 1;
+api.settings.soundEnabled = true;
+api.settings.reducedMotion = false;
+api.statsState.roundsCompleted = 0;
+api.statsState.levelCoinsSpent = 0;
+api.achievements = [];
+const restoredSuccessfully = api.restoreSavedGame();
+api.reset();
+report.checks.push({name:'save_restore_campaign_settings_stats_and_achievements', ok: savedSuccessfully && restoredSuccessfully && api.currentRun === 7 && api.currentLevel === 4 && api.currentLevelData === api.LEVELS[3] && api.settings.soundEnabled === false && api.settings.reducedMotion === true && api.statsState.roundsCompleted === 3 && api.statsState.levelCoinsSpent === 125 && api.achievements.includes('first_defense')});
+report.checks.push({name:'reduced_motion_setting_applies_to_document', ok: rootClasses.has('reduced-motion') && !!css && css.includes('.reduced-motion') && jsSource.includes('if (!settings.reducedMotion)')});
+api.showSettings();
+const settingsPanelOpened = !els.panelOverlay.hidden && !els.settingsPanel.hidden && els.buildPanel.hidden && els.upgradePanel.hidden;
+api.hideSettings();
+report.checks.push({name:'settings_panel_opens_and_closes_shared_overlay', ok: settingsPanelOpened && els.panelOverlay.hidden && els.settingsPanel.hidden && jsSource.includes('#settingsPanel')});
+api.achievements = [];
+api.checkAchievements({completedLevel:1,level:1,perfectHold:true});
+report.checks.push({name:'first_defense_and_perfect_hold_unlock_on_clean_level', ok: api.achievements.includes('first_defense') && api.achievements.includes('perfect_hold')});
+
+api.campaignState.levelsCompleted = 4;
+api.statsState.levelCoinsSpent = 125;
+api.currentLevel = 4;
+api.saveGame();
+api.currentLevel = 1;
+const restoredAfterLevelClear = api.restoreSavedGame();
+api.reset();
+report.checks.push({name:'completed_level_resumes_at_next_level', ok: restoredAfterLevelClear && api.currentLevel === 5 && api.currentLevelData === api.LEVELS[4] && api.statsState.levelCoinsSpent === 0});
+
+api.currentRun = 1;
+api.currentLevel = 1;
+api.reset();
+api.statsState.towersUpgraded = 29;
+api.statsState.levelCoinsSpent = 490;
+api.statsState.maxCoinsSpent = 490;
+api.statsState.archerBuilt = 0;
+api.statsState.towersBuilt = 0;
+api.achievements = [];
+api.coins = 1000;
+api.placeTower(api.spots[0].x, api.spots[0].y);
+api.selectedTower = api.towers[0];
+api.upgradeTower();
+report.checks.push({name:'upgrades_and_spending_update_stats_and_achievements', ok: api.statsState.towersBuilt === 1 && api.statsState.towersUpgraded === 30 && api.statsState.levelCoinsSpent === 620 && api.statsState.maxCoinsSpent === 620 && api.achievements.includes('upgrade_artist') && api.achievements.includes('big_spender')});
+
+api.statsState.enemiesDefeated = 0;
+api.statsState.bossesDefeated = 9;
+api.achievements = [];
+api.checkAchievements();
+const bossAchievementWaitsForTen = !api.achievements.includes('boss_slayer');
+api.currentWave = 1;
+api.mode = 'playing';
+api.waveActive = true;
+api.spawned = 2;
+api.enemiesToSpawn = 2;
+api.towers = [];
+const boss = {x:api.path[0].x,y:api.path[0].y,point:1,type:'boss',boss:true,hp:1,maxHp:1,speed:0,reward:100};
+const survivor = {x:api.path[0].x,y:api.path[0].y,point:1,type:'standard',hp:20,maxHp:20,speed:0,reward:10};
+api.enemies = [boss, survivor];
+api.shots = [
+  {x:boss.x,y:boss.y,target:boss,damage:10,speed:220},
+  {x:boss.x,y:boss.y,target:boss,damage:10,speed:220}
+];
+const coinsBeforeBossKill = api.coins;
+api.update(0);
+report.checks.push({name:'same_frame_projectiles_reward_enemy_once', ok: bossAchievementWaitsForTen && api.statsState.enemiesDefeated === 1 && api.statsState.bossesDefeated === 10 && api.coins === coinsBeforeBossKill + 100 && api.achievements.includes('boss_slayer')});
+
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
 }

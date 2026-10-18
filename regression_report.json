@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-18T06:57:04.800Z",
+  "ts": "2026-10-18T07:34:29.509Z",
   "files": [
     {
       "name": "index.html",
@@ -9,12 +9,12 @@
     {
       "name": "game.js",
       "exists": true,
-      "size": 67393
+      "size": 70259
     },
     {
       "name": "style.css",
       "exists": true,
-      "size": 11799
+      "size": 12160
     },
     {
       "name": "manifest.json",
@@ -200,6 +200,10 @@
       "ok": true
     },
     {
+      "name": "boss_is_armored_high_hp_high_bounty_and_crowned",
+      "ok": true
+    },
+    {
       "name": "enemy_unknown_falls_back",
       "ok": true
     },
@@ -382,11 +386,39 @@
     {
       "name": "wave_preview_side_border",
       "ok": true
+    },
+    {
+      "name": "save_restore_campaign_settings_stats_and_achievements",
+      "ok": true
+    },
+    {
+      "name": "reduced_motion_setting_applies_to_document",
+      "ok": true
+    },
+    {
+      "name": "settings_panel_opens_and_closes_shared_overlay",
+      "ok": true
+    },
+    {
+      "name": "first_defense_and_perfect_hold_unlock_on_clean_level",
+      "ok": true
+    },
+    {
+      "name": "completed_level_resumes_at_next_level",
+      "ok": true
+    },
+    {
+      "name": "upgrades_and_spending_update_stats_and_achievements",
+      "ok": true
+    },
+    {
+      "name": "same_frame_projectiles_reward_enemy_once",
+      "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 85,
-    "passed": 85
+    "total": 93,
+    "passed": 93
   }
 }
