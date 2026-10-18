@@ -1,7 +1,11 @@
-﻿@version: 2.3.3
-@release: v2.3.3
+﻿@version: 2.3.4
+@release: v2.3.4
 @status: bugfix, responsive
-@scope: header, mobile
+@scope: header, mobile, assets
+
+=== v 2.3.4 ===
+- Bumped manifest, service-worker cache, README, quick_Guide, index.html, and game.js level title to v2.3.4.
+- Fixed a stale regression check (live_heading_uses_v230) that asserted the old level-title version string; it now asserts v2.3.4 so the live heading is verified against the shipped version.
 
 === v 2.3.3 ===
 - Fixed header overflow on narrow phones: the header is locked to a single row and the title, subtitle, and stats shrink via clamp() so they never wrap or overflow the viewport, even on the narrowest screens.

@@ -167,7 +167,7 @@ assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
 assertEq('init_enemyHp', ctx.__api.enemyHp, 52.5);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
-assert('live_heading_uses_v230', els.levelTitle.textContent.includes('v2.3.0'));
+assert('live_heading_uses_v234', els.levelTitle.textContent.includes('v2.3.4'));
 
 // Wave definitions used by spawning must match the previewed values.
 assertEq('wave1_hp', ctx.__api.WAVE_DEFS[0].enemyHp, 35);
@@ -1031,10 +1031,10 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v233_round_modal', ok: !!html && html.includes('v2.3.3') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
-report.checks.push({name:'manifest_v233', ok: !!manifest && manifest.includes('"version":  "2.3.3"')});
-report.checks.push({name:'sw_v233', ok: !!sw && sw.includes('v2.3.3')});
-report.checks.push({name:'docs_v233', ok: (!!qg && qg.includes('v2.3.3')) || (!!readme && readme.includes('v2.3.3'))});
+report.checks.push({name:'html_v234_round_modal', ok: !!html && html.includes('v2.3.4') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'manifest_v234', ok: !!manifest && manifest.includes('"version":  "2.3.4"')});
+report.checks.push({name:'sw_v234', ok: !!sw && sw.includes('v2.3.4')});
+report.checks.push({name:'docs_v234', ok: (!!qg && qg.includes('v2.3.4')) || (!!readme && readme.includes('v2.3.4'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1606,11 +1606,11 @@ report.checks.push({name:'install_banner_hidden_in_standalone_mode', ok: !!els.i
 delete ctx.window.matchMedia;
 report.checks.push({name:'install_isStandalone_false_without_matchMedia', ok: installApi.isStandalone() === false});
 
-// Version metadata is at v2.3.3 across all files.
-report.checks.push({name:'html_v233', ok: !!html && html.includes('v2.3.3')});
-report.checks.push({name:'manifest_v233', ok: !!manifest && manifest.includes('"version":  "2.3.3"')});
-report.checks.push({name:'sw_v233', ok: !!sw && sw.includes('v2.3.3')});
-report.checks.push({name:'docs_v233', ok: (!!qg && qg.includes('v2.3.3')) || (!!readme && readme.includes('v2.3.3'))});
+// Version metadata is at v2.3.4 across all files.
+report.checks.push({name:'html_v234', ok: !!html && html.includes('v2.3.4')});
+report.checks.push({name:'manifest_v234', ok: !!manifest && manifest.includes('"version":  "2.3.4"')});
+report.checks.push({name:'sw_v234', ok: !!sw && sw.includes('v2.3.4')});
+report.checks.push({name:'docs_v234', ok: (!!qg && qg.includes('v2.3.4')) || (!!readme && readme.includes('v2.3.4'))});
 
 // ---- v2.3.2: Background and unit asset regression tests ----
 // The generator (gen_assets.py) produces one themed background PNG per level
