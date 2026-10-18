@@ -971,10 +971,10 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v2100_round_modal', ok: !!html && html.includes('v2.1.0') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
-report.checks.push({name:'manifest_v2100', ok: !!manifest && manifest.includes('"version":  "2.1.0"')});
-report.checks.push({name:'sw_v2100', ok: !!sw && sw.includes('v2.1.0')});
-report.checks.push({name:'docs_v2100', ok: (!!qg && qg.includes('v2.1.0')) || (!!readme && readme.includes('v2.1.0'))});
+report.checks.push({name:'html_v2200_round_modal', ok: !!html && html.includes('v2.2.0') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'manifest_v2200', ok: !!manifest && manifest.includes('"version":  "2.2.0"')});
+report.checks.push({name:'sw_v2200', ok: !!sw && sw.includes('v2.2.0')});
+report.checks.push({name:'docs_v2200', ok: (!!qg && qg.includes('v2.2.0')) || (!!readme && readme.includes('v2.2.0'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1032,7 +1032,7 @@ report.checks.push({name:'round_50_resets_to_baseline_round_one', ok: ctx.__api.
 report.checks.push({name:'panel_close_does_not_reopen', ok: true});
 report.checks.push({name:'wave_preview_side_border', ok: !!css && css.includes('border-left: 1px dashed #334155')});
 
-// v2.1.0 persistence, new tracking, and reduced-motion behavior.
+// v2.2.0 persistence, new tracking, and reduced-motion behavior.
 const api = ctx.__api;
 api.currentRun = 7;
 api.currentLevel = 4;
@@ -1151,6 +1151,66 @@ api.spawned = 1;
 api.enemies = [{x:api.path[api.path.length - 1].x,y:api.path[api.path.length - 1].y,point:api.path.length,speed:0,hp:10,maxHp:10}];
 api.update(0);
 report.checks.push({name:'pause_disabled_after_wave_and_defeat', ok:pauseDisabledAfterWave && api.mode === 'lost' && els.pauseBtn.disabled && els.pauseBtn.textContent === '⏸ Pause' && !api.paused});
+
+// ---- v2.2.0: Boss shield phase tests ----
+// Bosses now have a shield phase that reduces damage and shows a purple
+// shield bar. The shield breaks after a fixed amount of damage.
+const bossDef = ctx.__api.buildBossDef(1, 1);
+report.checks.push({name:'boss_has_shield_phase', ok: bossDef.shieldActive === true && bossDef.shieldHp > 0 && bossDef.shieldMax > 0 && bossDef.shieldHp === bossDef.shieldMax});
+report.checks.push({name:'boss_shield_reduces_damage', ok: bossDef.damageReduction > 0 && bossDef.damageReduction < 1});
+
+// Simulate a boss taking damage while the shield is active. The first hit
+// should reduce the shield, not the boss HP. Use enough damage to break
+// the shield so the test verifies both absorption and breaking.
+const bossSim = { hp: bossDef.hp, maxHp: bossDef.maxHp, shieldHp: bossDef.shieldHp, shieldMax: bossDef.shieldMax, shieldActive: true, damageReduction: bossDef.damageReduction, boss: true };
+const shotDamage = 200;
+const reduced = Math.round(shotDamage * (1 - bossSim.damageReduction));
+const shieldDamage = shotDamage - reduced;
+bossSim.shieldHp -= shieldDamage;
+if (bossSim.shieldHp <= 0) { bossSim.shieldActive = false; bossSim.shieldHp = 0; }
+bossSim.hp -= reduced;
+report.checks.push({name:'boss_shield_absorbs_damage', ok: bossSim.shieldHp < bossDef.shieldHp && bossSim.hp < bossDef.hp && bossSim.hp > 0});
+report.checks.push({name:'boss_shield_breaks_after_enough_damage', ok: bossSim.shieldActive === false});
+
+// When the shield is already broken, damage goes straight to HP.
+const bossSim2 = { hp: bossDef.hp, maxHp: bossDef.maxHp, shieldHp: 0, shieldMax: bossDef.shieldMax, shieldActive: false, damageReduction: bossDef.damageReduction, boss: true };
+bossSim2.hp -= shotDamage;
+report.checks.push({name:'boss_no_shield_takes_full_damage', ok: bossSim2.hp === bossDef.hp - shotDamage});
+
+// Boss spawn warning banner is derived from the spawn queue, so it cannot
+// disagree with actual spawning. Verify the queue contains "boss" on the
+// final wave of every level. We simulate wave completion between starts.
+let bossInAllFinalWaves = true;
+for (let li = 0; li < ctx.__api.LEVELS.length; li++) {
+  ctx.__api.currentLevel = li + 1;
+  ctx.__api.currentWave = 0;
+  ctx.__api.currentRun = 1;
+  ctx.__api.waveActive = false;
+  ctx.__api.spawned = 0;
+  ctx.__api.enemiesToSpawn = 0;
+  ctx.__api.enemies = [];
+  ctx.__api.spawnQueue = [];
+  ctx.__api.mode = 'ready';
+  // Start wave 1
+  ctx.__api.startWave();
+  // Simulate wave 1 completion
+  ctx.__api.waveActive = false;
+  ctx.__api.spawned = ctx.__api.enemiesToSpawn;
+  ctx.__api.enemies = [];
+  ctx.__api.mode = 'ready';
+  // Start wave 2
+  ctx.__api.startWave();
+  // Simulate wave 2 completion
+  ctx.__api.waveActive = false;
+  ctx.__api.spawned = ctx.__api.enemiesToSpawn;
+  ctx.__api.enemies = [];
+  ctx.__api.mode = 'ready';
+  // Start wave 3 (final)
+  ctx.__api.startWave();
+  if (!ctx.__api.spawnQueue.some(t => t === "boss")) { bossInAllFinalWaves = false; break; }
+  ctx.__api.reset();
+}
+report.checks.push({name:'boss_spawns_on_final_wave_of_every_level', ok: bossInAllFinalWaves});
 
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);

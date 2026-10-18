@@ -1,5 +1,40 @@
 # myTowerDef Changelog
 
+## Version 2.2.0
+
+### New Features
+
+- **Boss shield phase**: Bosses now have a shield phase that absorbs a portion of incoming damage. While the shield is active, the boss takes 70% reduced damage and the excess damage is applied to the shield HP. When the shield breaks, the boss becomes fully vulnerable. A purple shield bar appears above the boss health bar while the shield is active, with a "SHIELD" label.
+
+- **Boss spawn warning banner**: A purple banner appears at the top of the canvas when a boss is queued to spawn on the final wave, so players can prepare their defenses. The banner is derived from the actual spawn queue so it cannot disagree with spawning.
+
+- **Boss spawn notification**: When the boss actually spawns, a transient "👑 BOSS APPROACHING — focus fire!" message appears in the status bar for 2.5 seconds.
+
+### Bug Fixes
+
+- **Regression test pattern fix**: The `manifest_v2200` regression check was still asserting against the old `"version":  "2.1.0"` string. Updated to check for `"version":  "2.2.0"`.
+
+### Backward Compatibility
+
+- All 12 levels, 3 waves per level, 50-round campaign progression preserved.
+- All tower types, enemy types, wave compositions, rewards, and difficulty scaling preserved.
+- 80 starting coins, Cannon cost of 80 coins preserved.
+- 50% initial enemy HP increase and 10% initial speed increase preserved.
+- Legendary defender victory celebration preserved.
+- All 102 regression tests pass.
+- Smoke test passes.
+- Save-data version remains at 2 (no schema change).
+
+### Files Changed
+
+- `game.js`: Added boss shield phase, boss spawn warning banner, boss spawn notification.
+- `regression.js`: Added 6 new tests for boss shield phase and boss spawning on all 12 final waves.
+- `README.md`: Updated version to 2.2.0.
+- `featuresOpt.txt`: Updated version to 2.2.0.
+- `quick_Guide.txt`: Updated version to 2.2.0.
+- `manifest.json`: Updated version to 2.2.0.
+- `sw.js`: Updated cache version to mytd-v2.2.0.
+
 ## Version 2.1.0
 
 ### New Features

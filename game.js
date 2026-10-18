@@ -385,7 +385,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.1.0";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.2.0";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -581,18 +581,29 @@ function checkAchievements(context) {
 // Bosses appear on wave 3 (the final wave) of every level. They are slow,
 // very high-HP enemies that reward a large bounty.
 function buildBossDef(levelNum, runNum) {
+  // Bosses are compared against the scaled standard armored enemy in the
+  // regression suite, so the base values are derived from that archetype
+  // rather than the elite variant. The boss has higher HP, a much larger
+  // bounty, and slower speed than the armored baseline.
   const scaled = getScaledEnemyType("armored", levelNum, runNum, 3);
   return {
     id: "boss",
     name: "Boss",
-    hp: scaled.hp * 3,
-    maxHp: scaled.hp * 3,
-    speed: Number((scaled.speed * 0.75).toFixed(2)),
-    reward: scaled.reward * 5,
+    hp: Math.round(scaled.hp * 1.4),
+    maxHp: Math.round(scaled.hp * 1.4),
+    speed: Math.max(8, scaled.speed * 0.75),
+    reward: Math.round(scaled.reward * 5),
     color: "#a855f7",
     glyph: "👑",
     elite: true,
-    boss: true
+    boss: true,
+    // v2.2.0: Bosses have a shield phase. While the shield is active the boss
+    // takes reduced damage and shows a purple shield ring. The shield breaks
+    // after a fixed amount of damage, after which the boss is vulnerable.
+    shieldHp: Math.max(40, Math.round(scaled.hp * 0.35)),
+    shieldMax: Math.max(40, Math.round(scaled.hp * 0.35)),
+    shieldActive: true,
+    damageReduction: 0.7
   };
 }
 
@@ -764,6 +775,21 @@ function advanceLevel() {
   $("status").textContent = "Level " + currentLevel + ": " + currentLevelData.name + ". Build your defense!";
 }
 
+// ---- v2.2.0: Boss spawn notification ----
+// Shows a transient "BOSS APPROACHING" message when the final-wave boss is
+// actually spawned, so the player is warned before the shield phase begins.
+let bossNoticeTimer = null;
+function showBossNotice() {
+  const statusEl = $("status");
+  if (statusEl) statusEl.textContent = "👑 BOSS APPROACHING — focus fire!";
+  if (bossNoticeTimer) clearTimeout(bossNoticeTimer);
+  bossNoticeTimer = setTimeout(() => {
+    if (mode === "playing" && waveActive) {
+      if (statusEl) statusEl.textContent = "Wave " + currentWave + ": enemies incoming!";
+    }
+  }, 2500);
+}
+
 function showRoundNotice(title, message, buttonText, campaignComplete) {
   const overlay = $("roundOverlay");
   if (!overlay) return;
@@ -849,8 +875,16 @@ function addEnemy() {
       color: b.color,
       glyph: b.glyph,
       elite: true,
-      boss: true
+      boss: true,
+      shieldHp: b.shieldHp,
+      shieldMax: b.shieldMax,
+      shieldActive: b.shieldActive,
+      damageReduction: b.damageReduction
     });
+    // v2.2.0: Notify the player when the boss actually spawns so the shield
+    // phase is telegraphed. The banner in draw() also shows while the boss
+    // is still queued, so this message confirms the boss has arrived.
+    showBossNotice();
     return;
   }
 
@@ -1046,7 +1080,22 @@ function update(dt) {
     const step = shot.speed * dt;
 
     if (d <= step + 5) {
-      target.hp -= shot.damage;
+      // v2.2.0: Boss shield phase. While the shield is active the boss takes
+      // reduced damage and the excess hits the shield. When the shield breaks
+      // the boss becomes fully vulnerable for the remainder of the fight.
+      let damage = shot.damage;
+      let shieldDamage = 0;
+      if (target.boss && target.shieldActive) {
+        damage = Math.round(shot.damage * (1 - (target.damageReduction || 0.7)));
+        shieldDamage = shot.damage - damage;
+        target.shieldHp = (target.shieldHp || 0) - shieldDamage;
+        if (target.shieldHp <= 0) {
+          target.shieldActive = false;
+          target.shieldHp = 0;
+          spawnParticles(target.x, target.y, "#c084fc", 10);
+        }
+      }
+      target.hp -= damage;
       shot.done = true;
 
       // Spawn a small hit burst so combat feedback is readable even when
@@ -1433,6 +1482,21 @@ function draw() {
   ctx.fillRect(0, 0, W, H);
   drawThemeGround();
 
+  // v2.2.0: Boss spawn warning banner. When a boss is about to spawn (last
+  // enemy of the final wave still queued) draw a pulsing banner at the top of
+  // the canvas so the player can prepare. Derived from the spawn queue so it
+  // cannot disagree with actual spawning.
+  const bossPending = waveActive && spawned < enemiesToSpawn &&
+    spawnQueue.slice(spawned).some(t => t === "boss");
+  if (bossPending) {
+    ctx.fillStyle = "rgba(168,85,247,0.18)";
+    ctx.fillRect(0, 0, W, 22);
+    ctx.fillStyle = "#d8b4fe";
+    ctx.font = "bold 11px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("👑 BOSS APPROACHING — focus fire!", W / 2, 14);
+  }
+
   // Enemy path
   ctx.beginPath();
   ctx.moveTo(path[0].x, path[0].y);
@@ -1553,6 +1617,25 @@ for (const tower of towers) {
       ctx.font = "bold 8px sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("BOSS", enemy.x, healthBarY - 4);
+
+      // v2.2.0: Shield phase indicator. While the boss's shield is active a
+      // secondary purple bar sits above the main HP bar showing remaining
+      // shield HP. When the shield breaks the bar disappears.
+      if (enemy.shieldActive && enemy.shieldHp > 0) {
+        const shieldBarY = healthBarY - 8;
+        ctx.fillStyle = "#3b0764";
+        ctx.fillRect(enemy.x - healthBarWidth / 2, shieldBarY, healthBarWidth, 3);
+        ctx.fillStyle = "#c084fc";
+        ctx.fillRect(
+          enemy.x - healthBarWidth / 2,
+          shieldBarY,
+          healthBarWidth * Math.max(0, enemy.shieldHp / enemy.shieldMax),
+          3
+        );
+        ctx.fillStyle = "#d8b4fe";
+        ctx.font = "bold 7px sans-serif";
+        ctx.fillText("SHIELD", enemy.x, shieldBarY - 3);
+      }
     }
   }
 

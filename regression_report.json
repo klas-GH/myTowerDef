@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-18T07:49:14.519Z",
+  "ts": "2026-10-18T08:29:08.761Z",
   "files": [
     {
       "name": "index.html",
@@ -9,7 +9,7 @@
     {
       "name": "game.js",
       "exists": true,
-      "size": 76489
+      "size": 80838
     },
     {
       "name": "style.css",
@@ -316,19 +316,19 @@
       "ok": true
     },
     {
-      "name": "html_v2100_round_modal",
+      "name": "html_v2200_round_modal",
       "ok": true
     },
     {
-      "name": "manifest_v2100",
+      "name": "manifest_v2200",
       "ok": true
     },
     {
-      "name": "sw_v2100",
+      "name": "sw_v2200",
       "ok": true
     },
     {
-      "name": "docs_v2100",
+      "name": "docs_v2200",
       "ok": true
     },
     {
@@ -414,11 +414,47 @@
     {
       "name": "same_frame_projectiles_reward_enemy_once",
       "ok": true
+    },
+    {
+      "name": "particles_decay_during_active_wave",
+      "ok": true
+    },
+    {
+      "name": "replaying_level_preserves_campaign_unlock_progress",
+      "ok": true
+    },
+    {
+      "name": "pause_disabled_after_wave_and_defeat",
+      "ok": true
+    },
+    {
+      "name": "boss_has_shield_phase",
+      "ok": true
+    },
+    {
+      "name": "boss_shield_reduces_damage",
+      "ok": true
+    },
+    {
+      "name": "boss_shield_absorbs_damage",
+      "ok": true
+    },
+    {
+      "name": "boss_shield_breaks_after_enough_damage",
+      "ok": true
+    },
+    {
+      "name": "boss_no_shield_takes_full_damage",
+      "ok": true
+    },
+    {
+      "name": "boss_spawns_on_final_wave_of_every_level",
+      "ok": true
     }
   ],
   "summary": {
     "allOk": true,
-    "total": 93,
-    "passed": 93
+    "total": 102,
+    "passed": 102
   }
 }
