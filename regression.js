@@ -1,5 +1,6 @@
 ﻿const fs = require('fs');
 const vm = require('vm');
+const path = require('path');
 
 function read(p){ try{return fs.readFileSync(p,'utf8');}catch(e){return null;} }
 function exists(p){ return fs.existsSync(p); }
@@ -144,7 +145,7 @@ const ctx = {
   clearTimeout(id) { scheduledTimers.delete(id); }
 };
 vm.createContext(ctx);
-vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}, get CHALLENGE_DEFS(){return CHALLENGE_DEFS;}, get challengeMode(){return challengeMode;}, set challengeMode(v){challengeMode=v;}, get activeChallenge(){return activeChallenge;}, set activeChallenge(v){activeChallenge=v;}, get challengeState(){return challengeState;}, set challengeState(v){challengeState=v;}, get challengeRecords(){return challengeRecords;}, set challengeRecords(v){challengeRecords=v;}, isChallengeUnlocked, getChallenge, getChallengeRecord, startChallenge, endChallenge, evaluateChallengeObjective, finalizeChallengeResult, abandonChallenge, getChallengeMedalLabel, getChallengeMedalGlyph, describeChallengeObjective}', ctx);
+vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}, get CHALLENGE_DEFS(){return CHALLENGE_DEFS;}, get challengeMode(){return challengeMode;}, set challengeMode(v){challengeMode=v;}, get activeChallenge(){return activeChallenge;}, set activeChallenge(v){activeChallenge=v;}, get challengeState(){return challengeState;}, set challengeState(v){challengeState=v;}, get challengeRecords(){return challengeRecords;}, set challengeRecords(v){challengeRecords=v;}, isChallengeUnlocked, getChallenge, getChallengeRecord, startChallenge, endChallenge, evaluateChallengeObjective, finalizeChallengeResult, abandonChallenge, getChallengeMedalLabel, getChallengeMedalGlyph, describeChallengeObjective, loadBg, loadUnit}', ctx);
 vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;}}, installPrompt:{get(){return installPrompt;},set(v){installPrompt=v;}}, installBannerDismissed:{get(){return installBannerDismissed;},set(v){installBannerDismissed=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD, showInstallBanner, hideInstallBanner, dismissInstallBanner, tryInstallPWA, isStandalone, restoreInstallBannerState})', ctx);
 
 let failures = 0;
@@ -1613,8 +1614,8 @@ report.checks.push({name:'docs_v232', ok: (!!qg && qg.includes('v2.3.2')) || (!!
 
 // ---- v2.3.2: Background and unit asset regression tests ----
 // The generator (gen_assets.py) produces one themed background PNG per level
-# and one unit icon PNG per enemy/tower type. The game loads them lazily and
-# falls back to procedural drawing when an asset is missing.
+// and one unit icon PNG per enemy/tower type. The game loads them lazily and
+// falls back to procedural drawing when an asset is missing.
 const assetNames = [
   'bg_jungle', 'bg_ocean', 'bg_meadow', 'bg_desert', 'bg_autumn', 'bg_snow',
   'bg_swamp', 'bg_volcano', 'bg_ruins', 'bg_crystal', 'bg_moon', 'bg_canyon',
@@ -1649,12 +1650,12 @@ try {
   report.checks.push({name:'assets_draw_with_assets_ok', ok: false, error: e.message});
 }
 
-// The header must not overflow on narrow screens: the title wraps and the
-// stats row stays inside the viewport width.
-report.checks.push({name:'header_wraps_on_narrow', ok: !!css && css.includes('.header {') && css.includes('flex-wrap: wrap') && css.includes('.header > div {') && css.includes('min-width: 0') && css.includes('overflow-x: hidden')});
-report.checks.push({name:'header_title_wraps', ok: !!css && css.includes('white-space: normal') && css.includes('text-overflow: ellipsis')});
-report.checks.push({name:'header_stats_wrap', ok: !!css && css.includes('.stats {') && css.includes('flex-wrap: wrap') && css.includes('justify-content: flex-end')});
-report.checks.push({name:'header_narrow_media_query', ok: !!css && css.includes('@media (max-width: 380px)') && css.includes('font-size: 20px')});
+// The header must stay on exactly one row even on the narrowest screens:
+// the title and stats shrink via clamp() and never wrap.
+report.checks.push({name:'header_one_row', ok: !!css && css.includes('.header {') && css.includes('flex-wrap: nowrap') && css.includes('.header > div {') && css.includes('min-width: 0') && css.includes('overflow: hidden')});
+report.checks.push({name:'header_title_nowraps', ok: !!css && css.includes('white-space: nowrap') && css.includes('text-overflow: ellipsis') && css.includes('clamp(')});
+report.checks.push({name:'header_stats_nowraps', ok: !!css && css.includes('.stats {') && css.includes('white-space: nowrap') && css.includes('flex: 1 0 auto')});
+report.checks.push({name:'header_no_narrow_media_query', ok: !!css && !css.includes('@media (max-width: 380px)')});
 
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);

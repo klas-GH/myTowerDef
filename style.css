@@ -27,76 +27,68 @@ body {
 
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  /* One row only: the title shrinks and the icon buttons shrink so the
+     header never wraps, even on the narrowest phones. */
+  flex-wrap: nowrap;
 }
 
 .header > div {
   min-width: 0;
   flex: 1 1 auto;
+  overflow: hidden;
 }
 
 h1 {
   margin: 0;
-  font-size: 25px;
-  flex: 0 0 auto;
+  font-size: clamp(14px, 5vw, 25px);
+  flex: 0 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header p,
 .hint {
   color: #94a3b8;
-  font-size: 12px;
+  font-size: clamp(9px, 2.4vw, 12px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .header p {
-  margin: 4px 0 0;
-  width: 100%;
-  white-space: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 0;
 }
 
 .stats {
   display: flex;
-  gap: 8px;
-  font-size: 15px;
-  flex: 0 1 auto;
-  justify-content: flex-end;
-  flex-wrap: wrap;
+  gap: 4px;
+  font-size: clamp(11px, 3vw, 15px);
+  flex: 1 0 auto;
   min-width: 0;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .stats span {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .icon-btn {
-  width: 34px;
-  height: 34px;
+  width: clamp(26px, 6.5vw, 34px);
+  height: clamp(26px, 6.5vw, 34px);
   flex: 0 0 auto;
-}
-
-@media (max-width: 380px) {
-  .header {
-    gap: 6px;
-  }
-  h1 {
-    font-size: 20px;
-  }
-  .stats {
-    gap: 4px;
-  }
-  .icon-btn {
-    width: 30px;
-    height: 30px;
-    font-size: 16px;
-  }
-  .header p {
-    font-size: 11px;
-  }
+  font-size: clamp(14px, 3.8vw, 18px);
 }
 
 .status {
