@@ -1,4 +1,4 @@
-{
+﻿{
     "name":  "myTowerDef",
     "short_name":  "myTowerDef",
     "start_url":  ".",
@@ -12,5 +12,5 @@
                       "type":  "image/svg+xml"
                   }
               ],
-    "version":  "1.9.32"
+    "version":  "2.0.0"
 }

@@ -467,6 +467,93 @@ button:disabled {
   line-height: 1.6;
 }
 
+.icon-btn {
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.icon-btn:active {
+  transform: scale(0.93);
+}
+
+.settings-panel {
+  max-height: min(80vh, 600px);
+}
+
+.settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid #1f2937;
+  font-size: 13px;
+}
+
+.setting-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.setting-stats h3,
+.setting-achievements h3 {
+  margin: 8px 0 4px;
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-line,
+.ach-line {
+  font-size: 12px;
+  padding: 3px 0;
+  color: #cbd5e1;
+}
+
+.ach-line.locked {
+  color: #64748b;
+}
+
+.ach-line.unlocked {
+  color: #fde68a;
+}
+
+.reset-confirm {
+  margin: 8px 0;
+  font-size: 12px;
+  color: #fca5a5;
+  text-align: center;
+}
+
+.danger {
+  background: #7f1d1d;
+  border-color: #991b1b;
+}
+
+.danger:hover {
+  background: #991b1b;
+}
+
 .upgrade-header {
   display: flex;
   align-items: center;
@@ -568,4 +655,93 @@ button:disabled {
   .upgrade-stats {
     grid-template-columns: 1fr;
   }
+}
+
+/* ---- v2.0.0 Settings panel, game over overlay, icon button ---- */
+.icon-btn {
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.icon-btn:active {
+  transform: scale(0.93);
+}
+
+.settings-panel {
+  max-height: min(80vh, 600px);
+  overflow-y: auto;
+}
+
+.settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid #1f2937;
+  font-size: 13px;
+}
+
+.setting-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.setting-stats h3,
+.setting-achievements h3 {
+  margin: 10px 0 4px;
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-line,
+.ach-line {
+  font-size: 12px;
+  padding: 3px 0;
+  color: #cbd5e1;
+}
+
+.ach-line.locked {
+  color: #64748b;
+}
+
+.ach-line.unlocked {
+  color: #fde68a;
+}
+
+.reset-confirm {
+  margin: 8px 0;
+  font-size: 12px;
+  color: #fca5a5;
+  text-align: center;
+}
+
+.danger {
+  background: #7f1d1d;
+  border-color: #991b1b;
+}
+
+.danger:hover {
+  background: #991b1b;
 }

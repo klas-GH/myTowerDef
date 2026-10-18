@@ -954,10 +954,10 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v1932_round_modal', ok: !!html && html.includes('v1.9.32') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
-report.checks.push({name:'manifest_v1932', ok: !!manifest && manifest.includes('"version":  "1.9.32"')});
-report.checks.push({name:'sw_v1932', ok: !!sw && sw.includes('v1.9.32')});
-report.checks.push({name:'docs_v1932', ok: (!!qg && qg.includes('v1.9.32')) || (!!readme && readme.includes('v1.9.32'))});
+report.checks.push({name:'html_v2000_round_modal', ok: !!html && html.includes('v2.0.0') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'manifest_v2000', ok: !!manifest && manifest.includes('"version":  "2.0.0"')});
+report.checks.push({name:'sw_v2000', ok: !!sw && sw.includes('v2.0.0')});
+report.checks.push({name:'docs_v2000', ok: (!!qg && qg.includes('v2.0.0')) || (!!readme && readme.includes('v2.0.0'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {

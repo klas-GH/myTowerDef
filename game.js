@@ -297,6 +297,50 @@ let waveActive = false;
 let lastPreviewWave = -1; // cached next-wave number rendered in the preview
 let soundContext = null;
 
+// ---- v2.0.0: Persistence, Settings, Achievements ----
+const SAVE_KEY = "myTowerDef.save.v2";
+const SAVE_VERSION = 2;
+const ACHIEVEMENTS_DEFS = {
+  first_defense: { id: "first_defense", name: "First Defense", desc: "Complete Level 1" },
+  all_twelve: { id: "all_twelve", name: "All Twelve", desc: "Complete all 12 levels in a round" },
+  round_10: { id: "round_10", name: "Decade", desc: "Reach Round 10" },
+  round_25: { id: "round_25", name: "Quarter Century", desc: "Reach Round 25" },
+  legendary: { id: "legendary", name: "Legendary Defender", desc: "Complete Round 50" },
+  boss_slayer: { id: "boss_slayer", name: "Boss Slayer", desc: "Defeat 10 bosses" },
+  speed_demon: { id: "speed_demon", name: "Speed Demon", desc: "Defeat 100 runners" },
+  tank_buster: { id: "tank_buster", name: "Tank Buster", desc: "Defeat 50 armored enemies" },
+  master_archer: { id: "master_archer", name: "Master Archer", desc: "Build 20 archer towers" },
+  cannon_master: { id: "cannon_master", name: "Cannon Master", desc: "Build 15 cannon towers" },
+  wizard: { id: "wizard", name: "Wizard", desc: "Build 15 magic towers" },
+  upgrade_artist: { id: "upgrade_artist", name: "Upgrade Artist", desc: "Upgrade 30 towers" },
+  perfect_hold: { id: "perfect_hold", name: "Perfect Hold", desc: "Complete a level without losing a life" },
+  big_spender: { id: "big_spender", name: "Big Spender", desc: "Spend 500 coins in a single level" }
+};
+
+let settings = { soundEnabled: true, reducedMotion: false };
+let campaignState = {
+  currentRun: 1,
+  currentLevel: 1,
+  highestRunReached: 1,
+  campaignCompleted: false,
+  levelsCompleted: 0
+};
+let statsState = {
+  roundsCompleted: 0,
+  enemiesDefeated: 0,
+  towersBuilt: 0,
+  towersUpgraded: 0,
+  campaignVictories: 0,
+  bossesDefeated: 0,
+  runnersDefeated: 0,
+  armoredDefeated: 0,
+  archerBuilt: 0,
+  cannonBuilt: 0,
+  magicBuilt: 0,
+  maxCoinsSpent: 0
+};
+let achievements = [];
+
 function getLevelWaveDef(waveNum, levelNum, runNum) {
   const base = WAVE_DEFS[waveNum - 1];
   if (!base) return null;
@@ -335,7 +379,148 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v1.9.32";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.0.0";
+}
+
+// ---- v2.0.0 Persistence ----
+function loadSave() {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") return false;
+  let raw;
+  try {
+    raw = window.localStorage.getItem(SAVE_KEY);
+  } catch (e) {
+    console.warn("Could not read save data:", e);
+    return false;
+  }
+  if (!raw) return false;
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    console.warn("Save data is corrupted, ignoring.");
+    return false;
+  }
+  if (!data || typeof data !== "object" || data.version !== SAVE_VERSION) {
+    console.warn("Save data is outdated or invalid, ignoring.");
+    return false;
+  }
+  if (data.campaign && typeof data.campaign === "object") {
+    const c = data.campaign;
+    if (typeof c.currentRun === "number" && c.currentRun >= 1 && c.currentRun <= MAX_RUN) {
+      campaignState.currentRun = c.currentRun;
+    }
+    if (typeof c.currentLevel === "number" && c.currentLevel >= 1 && c.currentLevel <= MAX_LEVEL) {
+      campaignState.currentLevel = c.currentLevel;
+    }
+    if (typeof c.highestRunReached === "number" && c.highestRunReached >= 1) {
+      campaignState.highestRunReached = c.highestRunReached;
+    }
+    campaignState.campaignCompleted = !!c.campaignCompleted;
+    campaignState.levelsCompleted = typeof c.levelsCompleted === "number" ? c.levelsCompleted : 0;
+  }
+  if (data.settings && typeof data.settings === "object") {
+    if (typeof data.settings.soundEnabled === "boolean") settings.soundEnabled = data.settings.soundEnabled;
+    if (typeof data.settings.reducedMotion === "boolean") settings.reducedMotion = data.settings.reducedMotion;
+  }
+  if (data.stats && typeof data.stats === "object") {
+    const s = data.stats;
+    statsState.roundsCompleted = typeof s.roundsCompleted === "number" ? s.roundsCompleted : 0;
+    statsState.enemiesDefeated = typeof s.enemiesDefeated === "number" ? s.enemiesDefeated : 0;
+    statsState.towersBuilt = typeof s.towersBuilt === "number" ? s.towersBuilt : 0;
+    statsState.towersUpgraded = typeof s.towersUpgraded === "number" ? s.towersUpgraded : 0;
+    statsState.campaignVictories = typeof s.campaignVictories === "number" ? s.campaignVictories : 0;
+    statsState.bossesDefeated = typeof s.bossesDefeated === "number" ? s.bossesDefeated : 0;
+    statsState.runnersDefeated = typeof s.runnersDefeated === "number" ? s.runnersDefeated : 0;
+    statsState.armoredDefeated = typeof s.armoredDefeated === "number" ? s.armoredDefeated : 0;
+    statsState.archerBuilt = typeof s.archerBuilt === "number" ? s.archerBuilt : 0;
+    statsState.cannonBuilt = typeof s.cannonBuilt === "number" ? s.cannonBuilt : 0;
+    statsState.magicBuilt = typeof s.magicBuilt === "number" ? s.magicBuilt : 0;
+    statsState.maxCoinsSpent = typeof s.maxCoinsSpent === "number" ? s.maxCoinsSpent : 0;
+  }
+  if (Array.isArray(data.achievements)) {
+    achievements = data.achievements.filter(a => typeof a === "string");
+  }
+  return true;
+}
+
+function saveGame() {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") return false;
+  const data = {
+    version: SAVE_VERSION,
+    ts: new Date().toISOString(),
+    campaign: { ...campaignState },
+    settings: { ...settings },
+    stats: { ...statsState },
+    achievements: achievements.slice()
+  };
+  try {
+    window.localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    return true;
+  } catch (e) {
+    console.warn("Could not save game data:", e);
+    return false;
+  }
+}
+
+function resetSave() {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") return false;
+  try {
+    window.localStorage.removeItem(SAVE_KEY);
+  } catch (e) {
+    console.warn("Could not remove save data:", e);
+    return false;
+  }
+  campaignState = { currentRun: 1, currentLevel: 1, highestRunReached: 1, campaignCompleted: false, levelsCompleted: 0 };
+  settings = { soundEnabled: true, reducedMotion: false };
+  statsState = { roundsCompleted: 0, enemiesDefeated: 0, towersBuilt: 0, towersUpgraded: 0, campaignVictories: 0, bossesDefeated: 0, runnersDefeated: 0, armoredDefeated: 0, archerBuilt: 0, cannonBuilt: 0, magicBuilt: 0, maxCoinsSpent: 0 };
+  achievements = [];
+  return true;
+}
+
+// ---- v2.0.0 Achievements ----
+function awardAchievement(id) {
+  if (!ACHIEVEMENTS_DEFS[id]) return false;
+  if (achievements.includes(id)) return false;
+  achievements.push(id);
+  saveGame();
+  return true;
+}
+
+function checkAchievements(context) {
+  if (context && context.completedLevel) {
+    if (context.level === 1) awardAchievement("first_defense");
+    if (context.level === MAX_LEVEL) awardAchievement("all_twelve");
+  }
+  if (campaignState.highestRunReached >= 10) awardAchievement("round_10");
+  if (campaignState.highestRunReached >= 25) awardAchievement("round_25");
+  if (campaignState.campaignCompleted) awardAchievement("legendary");
+  if (statsState.bossesDefeated >= 10) awardAchievement("boss_slayer");
+  if (statsState.runnersDefeated >= 100) awardAchievement("speed_demon");
+  if (statsState.armoredDefeated >= 50) awardAchievement("tank_buster");
+  if (statsState.archerBuilt >= 20) awardAchievement("master_archer");
+  if (statsState.cannonBuilt >= 15) awardAchievement("cannon_master");
+  if (statsState.magicBuilt >= 15) awardAchievement("wizard");
+  if (statsState.towersUpgraded >= 30) awardAchievement("upgrade_artist");
+  if (statsState.maxCoinsSpent >= 500) awardAchievement("big_spender");
+}
+
+// ---- v2.0.0 Elite and Boss enemy variants ----
+// Bosses appear on wave 3 (the final wave) of every level. They are slow,
+// very high-HP enemies that reward a large bounty.
+function buildBossDef(levelNum, runNum) {
+  const scaled = getScaledEnemyType("elite_armored", levelNum, runNum, 3);
+  return {
+    id: "boss",
+    name: "Boss",
+    hp: scaled.hp,
+    maxHp: scaled.hp,
+    speed: scaled.speed,
+    reward: scaled.reward,
+    color: "#a855f7",
+    glyph: "👑",
+    elite: true,
+    boss: true
+  };
 }
 
 function unlockSound() {
@@ -352,19 +537,20 @@ function unlockSound() {
 }
 
 function playFireSound(towerType) {
+  if (!settings.soundEnabled) return;
   if (!soundContext || soundContext.state !== "running") return;
   const now = soundContext.currentTime;
   const oscillator = soundContext.createOscillator();
   const gain = soundContext.createGain();
-  const settings = {
+  const soundProfile = {
     archer: { frequency: 620, type: "triangle" },
     cannon: { frequency: 150, type: "square" },
     magic: { frequency: 880, type: "sine" }
   }[towerType] || { frequency: 620, type: "triangle" };
 
-  oscillator.type = settings.type;
-  oscillator.frequency.setValueAtTime(settings.frequency, now);
-  oscillator.frequency.exponentialRampToValueAtTime(Math.max(60, settings.frequency * 0.55), now + 0.07);
+  oscillator.type = soundProfile.type;
+  oscillator.frequency.setValueAtTime(soundProfile.frequency, now);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(60, soundProfile.frequency * 0.55), now + 0.07);
   gain.gain.setValueAtTime(0.035, now);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
   oscillator.connect(gain);
@@ -465,6 +651,12 @@ function startWave() {
     }
   }
 
+  // Boss spawns last on wave 3 (the final wave of every level).
+  if (currentWave === MAX_WAVE) {
+    spawnQueue.push("boss");
+    enemiesToSpawn = spawnQueue.length;
+  }
+
   mode = "playing";
   waveActive = true;
   spawned = 0;
@@ -506,6 +698,13 @@ function openNextRun() {
   if (currentRun >= MAX_RUN) {
     currentRun = 1;
     currentLevel = 1;
+    campaignState.campaignCompleted = true;
+    campaignState.highestRunReached = MAX_RUN;
+    statsState.campaignVictories++;
+    statsState.roundsCompleted++;
+    awardAchievement("legendary");
+    checkAchievements();
+    saveGame();
     reset();
     $("status").textContent = "All 50 rounds complete. Campaign restarted at Round #1.";
     showRoundNotice(
@@ -518,7 +717,11 @@ function openNextRun() {
   }
 
   currentRun++;
+  if (currentRun > campaignState.highestRunReached) {
+    campaignState.highestRunReached = currentRun;
+  }
   currentLevel = 1;
+  saveGame();
   reset();
   $("status").textContent = "Round #" + currentRun + " opened. Enemy speed and HP increased!";
   showRoundNotice(
@@ -541,6 +744,26 @@ function addEnemy() {
   // Pick the next enemy type from the authoritative spawn queue. Fall back
   // to the standard archetype if the queue is empty or malformed.
   const typeKey = spawnQueue[spawned] || "standard";
+
+  if (typeKey === "boss") {
+    const b = buildBossDef(currentLevel, currentRun);
+    enemies.push({
+      x: path[0].x,
+      y: path[0].y,
+      point: 1,
+      type: "boss",
+      hp: b.hp,
+      maxHp: b.maxHp,
+      speed: b.speed,
+      reward: b.reward,
+      color: b.color,
+      glyph: b.glyph,
+      elite: true,
+      boss: true
+    });
+    return;
+  }
+
   const t = getScaledEnemyType(typeKey, currentLevel, currentRun, currentWave);
 
   enemies.push({
@@ -593,6 +816,14 @@ function placeTower(x, y) {
   });
 
   coins -= t.cost;
+  statsState.towersBuilt++;
+  if (t.id === "archer") statsState.archerBuilt++;
+  else if (t.id === "cannon") statsState.cannonBuilt++;
+  else if (t.id === "magic") statsState.magicBuilt++;
+  if (statsState.archerBuilt >= 20) awardAchievement("master_archer");
+  if (statsState.cannonBuilt >= 15) awardAchievement("cannon_master");
+  if (statsState.magicBuilt >= 15) awardAchievement("wizard");
+  saveGame();
   $("status").textContent = t.name + " tower built! Ready to defend.";
   updateUI();
 }
@@ -665,6 +896,13 @@ function update(dt) {
     $("status").textContent = "💥 Base destroyed! Try again.";
     $("startBtn").disabled = true;
     updateUpgradePanel();
+    const goOverlay = $("gameOverOverlay");
+    if (goOverlay) {
+      $("gameOverTitle").textContent = "💥 Base Destroyed";
+      $("gameOverMessage").textContent = "Your base was breached. Restart to try again.";
+      goOverlay.hidden = false;
+    }
+    saveGame();
     return;
   }
 
@@ -708,6 +946,19 @@ function update(dt) {
       if (target.hp <= 0) {
         target.dead = true;
         coins += target.reward;
+        // Track stats and achievements for defeated enemies.
+        statsState.enemiesDefeated++;
+        if (target.boss) {
+          statsState.bossesDefeated++;
+          awardAchievement("boss_slayer");
+        } else if (target.type === "runner") {
+          statsState.runnersDefeated++;
+          if (statsState.runnersDefeated >= 100) awardAchievement("speed_demon");
+        } else if (target.type === "armored" || target.type === "elite_armored") {
+          statsState.armoredDefeated++;
+          if (statsState.armoredDefeated >= 50) awardAchievement("tank_buster");
+        }
+        saveGame();
       }
     } else if (d > 0) {
       shot.x += (target.x - shot.x) / d * step;
@@ -729,6 +980,22 @@ function update(dt) {
     updateWaveInfo();
 
     if (lastWave) {
+      // Track campaign progress and achievements.
+      campaignState.levelsCompleted = currentLevel;
+      if (currentLevel >= MAX_LEVEL) {
+        campaignState.campaignCompleted = true;
+        statsState.campaignVictories++;
+        statsState.roundsCompleted++;
+        if (currentRun >= campaignState.highestRunReached) {
+          campaignState.highestRunReached = currentRun;
+        }
+        awardAchievement("all_twelve");
+        checkAchievements({ completedLevel: currentLevel });
+        saveGame();
+      } else {
+        checkAchievements({ completedLevel: currentLevel });
+        saveGame();
+      }
       if (currentLevel < MAX_LEVEL) {
         $("status").textContent = "🏆 Level " + currentLevel + " complete! +" + waveReward + " coins";
         $("startBtn").disabled = false;
@@ -741,6 +1008,7 @@ function update(dt) {
       $("status").textContent = `Wave ${currentWave} complete! +${waveReward} coins`;
       $("startBtn").disabled = false;
       $("startBtn").textContent = "▶ Start Wave";
+      saveGame();
     }
   }
 }
@@ -1443,5 +1711,112 @@ if (typeof document !== "undefined" && typeof document.addEventListener === "fun
       reset();
       return;
     }
+  });
+}
+
+// ---- v2.0.0 Settings panel ----
+function showSettings() {
+  const panel = $("settingsPanel");
+  if (!panel) return;
+  const soundToggle = $("soundToggle");
+  const motionToggle = $("motionToggle");
+  if (soundToggle) soundToggle.checked = settings.soundEnabled;
+  if (motionToggle) motionToggle.checked = settings.reducedMotion;
+  renderSettingsStats();
+  renderSettingsAchievements();
+  panel.hidden = false;
+}
+
+function hideSettings() {
+  const panel = $("settingsPanel");
+  if (panel) panel.hidden = true;
+}
+
+function renderSettingsStats() {
+  const el = $("statsDisplay");
+  if (!el) return;
+  el.innerHTML =
+    '<div class="stat-line">Rounds completed: ' + statsState.roundsCompleted + '</div>' +
+    '<div class="stat-line">Enemies defeated: ' + statsState.enemiesDefeated + '</div>' +
+    '<div class="stat-line">Towers built: ' + statsState.towersBuilt + '</div>' +
+    '<div class="stat-line">Towers upgraded: ' + statsState.towersUpgraded + '</div>' +
+    '<div class="stat-line">Campaign victories: ' + statsState.campaignVictories + '</div>' +
+    '<div class="stat-line">Bosses defeated: ' + statsState.bossesDefeated + '</div>';
+}
+
+function renderSettingsAchievements() {
+  const el = $("achievementsDisplay");
+  if (!el) return;
+  let html = "";
+  for (const key of Object.keys(ACHIEVEMENTS_DEFS)) {
+    const def = ACHIEVEMENTS_DEFS[key];
+    const unlocked = achievements.includes(key);
+    html += '<div class="ach-line ' + (unlocked ? "unlocked" : "locked") + '">' +
+      (unlocked ? "✓ " : "☐ ") + def.name + (unlocked ? "" : " (locked)") + '</div>';
+  }
+  el.innerHTML = html;
+}
+
+// Settings button and toggles
+const settingsBtn = $("settingsBtn");
+if (settingsBtn) {
+  settingsBtn.addEventListener("click", () => {
+    if ($("settingsPanel")) showSettings();
+  });
+}
+const settingsCloseBtn = $("settingsClose");
+if (settingsCloseBtn) settingsCloseBtn.addEventListener("click", hideSettings);
+const soundToggleEl = $("soundToggle");
+if (soundToggleEl) {
+  soundToggleEl.addEventListener("change", () => {
+    settings.soundEnabled = soundToggleEl.checked;
+    saveGame();
+  });
+}
+const motionToggleEl = $("motionToggle");
+if (motionToggleEl) {
+  motionToggleEl.addEventListener("change", () => {
+    settings.reducedMotion = motionToggleEl.checked;
+    saveGame();
+  });
+}
+
+// Reset progress with confirmation
+const resetProgressBtn = $("resetProgressBtn");
+const resetConfirmEl = $("resetConfirm");
+const resetConfirmYes = $("resetConfirmYes");
+const resetConfirmNo = $("resetConfirmNo");
+if (resetProgressBtn) {
+  resetProgressBtn.addEventListener("click", () => {
+    if (resetConfirmEl) resetConfirmEl.hidden = false;
+    if (resetConfirmYes) resetConfirmYes.hidden = false;
+    if (resetConfirmNo) resetConfirmNo.hidden = false;
+  });
+}
+if (resetConfirmYes) {
+  resetConfirmYes.addEventListener("click", () => {
+    resetSave();
+    if (resetConfirmEl) resetConfirmEl.hidden = true;
+    if (resetConfirmYes) resetConfirmYes.hidden = true;
+    if (resetConfirmNo) resetConfirmNo.hidden = true;
+    renderSettingsStats();
+    renderSettingsAchievements();
+  });
+}
+if (resetConfirmNo) {
+  resetConfirmNo.addEventListener("click", () => {
+    if (resetConfirmEl) resetConfirmEl.hidden = true;
+    if (resetConfirmYes) resetConfirmYes.hidden = true;
+    if (resetConfirmNo) resetConfirmNo.hidden = true;
+  });
+}
+
+// Game over screen
+const gameOverOverlay = $("gameOverOverlay");
+const gameOverRestart = $("gameOverRestart");
+if (gameOverRestart) {
+  gameOverRestart.addEventListener("click", () => {
+    if (gameOverOverlay) gameOverOverlay.hidden = true;
+    reset();
   });
 }

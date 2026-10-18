@@ -1,5 +1,5 @@
-@version: 1.9.32
-@release: v1.9.32
+﻿@version: 2.0.0
+@release: v2.0.0
 @status: feature
 @scope: difficulty, replay
 
@@ -89,7 +89,7 @@
 - Bumped version to 1.9.16 across all files, docs, and changelog.
 
 === v 1.9.15 =====
-- Current wave info now shows the enemy stats line (HP / speed / reward) matching the wave preview: "❤️ 35 HP · ⚡ 28 · 💰 Reward 40", via buildWaveStatsLine().
+- Current wave info now shows the enemy stats line (HP / speed / reward) matching the wave preview: "â¤ï¸ 35 HP Â· âš¡ 28 Â· ðŸ’° Reward 40", via buildWaveStatsLine().
 - Bumped version to 1.9.15 across all files, docs, and changelog.
 
 === v 1.9.14 =====
@@ -97,15 +97,15 @@
 - Bumped version to 1.9.14 across all files, docs, and changelog.
 
 === v 1.9.13 =====
-- Current wave (Active) info now shows mini-icon/glyph enemy breakdown matching the wave preview: "Wave: X/MAX (Active) ● Standard 6 ⬢ Armored 4 ◆ Runner 4 · 4 left".
+- Current wave (Active) info now shows mini-icon/glyph enemy breakdown matching the wave preview: "Wave: X/MAX (Active) â— Standard 6 â¬¢ Armored 4 â—† Runner 4 Â· 4 left".
 - Bumped version to 1.9.13 across all files, docs, and changelog.
 
 === v 1.9.12 =====
-- Current wave (Active) info now shows total enemies count like next wave: "Wave: X/MAX (Active) · N enemies · M left", so both current and next wave info have equal detail.
+- Current wave (Active) info now shows total enemies count like next wave: "Wave: X/MAX (Active) Â· N enemies Â· M left", so both current and next wave info have equal detail.
 - Bumped version to 1.9.12 across all files, docs, and changelog.
 
 === v 1.9.11 =====
-- Current wave info now shows full details like the next wave: enemy count added to Pending, Complete, Won, and Lost states (e.g. "Wave: 2/3 (Complete) · 8 enemies").
+- Current wave info now shows full details like the next wave: enemy count added to Pending, Complete, Won, and Lost states (e.g. "Wave: 2/3 (Complete) Â· 8 enemies").
 - Bumped version to 1.9.11 across all files, docs, and changelog.
 
 === v 1.9.10 =====
@@ -117,7 +117,7 @@
 - Bumped version to 1.9.9 across all files, docs, and changelog.
 
 === v 1.9.8 =====
-- Wave panel now shows enemies remaining during an active wave (e.g. "Wave: 1/3 (Active) · 8 left"), computed from enemiesToSpawn minus spawned plus enemies still alive.
+- Wave panel now shows enemies remaining during an active wave (e.g. "Wave: 1/3 (Active) Â· 8 left"), computed from enemiesToSpawn minus spawned plus enemies still alive.
 - Added keyboard shortcuts: 1/2/3 select tower type (Archer/Cannon/Magic), Space starts a wave, R restarts the game.
 - Updated regression.js and smoke_quick.js version checks to v1.9.8.
 
