@@ -1649,6 +1649,13 @@ try {
   report.checks.push({name:'assets_draw_with_assets_ok', ok: false, error: e.message});
 }
 
+// The header must not overflow on narrow screens: the title wraps and the
+// stats row stays inside the viewport width.
+report.checks.push({name:'header_wraps_on_narrow', ok: !!css && css.includes('.header {') && css.includes('flex-wrap: wrap') && css.includes('.header > div {') && css.includes('min-width: 0') && css.includes('overflow-x: hidden')});
+report.checks.push({name:'header_title_wraps', ok: !!css && css.includes('white-space: normal') && css.includes('text-overflow: ellipsis')});
+report.checks.push({name:'header_stats_wrap', ok: !!css && css.includes('.stats {') && css.includes('flex-wrap: wrap') && css.includes('justify-content: flex-end')});
+report.checks.push({name:'header_narrow_media_query', ok: !!css && css.includes('@media (max-width: 380px)') && css.includes('font-size: 20px')});
+
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
 }

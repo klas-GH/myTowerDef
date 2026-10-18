@@ -15,24 +15,34 @@ body {
   min-height: 100dvh;
   padding: max(12px, env(safe-area-inset-top)) 12px
            max(12px, env(safe-area-inset-bottom));
+  overflow-x: hidden;
 }
 
 .app {
   width: 100%;
   max-width: 520px;
   margin: auto;
+  overflow-x: hidden;
 }
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.header > div {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 h1 {
   margin: 0;
   font-size: 25px;
+  flex: 0 0 auto;
 }
 
 .header p,
@@ -43,12 +53,50 @@ h1 {
 
 .header p {
   margin: 4px 0 0;
+  width: 100%;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stats {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   font-size: 15px;
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.stats span {
+  white-space: nowrap;
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 380px) {
+  .header {
+    gap: 6px;
+  }
+  h1 {
+    font-size: 20px;
+  }
+  .stats {
+    gap: 4px;
+  }
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+  .header p {
+    font-size: 11px;
+  }
 }
 
 .status {
