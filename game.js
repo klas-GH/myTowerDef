@@ -29,9 +29,9 @@ function scheduleRedraw() {
   if (pendingRedraw) return;
   pendingRedraw = true;
   if (typeof requestAnimationFrame === "function") {
-    requestAnimationFrame(() => { pendingRedraw = false; if (typeof update === "function") update(0); });
+    requestAnimationFrame(() => { pendingRedraw = false; if (typeof draw === "function") draw(); });
   } else if (typeof setTimeout === "function") {
-    setTimeout(() => { pendingRedraw = false; if (typeof update === "function") update(0); }, 50);
+    setTimeout(() => { pendingRedraw = false; if (typeof draw === "function") draw(); }, 50);
   }
 }
 function loadBg(theme) {

@@ -5,10 +5,11 @@
 ### Bug Fixes
 
 - **Header overflow on narrow phones**: The header is now locked to a single row on every screen width. The title, subtitle, and stats all shrink via `clamp()` and never wrap, so the header cannot overflow the viewport even on the narrowest phones. The old `@media (max-width: 380px)` override was removed since the clamp values already handle small screens.
+- **PNG assets now actually render**: `scheduleRedraw` was calling `update(0)`, but `update()` returns early when `mode !== "playing"`. It now calls `draw()` directly, so the canvas re-renders as soon as a background or unit PNG finishes loading — even on the title screen — instead of falling back to the procedural drawing forever. This makes the themed backgrounds and unit icons visible.
 
 ### Validation
 
-- All 189 regression checks pass.
+- All 191 regression checks pass.
 - Smoke test passes.
 - `git diff --check` is clean.
 

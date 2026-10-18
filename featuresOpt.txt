@@ -6,7 +6,8 @@
 === v 2.3.3 ===
 - Fixed header overflow on narrow phones: the header is locked to a single row and the title, subtitle, and stats shrink via clamp() so they never wrap or overflow the viewport, even on the narrowest screens.
 - Removed the @media (max-width: 380px) override since the clamp values already handle small screens.
-- Added 4 regression checks asserting the one-row header behavior (header_one_row, header_title_nowraps, header_stats_nowraps, header_no_narrow_media_query).
+- Fixed PNG assets not rendering: scheduleRedraw was calling update(0), but update() returns early when mode !== "playing", so the canvas never re-rendered after an asset finished loading and always showed the procedural fallback. It now calls draw() directly, so the themed backgrounds and unit icons appear as soon as they load, even on the title screen.
+- Added 6 regression checks asserting the one-row header behavior (header_one_row, header_title_nowraps, header_stats_nowraps, header_no_narrow_media_query) and the scheduleRedraw/draw wiring (scheduleRedraw_calls_draw, scheduleRedraw_not_update).
 - Bumped manifest, service-worker cache, README, quick_Guide, index.html, and game.js level title to v2.3.3.
 
 === v 2.3.2 ===

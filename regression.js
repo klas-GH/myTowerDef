@@ -1657,6 +1657,13 @@ report.checks.push({name:'header_title_nowraps', ok: !!css && css.includes('whit
 report.checks.push({name:'header_stats_nowraps', ok: !!css && css.includes('.stats {') && css.includes('white-space: nowrap') && css.includes('flex: 1 0 auto')});
 report.checks.push({name:'header_no_narrow_media_query', ok: !!css && !css.includes('@media (max-width: 380px)')});
 
+// v2.3.3: scheduleRedraw must trigger a redraw (draw()), not update(0), because
+// update() returns early when mode !== "playing". Calling draw() directly means
+// the canvas re-renders as soon as an asset finishes loading, even on the title
+// screen, so the PNG background and unit icons appear instead of the fallback.
+report.checks.push({name:'scheduleRedraw_calls_draw', ok: !!js && js.includes('scheduleRedraw') && js.includes("if (typeof draw === \"function\") draw()")});
+report.checks.push({name:'scheduleRedraw_not_update', ok: !!js && !js.includes('if (typeof update === \"function\") update(0)')});
+
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
 }
