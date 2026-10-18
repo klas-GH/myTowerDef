@@ -1,7 +1,15 @@
-﻿@version: 2.3.1
-@release: v2.3.1
-@status: feature
-@scope: pwa, install
+﻿@version: 2.3.2
+@release: v2.3.2
+@status: feature, art
+@scope: visuals, assets
+
+=== v 2.3.2 ===
+- Generated 12 themed background PNGs (one per level) via gen_assets.py + PIL. Each background draws the level's ground color, road polyline, and decorative layer items (palm trees, coral, flowers, cacti, etc.) so every level has a distinct base layer.
+- The game draws the background PNG as the base layer in draw(), with the existing ground fill and procedural theme decorations drawn on top so the canvas never shows a blank frame while the PNG loads.
+- Generated 7 unit icon PNGs: enemy_standard, enemy_runner, enemy_armored, enemy_boss, tower_archer, tower_cannon, tower_magic. Each is a small 28x28 RGBA icon drawn with distinct silhouettes (round body for Standard, sleek diamond with speed streak for Runner, heavy hexagon with plate line for Armored, crowned boss body for Boss, bow for Archer, barrel for Cannon, crystal facet for Magic).
+- drawTowerIcon and drawEnemyIcon now prefer the pre-rendered PNG via ctx.drawImage, falling back to the procedural drawing when an asset is missing or still loading.
+- Assets are loaded lazily and cached (loadBg/loadUnit) so repeated draws do not re-decode.
+- Bumped manifest, service-worker cache, README, quick_Guide, and index.html to v2.3.2.
 
 === v 2.3.1 ===
 - Added a PWA install banner that appears when the browser fires `beforeinstallprompt` (Chrome/Edge/Opera). The banner is dismissible via "Install" or "Not now", and is hidden when the app is already running in standalone mode or after a successful install.

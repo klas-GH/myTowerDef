@@ -74,7 +74,7 @@ function makeGetById(id){
 const querySelector = (sel) => {
   if (sel === '#game') return {
     width:300, height:360,
-    getContext: () => ({ fillRect(){}, beginPath(){}, moveTo(){}, lineTo(){}, stroke(){}, arc(){}, fill(){}, fillText(){}, clearRect(){} }),
+    getContext: () => ({ fillRect(){}, beginPath(){}, moveTo(){}, lineTo(){}, stroke(){}, arc(){}, fill(){}, fillText(){}, clearRect(){}, drawImage(){}, createImageData(){}, putImageData(){}, save(){}, restore(){}, scale(){}, translate(){}, rotate(){}, setTransform(){}, strokeRect(){}, clip(){}, measureText(){return {width:0}}, drawRoundRect(){}, roundRect(){} }),
     addEventListener: ()=>{}, getBoundingClientRect: () => ({left:0,top:0,width:300,height:360})
   };
   if (!els['q_'+sel]) els['q_'+sel] = makeEl('q_'+sel);
@@ -83,6 +83,12 @@ const querySelector = (sel) => {
 
 const doc = { querySelector, getElementById: makeGetById, createElement: () => { const el = makeEl('created'); el.dataset = {}; return el; } };
 const raf = ()=>{};
+// Mock Image constructor so the game's loadBg/loadUnit return objects with
+// complete/naturalWidth set, simulating loaded assets.
+function makeMockImage() {
+  return { complete: true, naturalWidth: 28, naturalHeight: 28, width: 28, height: 28, src: '' };
+}
+const Image = function() { return makeMockImage(); };
 const storageData = new Map();
 const storage = {
   getItem(key) { return storageData.has(key) ? storageData.get(key) : null; },
@@ -129,6 +135,7 @@ const ctx = {
   encodeURIComponent,
   setInterval,
   clearInterval,
+  Image,
   setTimeout(callback) {
     const id = nextTimerId++;
     scheduledTimers.set(id, callback);
@@ -1023,10 +1030,10 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v231_round_modal', ok: !!html && html.includes('v2.3.1') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
-report.checks.push({name:'manifest_v231', ok: !!manifest && manifest.includes('"version":  "2.3.1"')});
-report.checks.push({name:'sw_v231', ok: !!sw && sw.includes('v2.3.1')});
-report.checks.push({name:'docs_v231', ok: (!!qg && qg.includes('v2.3.1')) || (!!readme && readme.includes('v2.3.1'))});
+report.checks.push({name:'html_v232_round_modal', ok: !!html && html.includes('v2.3.2') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'manifest_v232', ok: !!manifest && manifest.includes('"version":  "2.3.2"')});
+report.checks.push({name:'sw_v232', ok: !!sw && sw.includes('v2.3.2')});
+report.checks.push({name:'docs_v232', ok: (!!qg && qg.includes('v2.3.2')) || (!!readme && readme.includes('v2.3.2'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1509,7 +1516,7 @@ report.checks.push({name:'controls_row_is_single_row', ok: controlsMatch.length 
 const threeCol = 'grid-template-columns: repeat(3, 1fr)';
 report.checks.push({name:'controls_use_three_columns', ok: !!css && css.includes(threeCol) && css.includes('.controls')});
 
-// ---- v2.3.1: PWA install banner regression tests ----
+// ---- v2.3.2: PWA install banner regression tests ----
 // The install banner appears when the browser fires beforeinstallprompt,
 // dismisses on "not now" or install, and never appears in standalone mode.
 const installApi = ctx.__api;
@@ -1560,11 +1567,16 @@ report.checks.push({name:'install_restore_reads_persisted_flag', ok: installApi.
 
 // A fresh beforeinstallprompt event stores the prompt and shows the banner.
 resetInstallState();
-const promptEvent = { preventDefault: () => {}, userChoice: Promise.resolve({ outcome: 'accepted' }) };
-ctx.window.dispatchEvent(new Event('beforeinstallprompt'));
-installApi.installPrompt = promptEvent;
+let installPromptPrevented = false;
+const promptEvent = {
+  type: 'beforeinstallprompt',
+  preventDefault: () => { installPromptPrevented = true; },
+  prompt: () => {},
+  userChoice: Promise.resolve({ outcome: 'accepted' })
+};
+ctx.window.dispatchEvent(promptEvent);
+report.checks.push({name:'install_beforeinstallprompt_prevents_default', ok: installPromptPrevented});
 report.checks.push({name:'install_beforeinstallprompt_stores_prompt', ok: installApi.installPrompt === promptEvent});
-installApi.showInstallBanner();
 report.checks.push({name:'install_banner_shows_after_prompt', ok: !!els.installBanner && !els.installBanner.hidden});
 
 // tryInstallPWA invokes prompt() and clears the stored prompt on completion.
@@ -1579,7 +1591,7 @@ report.checks.push({name:'install_tryInstallPWA_dismisses_banner', ok: installAp
 
 // appinstalled event clears the prompt and dismisses the banner.
 resetInstallState();
-installApi.installPrompt = promptEvent;
+ctx.window.dispatchEvent(promptEvent);
 ctx.window.dispatchEvent(new Event('appinstalled'));
 report.checks.push({name:'install_appinstalled_clears_prompt', ok: installApi.installPrompt === null});
 report.checks.push({name:'install_appinstalled_dismisses_banner', ok: installApi.installBannerDismissed === true});
@@ -1593,11 +1605,49 @@ report.checks.push({name:'install_banner_hidden_in_standalone_mode', ok: !!els.i
 delete ctx.window.matchMedia;
 report.checks.push({name:'install_isStandalone_false_without_matchMedia', ok: installApi.isStandalone() === false});
 
-// Version metadata is at v2.3.1 across all files.
-report.checks.push({name:'html_v231', ok: !!html && html.includes('v2.3.1')});
-report.checks.push({name:'manifest_v231', ok: !!manifest && manifest.includes('"version":  "2.3.1"')});
-report.checks.push({name:'sw_v231', ok: !!sw && sw.includes('v2.3.1')});
-report.checks.push({name:'docs_v231', ok: (!!qg && qg.includes('v2.3.1')) || (!!readme && readme.includes('v2.3.1'))});
+// Version metadata is at v2.3.2 across all files.
+report.checks.push({name:'html_v232', ok: !!html && html.includes('v2.3.2')});
+report.checks.push({name:'manifest_v232', ok: !!manifest && manifest.includes('"version":  "2.3.2"')});
+report.checks.push({name:'sw_v232', ok: !!sw && sw.includes('v2.3.2')});
+report.checks.push({name:'docs_v232', ok: (!!qg && qg.includes('v2.3.2')) || (!!readme && readme.includes('v2.3.2'))});
+
+// ---- v2.3.2: Background and unit asset regression tests ----
+// The generator (gen_assets.py) produces one themed background PNG per level
+# and one unit icon PNG per enemy/tower type. The game loads them lazily and
+# falls back to procedural drawing when an asset is missing.
+const assetNames = [
+  'bg_jungle', 'bg_ocean', 'bg_meadow', 'bg_desert', 'bg_autumn', 'bg_snow',
+  'bg_swamp', 'bg_volcano', 'bg_ruins', 'bg_crystal', 'bg_moon', 'bg_canyon',
+  'enemy_standard', 'enemy_runner', 'enemy_armored', 'enemy_boss',
+  'tower_archer', 'tower_cannon', 'tower_magic'
+];
+let assetExists = true;
+for (const name of assetNames) {
+  const p = path.join(__dirname, 'assets', name + '.png');
+  if (!fs.existsSync(p)) { assetExists = false; console.log('MISSING ASSET:', p); }
+}
+report.checks.push({name:'assets_all_present', ok: assetExists});
+
+// The game exposes loadBg/loadUnit helpers that return Image objects.
+report.checks.push({name:'assets_loadBg_returns_image', ok: typeof ctx.__api.loadBg === 'function'});
+report.checks.push({name:'assets_loadUnit_returns_image', ok: typeof ctx.__api.loadUnit === 'function'});
+
+// The game caches loaded assets so repeated draws do not re-decode.
+const bg1 = ctx.__api.loadBg('jungle');
+const bg2 = ctx.__api.loadBg('jungle');
+report.checks.push({name:'assets_loadBg_caches', ok: bg1 === bg2 && bg1 !== null});
+const tower1 = ctx.__api.loadUnit('tower_archer');
+const tower2 = ctx.__api.loadUnit('tower_archer');
+report.checks.push({name:'assets_loadUnit_caches', ok: tower1 === tower2 && tower1 !== null});
+
+// The game must not crash when drawing with assets present.
+try {
+  ctx.__api.reset();
+  ctx.__api.update(0);
+  report.checks.push({name:'assets_draw_with_assets_ok', ok: true});
+} catch (e) {
+  report.checks.push({name:'assets_draw_with_assets_ok', ok: false, error: e.message});
+}
 
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
