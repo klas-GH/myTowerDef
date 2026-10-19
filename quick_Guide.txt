@@ -1,11 +1,11 @@
-﻿Quick Guide - myTowerDef v2.3.5
+﻿Quick Guide - myTowerDef v2.3.6
 
 1. Run it
 Save files in same folder. Open index.html in browser.
 If local files blocked, use VS Code Live Server.
 
 2. How to play
-- Tap a green spot, then choose Archer (50), Cannon (80), or Magic (80) from the popup. Start with 80 coins + 3% per level above 1, enough for any tower.
+- Tap a green spot, then choose Archer (50), Cannon (60), or Magic (80) from the popup. Start with 80 coins + 3% per level above 1, enough for any tower. Magic deals full damage to its target and half damage to enemies within 38px.
 - Tap an existing tower to select and upgrade it, or Sell it for a full refund.
 - Tap Start Wave to begin.
 - Targeting: tap a tower to select it, then change its target priority (First, Strongest, Fastest, Nearest) on the upgrade panel. Free to change; affects which enemy it attacks next.

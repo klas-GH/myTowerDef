@@ -2,10 +2,10 @@
 
 A lightweight, mobile-first tower defense mini-game.
 
-- Version: 2.3.5
+- Version: 2.3.6
 - Run: open index.html in a browser (or use Live Server)
 - Controls: pick a tower type, tap a green spot to place it, Start Wave, Restart
-- Towers: Archer (50, fast), Cannon (80, heavy, slow), Magic (80, long range)
+- Towers: Archer (50, fast single-target), Cannon (60, heavy single-target), Magic (80, long-range; full damage to its target and half damage to enemies within 38px)
 - Targeting: tap a tower to select it, then pick its target priority (First / Strongest / Fastest / Nearest) from the upgrade panel. Changes are free and affect which enemy it attacks next.
 - Sell: tap a tower to select it, then Sell refunds its full purchase + upgrade cost.
 - Wave preview: the wave panel shows the next wave's enemy types, counts, and reward before you start it.

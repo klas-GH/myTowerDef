@@ -167,7 +167,7 @@ assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
 assertEq('init_enemyHp', ctx.__api.enemyHp, 52.5);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
-assert('live_heading_uses_v235', els.levelTitle.textContent.includes('v2.3.5'));
+assert('live_heading_uses_v236', els.levelTitle.textContent.includes('v2.3.6'));
 
 // Wave definitions used by spawning must match the previewed values.
 assertEq('wave1_hp', ctx.__api.WAVE_DEFS[0].enemyHp, 35);
@@ -427,14 +427,27 @@ assert('tower_has_cannon', !!tt.cannon && tt.cannon.cost > 0 && tt.cannon.damage
 assert('tower_has_magic', !!tt.magic && tt.magic.cost > 0 && tt.magic.damage > 0 && tt.magic.range > 0 && tt.magic.cooldown > 0);
 assert('tower_archer_is_baseline', tt.archer.damage === 20 && tt.archer.range === 85 && tt.archer.cost === 50);
 assert('starting_coins_afford_every_tower', ctx.__api.coins === 80 && Object.keys(tt).every(type => tt[type].cost <= ctx.__api.coins));
+assert('tower_cannon_costs_60', tt.cannon.cost === 60);
 assert('tower_cannon_heavy', tt.cannon.damage > tt.archer.damage);
 assert('tower_magic_long_range', tt.magic.range > tt.archer.range);
+assert('tower_magic_has_splash_feature', tt.magic.splashRadius > 0 && tt.magic.splashDamage > 0 && tt.magic.splashDamage < 1);
 assert('tower_cannon_slower', tt.cannon.cooldown > tt.archer.cooldown);
 assert('tower_unknown_falls_back', ctx.__api.getTowerType('nope') === tt.archer);
 
 ctx.__api.selectedTowerType = 'cannon';
 assert('selected_tower_type_set', ctx.__api.selectedTowerType === 'cannon');
 
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 60;
+ctx.__api.placeTower(100, 80);
+assert('cannon_affordable_at_60', ctx.__api.towers.length === 1 && ctx.__api.coins === 0);
+
+ctx.__api.reset();
+ctx.__api.selectedTowerType = 'cannon';
+ctx.__api.coins = 60;
+ctx.__api.placeTower(100, 80);
+const cannonAffordableAt60 = ctx.__api.towers.length === 1 && ctx.__api.coins === 0;
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
 ctx.__api.coins = 100;
@@ -906,7 +919,8 @@ assert('sell_50pct_during_wave', ctx.__api.coins === 80 - 50 + Math.floor(50*0.5
 // Capture v1.8.0 results before the reset below clears them.
 const towerTypesValid = tt && tt.archer && tt.cannon && tt.magic &&
   tt.archer.damage === 20 && tt.archer.range === 85 && tt.archer.cost === 50 &&
-  tt.cannon.damage > tt.archer.damage && tt.magic.range > tt.archer.range &&
+  tt.cannon.cost === 60 && tt.cannon.damage > tt.archer.damage && tt.magic.range > tt.archer.range &&
+  tt.magic.splashRadius === 38 && tt.magic.splashDamage === 0.5 &&
   tt.cannon.cooldown > tt.archer.cooldown;
 // Re-run the key placement/sell scenarios on a fresh board and capture results.
 ctx.__api.reset();
@@ -920,9 +934,9 @@ ctx.__api.placeTower(100, 80);
 const magicPlacementWorks = ctx.__api.towers.length === 1 && ctx.__api.towers[0].range === tt.magic.range;
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
-ctx.__api.coins = 79;
+ctx.__api.coins = 59;
 ctx.__api.placeTower(100, 80);
-const cannonInsufficientRejected = ctx.__api.towers.length === 0 && ctx.__api.coins === 79;
+const cannonInsufficientRejected = ctx.__api.towers.length === 0 && ctx.__api.coins === 59;
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'archer';
 ctx.__api.placeTower(100, 80);
@@ -989,6 +1003,7 @@ report.checks.push({name:'selecting_tower_does_not_place', ok: selectNoPlace});
 report.checks.push({name:'restart_clears_placement', ok: restartClears});
 // v1.8.0 strategic tower variety checks.
 report.checks.push({name:'tower_types_valid', ok: towerTypesValid});
+report.checks.push({name:'cannon_affordable_at_60', ok: cannonAffordableAt60});
 report.checks.push({name:'cannon_placement_uses_its_stats', ok: cannonPlacementWorks});
 report.checks.push({name:'magic_placement_uses_its_stats', ok: magicPlacementWorks});
 report.checks.push({name:'cannon_insufficient_funds_rejected', ok: cannonInsufficientRejected});
@@ -1031,10 +1046,11 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v235_round_modal', ok: !!html && html.includes('v2.3.5') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
-report.checks.push({name:'manifest_v235', ok: !!manifest && manifest.includes('"version":  "2.3.5"')});
-report.checks.push({name:'sw_v235', ok: !!sw && sw.includes('v2.3.5')});
-report.checks.push({name:'docs_v235', ok: (!!qg && qg.includes('v2.3.5')) || (!!readme && readme.includes('v2.3.5'))});
+report.checks.push({name:'html_v236_round_modal', ok: !!html && html.includes('v2.3.6') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'tower_picker_shows_updated_prices_and_magic_feature', ok: !!html && html.includes('<span class="tcost">60 coins</span>') && html.includes('<span class="tfeature">Splash damage</span>')});
+report.checks.push({name:'manifest_v236', ok: !!manifest && manifest.includes('"version":  "2.3.6"')});
+report.checks.push({name:'sw_v236', ok: !!sw && sw.includes('v2.3.6')});
+report.checks.push({name:'docs_v236', ok: (!!qg && qg.includes('v2.3.6')) || (!!readme && readme.includes('v2.3.6'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1168,6 +1184,36 @@ api.shots = [
 const coinsBeforeBossKill = api.coins;
 api.update(0);
 report.checks.push({name:'same_frame_projectiles_reward_enemy_once', ok: bossAchievementWaitsForTen && api.statsState.enemiesDefeated === 1 && api.statsState.bossesDefeated === 10 && api.coins === coinsBeforeBossKill + 100 && api.achievements.includes('boss_slayer')});
+
+api.reset();
+api.mode = 'playing';
+api.waveActive = true;
+api.spawned = 3;
+api.enemiesToSpawn = 3;
+api.towers = [{x:100,y:100,type:'magic',range:tt.magic.range,damage:tt.magic.damage,cooldown:0,baseCooldown:tt.magic.cooldown}];
+const magicPrimary = {x:100,y:100,point:1,speed:0,hp:100,maxHp:100,type:'standard',reward:0};
+const magicSplashKill = {x:125,y:100,point:1,speed:0,hp:10,maxHp:10,type:'runner',reward:7};
+const magicFarEnemy = {x:145,y:100,point:1,speed:0,hp:100,maxHp:100,type:'standard',reward:0};
+api.enemies = [magicPrimary, magicSplashKill, magicFarEnemy];
+api.shots = [];
+const coinsBeforeMagicSplash = api.coins;
+const defeatedBeforeMagicSplash = api.statsState.enemiesDefeated;
+api.update(0);
+report.checks.push({name:'magic_splash_damages_nearby_enemies', ok: magicPrimary.hp === 100 - tt.magic.damage && magicSplashKill.dead && magicFarEnemy.hp === 100 && api.shots.length === 0});
+report.checks.push({name:'magic_splash_awards_nearby_kill_once', ok: api.coins === coinsBeforeMagicSplash + magicSplashKill.reward && api.statsState.enemiesDefeated === defeatedBeforeMagicSplash + 1});
+
+api.reset();
+api.mode = 'playing';
+api.waveActive = true;
+api.spawned = 2;
+api.enemiesToSpawn = 2;
+api.towers = [{x:100,y:100,type:'cannon',range:tt.cannon.range,damage:tt.cannon.damage,cooldown:0,baseCooldown:tt.cannon.cooldown}];
+const cannonPrimary = {x:100,y:100,point:1,speed:0,hp:100,maxHp:100,type:'standard',reward:0};
+const cannonNearby = {x:125,y:100,point:1,speed:0,hp:100,maxHp:100,type:'standard',reward:0};
+api.enemies = [cannonPrimary, cannonNearby];
+api.shots = [];
+api.update(0);
+report.checks.push({name:'cannon_remains_single_target', ok: cannonPrimary.hp === 100 - tt.cannon.damage && cannonNearby.hp === 100});
 
 api.reset();
 api.mode = 'playing';
@@ -1606,11 +1652,11 @@ report.checks.push({name:'install_banner_hidden_in_standalone_mode', ok: !!els.i
 delete ctx.window.matchMedia;
 report.checks.push({name:'install_isStandalone_false_without_matchMedia', ok: installApi.isStandalone() === false});
 
-// Version metadata is at v2.3.5 across all files.
-report.checks.push({name:'html_v235', ok: !!html && html.includes('v2.3.5')});
-report.checks.push({name:'manifest_v235', ok: !!manifest && manifest.includes('"version":  "2.3.5"')});
-report.checks.push({name:'sw_v235', ok: !!sw && sw.includes('v2.3.5')});
-report.checks.push({name:'docs_v235', ok: (!!qg && qg.includes('v2.3.5')) || (!!readme && readme.includes('v2.3.5'))});
+// Version metadata is at v2.3.6 across all files.
+report.checks.push({name:'html_v236', ok: !!html && html.includes('v2.3.6')});
+report.checks.push({name:'manifest_v236', ok: !!manifest && manifest.includes('"version":  "2.3.6"')});
+report.checks.push({name:'sw_v236', ok: !!sw && sw.includes('v2.3.6')});
+report.checks.push({name:'docs_v236', ok: (!!qg && qg.includes('v2.3.6')) || (!!readme && readme.includes('v2.3.6'))});
 
 // ---- v2.3.2: Background and unit asset regression tests ----
 // The generator (gen_assets.py) produces one themed background PNG per level

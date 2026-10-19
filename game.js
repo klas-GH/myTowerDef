@@ -60,8 +60,8 @@ function loadUnit(kind) {
 // authoritative source. The Archer is the existing baseline tower.
 const TOWER_TYPES = {
   archer: { id: "archer", name: "Archer", cost: 50, damage: 20, range: 85, cooldown: 0.65, color: "#60a5fa", glyph: "▲" },
-  cannon: { id: "cannon", name: "Cannon", cost: 80, damage: 45, range: 75, cooldown: 1.00, color: "#f97316", glyph: "●" },
-  magic:  { id: "magic",  name: "Magic",  cost: 80, damage: 28, range: 110, cooldown: 0.85, color: "#a855f7", glyph: "✦" }
+  cannon: { id: "cannon", name: "Cannon", cost: 60, damage: 45, range: 75, cooldown: 1.00, color: "#f97316", glyph: "●" },
+  magic:  { id: "magic",  name: "Magic",  cost: 80, damage: 28, range: 110, cooldown: 0.85, color: "#a855f7", glyph: "✦", splashRadius: 38, splashDamage: 0.5 }
 };
 function getTowerType(id) {
   return TOWER_TYPES[id] || TOWER_TYPES.archer;
@@ -769,7 +769,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.5";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.6";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -1195,8 +1195,7 @@ function reset() {
     challengeState.towersUsed = new Set();
   } else {
     // Starting coins scale with level: 80 base + 3% per level above 1,
-    // rounded down. Level 10+ gets a noticeable bump so the early-game
-    // economy of 80 coins is not enough by itself.
+    // rounded down. Level 10+ gets a noticeable bump for broader tower choices.
     const levelBonus = Math.floor(80 * 0.03 * (currentLevel - 1));
     coins = 80 + levelBonus;
     lives = 6;
@@ -1560,6 +1559,48 @@ function moveEnemy(enemy, dt) {
   return enemy.point >= path.length;
 }
 
+function damageEnemy(target, amount, hitColor) {
+  if (!target || target.dead || target.reachedBase || !enemies.includes(target)) return;
+
+  let damage = amount;
+  if (target.boss && target.shieldActive) {
+    damage = Math.round(amount * (1 - (target.damageReduction || 0.7)));
+    target.shieldHp = (target.shieldHp || 0) - (amount - damage);
+    if (target.shieldHp <= 0) {
+      target.shieldActive = false;
+      target.shieldHp = 0;
+      spawnParticles(target.x, target.y, "#c084fc", 10);
+      if (challengeMode && activeChallenge) challengeState.shieldBroken = true;
+    }
+  }
+
+  target.hp -= damage;
+  spawnParticles(target.x, target.y, target.boss ? "#fde68a" : hitColor, target.boss ? 6 : 3);
+  if (target.hp > 0) return;
+
+  target.dead = true;
+  coins += target.reward;
+  if (!challengeMode) {
+    statsState.enemiesDefeated++;
+    if (target.boss) {
+      statsState.bossesDefeated++;
+    } else if (target.type === "runner") {
+      statsState.runnersDefeated++;
+    } else if (target.type === "armored" || target.type === "elite_armored") {
+      statsState.armoredDefeated++;
+    }
+    if (statsState.bossesDefeated >= 10) awardAchievement("boss_slayer");
+    if (statsState.runnersDefeated >= 100) awardAchievement("speed_demon");
+    if (statsState.armoredDefeated >= 50) awardAchievement("tank_buster");
+  }
+  if (target.boss && challengeMode && activeChallenge) {
+    challengeState.bossDefeated = true;
+    challengeState.coins = coins;
+  }
+  spawnParticles(target.x, target.y, target.color || "#ef4444", target.boss ? 14 : 7);
+  saveGame();
+}
+
 function update(dt) {
   if (mode !== "playing") return;
   if (paused) {
@@ -1642,6 +1683,8 @@ function update(dt) {
         y: tower.y,
         target,
         damage: tower.damage,
+        splashRadius: tower.type === "magic" ? TOWER_TYPES.magic.splashRadius : 0,
+        splashDamage: tower.type === "magic" ? TOWER_TYPES.magic.splashDamage : 0,
         speed: 220
       });
 
@@ -1662,58 +1705,19 @@ function update(dt) {
     const step = shot.speed * dt;
 
     if (d <= step + 5) {
-      // v2.2.0: Boss shield phase. While the shield is active the boss takes
-      // reduced damage and the excess hits the shield. When the shield breaks
-      // the boss becomes fully vulnerable for the remainder of the fight.
-      let damage = shot.damage;
-      let shieldDamage = 0;
-      if (target.boss && target.shieldActive) {
-        damage = Math.round(shot.damage * (1 - (target.damageReduction || 0.7)));
-        shieldDamage = shot.damage - damage;
-        target.shieldHp = (target.shieldHp || 0) - shieldDamage;
-        if (target.shieldHp <= 0) {
-          target.shieldActive = false;
-          target.shieldHp = 0;
-          spawnParticles(target.x, target.y, "#c084fc", 10);
-          // v2.3.0: Track shield break for the Shieldbreaker challenge.
-          if (challengeMode && activeChallenge) {
-            challengeState.shieldBroken = true;
-          }
-        }
-      }
-      target.hp -= damage;
       shot.done = true;
 
-      // Spawn a small hit burst so combat feedback is readable even when
-      // many units are present. Particles are capped per frame below.
-      spawnParticles(target.x, target.y, target.boss ? "#fde68a" : "#fef08a", target.boss ? 6 : 3);
-
-      if (target.hp <= 0) {
-        target.dead = true;
-        coins += target.reward;
-        // Track stats and achievements for defeated enemies.
-        if (!challengeMode) {
-          statsState.enemiesDefeated++;
-          if (target.boss) {
-            statsState.bossesDefeated++;
-          } else if (target.type === "runner") {
-            statsState.runnersDefeated++;
-          } else if (target.type === "armored" || target.type === "elite_armored") {
-            statsState.armoredDefeated++;
-          }
-          if (statsState.bossesDefeated >= 10) awardAchievement("boss_slayer");
-          if (statsState.runnersDefeated >= 100) awardAchievement("speed_demon");
-          if (statsState.armoredDefeated >= 50) awardAchievement("tank_buster");
+      if (shot.splashRadius > 0) {
+        const splashTargets = enemies.filter(enemy =>
+          enemy !== target && !enemy.dead && !enemy.reachedBase &&
+          distance(target, enemy) <= shot.splashRadius
+        );
+        damageEnemy(target, shot.damage, "#c084fc");
+        for (const enemy of splashTargets) {
+          damageEnemy(enemy, Math.max(1, Math.round(shot.damage * shot.splashDamage)), "#c084fc");
         }
-        if (target.boss) {
-          if (challengeMode && activeChallenge) {
-            challengeState.bossDefeated = true;
-            challengeState.coins = coins;
-          }
-        }
-        // Distinct kill burst: larger and colored by enemy type.
-        spawnParticles(target.x, target.y, target.color || "#ef4444", target.boss ? 14 : 7);
-        saveGame();
+      } else {
+        damageEnemy(target, shot.damage, "#fef08a");
       }
     } else if (d > 0) {
       shot.x += (target.x - shot.x) / d * step;
@@ -2204,12 +2208,11 @@ for (const tower of towers) {
   drawParticles();
 
   // Projectiles
-  ctx.fillStyle = "#fef08a";
-
   if (!settings.reducedMotion) {
     for (const shot of shots) {
+      ctx.fillStyle = shot.splashRadius > 0 ? "#c084fc" : "#fef08a";
       ctx.beginPath();
-      ctx.arc(shot.x, shot.y, 3, 0, Math.PI * 2);
+      ctx.arc(shot.x, shot.y, shot.splashRadius > 0 ? 4 : 3, 0, Math.PI * 2);
       ctx.fill();
     }
   }

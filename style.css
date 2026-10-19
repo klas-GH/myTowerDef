@@ -397,6 +397,11 @@ canvas {
   color: #fbbf24;
 }
 
+.tower-picker button .tfeature {
+  font-size: 9px;
+  color: #c4b5fd;
+}
+
 .tower-picker button.active {
   background: #2563eb;
   border-color: #60a5fa;

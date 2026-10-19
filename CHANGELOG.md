@@ -1,5 +1,18 @@
 # myTowerDef Changelog
 
+## Version 2.3.6
+
+### Gameplay Balance
+
+- Reduced the Cannon's purchase cost from 80 to 60 coins across game logic, build menu, and documentation.
+- Magic bolts now deal full damage to their target and half damage to other living enemies within a 38px radius. Splash hits respect boss shields, awards kills/rewards once, and use a distinct purple projectile and impact effect.
+- The tower picker labels Magic's splash-damage ability; bumped app metadata and service-worker cache to v2.3.6.
+
+### Validation
+
+- Regression suite verifies cannon pricing and magic splash damage/rewards.
+- `git diff --check` is clean.
+
 ## Version 2.3.5
 
 ### Visual Improvements

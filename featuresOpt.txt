@@ -1,7 +1,12 @@
-﻿@version: 2.3.5
-@release: v2.3.5
+﻿@version: 2.3.6
+@release: v2.3.6
 @status: bugfix, responsive
 @scope: header, mobile, assets
+
+=== v 2.3.6 ===
+- Reduced Cannon cost from 80 to 60 coins.
+- Made Magic a long-range splash tower: it deals full damage to its chosen target and half damage to enemies within 38px, with boss shield and kill/reward handling preserved.
+- Labeled Magic's splash-damage feature in the tower picker and bumped app metadata/service-worker cache to v2.3.6.
 
 === v 2.3.5 ===
 - Replaced the simple map-like PNGs with 12 illustrated biome backgrounds and seven larger colorful cartoon sprites for enemies and towers. The road and gameplay remain drawn above the background art.
