@@ -146,7 +146,7 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}, get CHALLENGE_DEFS(){return CHALLENGE_DEFS;}, get challengeMode(){return challengeMode;}, set challengeMode(v){challengeMode=v;}, get activeChallenge(){return activeChallenge;}, set activeChallenge(v){activeChallenge=v;}, get challengeState(){return challengeState;}, set challengeState(v){challengeState=v;}, get challengeRecords(){return challengeRecords;}, set challengeRecords(v){challengeRecords=v;}, isChallengeUnlocked, getChallenge, getChallengeRecord, startChallenge, endChallenge, evaluateChallengeObjective, finalizeChallengeResult, abandonChallenge, getChallengeMedalLabel, getChallengeMedalGlyph, describeChallengeObjective, loadBg, loadUnit}', ctx);
-vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;}}, installPrompt:{get(){return installPrompt;},set(v){installPrompt=v;}}, installBannerDismissed:{get(){return installBannerDismissed;},set(v){installBannerDismissed=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD, showInstallBanner, showManualInstallBanner, resetInstallBannerContent, hideInstallBanner, dismissInstallBanner, tryInstallPWA, isStandalone, restoreInstallBannerState})', ctx);
+vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;}}, installBannerDismissed:{get(){return installBannerDismissed;},set(v){installBannerDismissed=v;}}, installConfirmed:{get(){return installConfirmed;},set(v){installConfirmed=v;}}, nativeInstallAvailable:{get(){return nativeInstallAvailable;},set(v){nativeInstallAvailable=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD, showInstallBanner, showManualInstallBanner, hideInstallBanner, dismissInstallBanner, isStandalone, hasInstalledApp, markInstallConfirmed, restoreInstallBannerState})', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -167,7 +167,7 @@ assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
 assertEq('init_enemyHp', ctx.__api.enemyHp, 52.5);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
-assert('live_heading_uses_v237', els.levelTitle.textContent.includes('v2.3.7'));
+assert('live_heading_uses_v238', els.levelTitle.textContent.includes('v2.3.8'));
 
 // Wave definitions used by spawning must match the previewed values.
 assertEq('wave1_hp', ctx.__api.WAVE_DEFS[0].enemyHp, 35);
@@ -1046,11 +1046,11 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v237_round_modal', ok: !!html && html.includes('v2.3.7') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'html_v238_round_modal', ok: !!html && html.includes('v2.3.8') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
 report.checks.push({name:'tower_picker_shows_updated_prices_and_magic_feature', ok: !!html && html.includes('<span class="tcost">60 coins</span>') && html.includes('<span class="tfeature">Splash damage</span>')});
-report.checks.push({name:'manifest_v237', ok: !!manifest && manifest.includes('"version":  "2.3.7"')});
-report.checks.push({name:'sw_v237', ok: !!sw && sw.includes('v2.3.7')});
-report.checks.push({name:'docs_v237', ok: (!!qg && qg.includes('v2.3.7')) || (!!readme && readme.includes('v2.3.7'))});
+report.checks.push({name:'manifest_v238', ok: !!manifest && manifest.includes('"version":  "2.3.8"')});
+report.checks.push({name:'sw_v238', ok: !!sw && sw.includes('v2.3.8')});
+report.checks.push({name:'docs_v238', ok: (!!qg && qg.includes('v2.3.8')) || (!!readme && readme.includes('v2.3.8'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1571,8 +1571,10 @@ const installApi = ctx.__api;
 // Helper: reset the install banner state so each test starts clean.
 function resetInstallState() {
   storageData.delete('myTowerDef.installBannerDismissed');
+  storageData.delete('myTowerDef.installConfirmed');
   installApi.installBannerDismissed = false;
-  installApi.installPrompt = null;
+  installApi.installConfirmed = false;
+  installApi.nativeInstallAvailable = false;
   ctx.window.matchMedia = undefined;
   installApi.restoreInstallBannerState();
 }
@@ -1616,36 +1618,47 @@ const installReloadTimer = nextTimerId - 1;
 scheduledTimers.get(installReloadTimer)();
 report.checks.push({name:'install_banner_reappears_after_reload', ok: !els.installBanner.hidden && els.installMessage.textContent.includes('Share')});
 
-// A fresh beforeinstallprompt event stores the prompt and shows the banner.
+// Native-install browsers keep their own install UI as the only install prompt.
 resetInstallState();
-let installPromptPrevented = false;
+let nativeInstallPromptPrevented = false;
 const promptEvent = {
   type: 'beforeinstallprompt',
-  preventDefault: () => { installPromptPrevented = true; },
-  prompt: () => {},
-  userChoice: Promise.resolve({ outcome: 'accepted' })
+  preventDefault: () => { nativeInstallPromptPrevented = true; },
+  prompt: () => {}
 };
 ctx.window.dispatchEvent(promptEvent);
-report.checks.push({name:'install_beforeinstallprompt_prevents_default', ok: installPromptPrevented});
-report.checks.push({name:'install_beforeinstallprompt_stores_prompt', ok: installApi.installPrompt === promptEvent});
-report.checks.push({name:'install_banner_shows_after_prompt', ok: !!els.installBanner && !els.installBanner.hidden});
+const timerCountBeforeNativeLoad = nextTimerId;
+ctx.window.dispatchEvent(new Event('load'));
+report.checks.push({name:'install_native_prompt_not_intercepted', ok: !nativeInstallPromptPrevented});
+report.checks.push({name:'install_native_browser_hides_custom_header', ok: installApi.nativeInstallAvailable && els.installHeaderBtn.hidden});
+report.checks.push({name:'install_native_browser_skips_manual_banner', ok: nextTimerId === timerCountBeforeNativeLoad && els.installBanner.hidden});
 
-// tryInstallPWA invokes prompt() and clears the stored prompt on completion.
+// An accepted browser prompt marks the app as installed without an app-owned prompt.
 resetInstallState();
-let prompted = false;
-promptEvent.prompt = () => { prompted = true; return promptEvent; };
-installApi.installPrompt = promptEvent;
-installApi.tryInstallPWA();
-report.checks.push({name:'install_tryInstallPWA_invokes_prompt', ok: prompted === true});
-report.checks.push({name:'install_tryInstallPWA_clears_prompt', ok: installApi.installPrompt === null});
-report.checks.push({name:'install_tryInstallPWA_dismisses_banner', ok: installApi.installBannerDismissed === true && !!els.installBanner && els.installBanner.hidden});
+ctx.window.dispatchEvent({
+  type: 'beforeinstallprompt',
+  preventDefault: () => {},
+  userChoice: {then: resolve => resolve({outcome: 'accepted'})}
+});
+report.checks.push({name:'install_native_acceptance_persists_confirmation', ok: installApi.installConfirmed && storageData.get('myTowerDef.installConfirmed') === '1'});
 
-// appinstalled event clears the prompt and dismisses the banner.
+// appinstalled persists the confirmed installation and suppresses later offers.
 resetInstallState();
-ctx.window.dispatchEvent(promptEvent);
 ctx.window.dispatchEvent(new Event('appinstalled'));
-report.checks.push({name:'install_appinstalled_clears_prompt', ok: installApi.installPrompt === null});
 report.checks.push({name:'install_appinstalled_dismisses_banner', ok: installApi.installBannerDismissed === true});
+report.checks.push({name:'install_appinstalled_persists_confirmation', ok: installApi.installConfirmed === true && storageData.get('myTowerDef.installConfirmed') === '1'});
+installApi.installConfirmed = false;
+installApi.restoreInstallBannerState();
+installApi.showInstallBanner();
+report.checks.push({name:'install_confirmed_state_survives_reload', ok: installApi.installConfirmed === true && !!els.installBanner && els.installBanner.hidden && els.installHeaderBtn.hidden});
+let lateInstallPromptPrevented = false;
+ctx.window.dispatchEvent({
+  type: 'beforeinstallprompt',
+  preventDefault: () => { lateInstallPromptPrevented = true; },
+  prompt: () => {},
+  userChoice: Promise.resolve({ outcome: 'accepted' })
+});
+report.checks.push({name:'install_confirmed_app_ignores_later_prompt', ok: lateInstallPromptPrevented && installApi.nativeInstallAvailable === false});
 
 // The banner is hidden when isStandalone() is true (simulated via matchMedia).
 resetInstallState();
@@ -1667,19 +1680,19 @@ ctx.navigator = {userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKi
 installApi.showManualInstallBanner();
 report.checks.push({name:'install_manual_instructions_for_android', ok: !els.installBanner.hidden && els.installMessage.textContent.includes('Install app or Add to Home screen') && els.installBtn.textContent === 'Got it'});
 
-// A native prompt restores the standard message and action after fallback text.
+// The native browser flow is not replaced by a second app-owned install prompt.
 resetInstallState();
 ctx.navigator = {userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1'};
 installApi.showManualInstallBanner();
 ctx.window.dispatchEvent(promptEvent);
-report.checks.push({name:'install_native_prompt_resets_fallback_copy', ok: els.installMessage.textContent === 'Add this game to your home screen for offline play and full-screen access.' && els.installBtn.textContent === 'Install'});
+report.checks.push({name:'install_native_event_hides_fallback_banner', ok: installApi.nativeInstallAvailable && els.installBanner.hidden});
 delete ctx.navigator;
 
-// Version metadata is at v2.3.7 across all files.
-report.checks.push({name:'html_v237', ok: !!html && html.includes('v2.3.7')});
-report.checks.push({name:'manifest_v237', ok: !!manifest && manifest.includes('"version":  "2.3.7"')});
-report.checks.push({name:'sw_v237', ok: !!sw && sw.includes('v2.3.7')});
-report.checks.push({name:'docs_v237', ok: (!!qg && qg.includes('v2.3.7')) || (!!readme && readme.includes('v2.3.7'))});
+// Version metadata is at v2.3.8 across all files.
+report.checks.push({name:'html_v238', ok: !!html && html.includes('v2.3.8')});
+report.checks.push({name:'manifest_v238', ok: !!manifest && manifest.includes('"version":  "2.3.8"')});
+report.checks.push({name:'sw_v238', ok: !!sw && sw.includes('v2.3.8')});
+report.checks.push({name:'docs_v238', ok: (!!qg && qg.includes('v2.3.8')) || (!!readme && readme.includes('v2.3.8'))});
 
 // ---- v2.3.2: Background and unit asset regression tests ----
 // The generator (gen_assets.py) produces one themed background PNG per level

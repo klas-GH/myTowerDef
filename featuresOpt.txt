@@ -1,7 +1,13 @@
-﻿@version: 2.3.7
-@release: v2.3.7
+﻿@version: 2.3.8
+@release: v2.3.8
 @status: bugfix, responsive
 @scope: header, mobile, assets
+
+=== v 2.3.8 ===
+- Use the browser's native installation UI as the only install prompt where supported; show manual instructions only when no native install UI is available.
+- Persist an accepted native install prompt or the browser's appinstalled event so confirmed installs are not offered again after refresh.
+- Keep dismissal-only behavior unchanged: dismissing manual instructions remains temporary and allows them to return after refresh.
+- Bumped app metadata and service-worker cache to v2.3.8.
 
 === v 2.3.7 ===
 - The install banner appears after a short delay on non-installed phones even when the browser does not provide beforeinstallprompt.

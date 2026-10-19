@@ -769,7 +769,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.7";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.8";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -2754,11 +2754,12 @@ if (challengeContinueBtn) {
 }
 
 // ---- v2.3.1: PWA install banner ----
-// Shows a non-blocking install banner when the browser fires `beforeinstallprompt`
-// (Chrome/Edge/Opera) and dismisses it on install or "not now". The banner is
-// also hidden if the app is already running in standalone mode (installed).
-let installPrompt = null;
+// Leaves native installation UI to the browser and shows manual instructions
+// only in browsers without `beforeinstallprompt`.
 let installBannerDismissed = false;
+let installConfirmed = false;
+let nativeInstallAvailable = false;
+const INSTALL_CONFIRMED_KEY = "myTowerDef.installConfirmed";
 function isStandalone() {
   if (typeof window === "undefined") return false;
   if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) return true;
@@ -2767,18 +2768,15 @@ function isStandalone() {
   } catch (e) {}
   return false;
 }
+function hasInstalledApp() {
+  return installConfirmed || isStandalone();
+}
 function showInstallBanner() {
   const banner = $("installBanner");
   if (!banner) return;
-  if (isStandalone()) { banner.hidden = true; return; }
+  if (hasInstalledApp()) { banner.hidden = true; return; }
   if (installBannerDismissed) { banner.hidden = true; return; }
   banner.hidden = false;
-}
-function resetInstallBannerContent() {
-  const message = $("installMessage");
-  const button = $("installBtn");
-  if (message) message.textContent = "Add this game to your home screen for offline play and full-screen access.";
-  if (button) button.textContent = "Install";
 }
 function showManualInstallBanner() {
   const message = $("installMessage");
@@ -2807,49 +2805,44 @@ function dismissInstallBanner() {
   installBannerDismissed = true;
   hideInstallBanner();
 }
+function markInstallConfirmed() {
+  installConfirmed = true;
+  installBannerDismissed = true;
+  hideInstallBanner();
+  try {
+    if (window && window.localStorage) window.localStorage.setItem(INSTALL_CONFIRMED_KEY, "1");
+  } catch (error) {
+    console.warn("Could not save the confirmed app installation state.", error);
+  }
+  updateInstallHeaderBtn();
+}
 function restoreInstallBannerState() {
   installBannerDismissed = false;
-}
-function tryInstallPWA() {
-  if (!installPrompt) return false;
-  installPrompt.prompt();
-  // Clear the stored prompt and dismiss the banner synchronously so the
-  // install flow is deterministic even before the userChoice promise
-  // resolves. The promise is still awaited for any post-install cleanup.
-  const chosen = installPrompt.userChoice;
-  installPrompt = null;
-  dismissInstallBanner();
-  if (chosen && typeof chosen.then === "function") {
-    chosen.then(() => {});
+  nativeInstallAvailable = false;
+  try {
+    installConfirmed = !!(window && window.localStorage &&
+      window.localStorage.getItem(INSTALL_CONFIRMED_KEY) === "1");
+  } catch (error) {
+    installConfirmed = false;
+    console.warn("Could not restore the confirmed app installation state.", error);
   }
-  return true;
 }
 
 const installBtn = $("installBtn");
-if (installBtn) installBtn.addEventListener("click", () => {
-  if (tryInstallPWA()) return;
-  dismissInstallBanner();
-});
+if (installBtn) installBtn.addEventListener("click", dismissInstallBanner);
 const installLaterBtn = $("installLater");
 if (installLaterBtn) installLaterBtn.addEventListener("click", dismissInstallBanner);
 
-// v2.3.2: A persistent header install button is the reliable entry point on
-// desktop browsers (Chrome/Edge/Firestack) that only fire beforeinstallprompt
-// after the user has interacted with the page at least once. On mobile the
-// banner appears automatically. The button is hidden when the app is already
-// running in standalone mode or when the user has permanently dismissed it.
+// The header button opens manual instructions only when the browser has no
+// native installation UI.
 const installHeaderBtn = $("installHeaderBtn");
 function updateInstallHeaderBtn() {
   if (!installHeaderBtn) return;
-  if (isStandalone()) { installHeaderBtn.hidden = true; return; }
+  if (hasInstalledApp() || nativeInstallAvailable) { installHeaderBtn.hidden = true; return; }
   installHeaderBtn.hidden = installBannerDismissed;
 }
 if (installHeaderBtn) {
   installHeaderBtn.addEventListener("click", () => {
-    if (tryInstallPWA()) {
-      installHeaderBtn.hidden = true;
-      return;
-    }
     showManualInstallBanner();
     // Desktop fallback: no prompt was captured yet. Ask the user to use the
     // browser's address-bar install control (Chrome/Edge show the icon in
@@ -2866,26 +2859,31 @@ if (installHeaderBtn) {
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   restoreInstallBannerState();
   window.addEventListener("beforeinstallprompt", event => {
-    event.preventDefault();
-    installPrompt = event;
+    if (hasInstalledApp()) {
+      event.preventDefault();
+      return;
+    }
+    nativeInstallAvailable = true;
     updateInstallHeaderBtn();
-    resetInstallBannerContent();
-    showInstallBanner();
+    hideInstallBanner();
+    if (event.userChoice && typeof event.userChoice.then === "function") {
+      event.userChoice.then(choice => {
+        if (choice && choice.outcome === "accepted") markInstallConfirmed();
+      }, error => {
+        console.error("Could not determine the app installation result.", error);
+      });
+    }
   });
   window.addEventListener("appinstalled", () => {
-    installPrompt = null;
-    updateInstallHeaderBtn();
-    dismissInstallBanner();
+    markInstallConfirmed();
   });
   window.addEventListener("load", () => {
     updateInstallHeaderBtn();
-    if (installPrompt && !installBannerDismissed && !isStandalone()) showInstallBanner();
-    // Fallback: some browsers (Safari iOS) never fire beforeinstallprompt.
-    // Show the banner after a short delay so the user can still install
-    // manually, unless they already dismissed it or the app is standalone.
-    if (!installPrompt && !installBannerDismissed && !isStandalone()) {
+    // Fallback: some browsers (such as Safari on iOS) never fire beforeinstallprompt.
+    // Show manual instructions only where the browser has no native install UI.
+    if (!nativeInstallAvailable && !installBannerDismissed && !hasInstalledApp()) {
       setTimeout(() => {
-        if (!installPrompt && !installBannerDismissed && !isStandalone()) {
+        if (!nativeInstallAvailable && !installBannerDismissed && !hasInstalledApp()) {
           showManualInstallBanner();
         }
       }, 4000);

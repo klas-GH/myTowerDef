@@ -1,5 +1,14 @@
 # myTowerDef Changelog
 
+## Version 2.3.8
+
+### Avoiding Repeat Install Prompts
+
+- Use the browser's native install flow as the only install prompt where supported; keep manual instructions for browsers without native installation UI.
+- Persist an accepted native install prompt or the browser's `appinstalled` event so successful installs are not offered again after refresh.
+- Dismissing without installing still allows manual instructions to return after refresh.
+- Bumped app metadata and the service-worker cache to v2.3.8.
+
 ## Version 2.3.7
 
 ### Mobile Install
