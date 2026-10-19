@@ -1,4 +1,4 @@
-const CACHE="mytd-v2.3.4";
+const CACHE="mytd-v2.3.5";
 const GAME_ASSETS=[
   "assets/bg_autumn.png","assets/bg_canyon.png","assets/bg_crystal.png",
   "assets/bg_desert.png","assets/bg_jungle.png","assets/bg_meadow.png",

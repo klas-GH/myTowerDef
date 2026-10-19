@@ -167,7 +167,7 @@ assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
 assertEq('init_enemyHp', ctx.__api.enemyHp, 52.5);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
-assert('live_heading_uses_v234', els.levelTitle.textContent.includes('v2.3.4'));
+assert('live_heading_uses_v235', els.levelTitle.textContent.includes('v2.3.5'));
 
 // Wave definitions used by spawning must match the previewed values.
 assertEq('wave1_hp', ctx.__api.WAVE_DEFS[0].enemyHp, 35);
@@ -1031,10 +1031,10 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v234_round_modal', ok: !!html && html.includes('v2.3.4') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
-report.checks.push({name:'manifest_v234', ok: !!manifest && manifest.includes('"version":  "2.3.4"')});
-report.checks.push({name:'sw_v234', ok: !!sw && sw.includes('v2.3.4')});
-report.checks.push({name:'docs_v234', ok: (!!qg && qg.includes('v2.3.4')) || (!!readme && readme.includes('v2.3.4'))});
+report.checks.push({name:'html_v235_round_modal', ok: !!html && html.includes('v2.3.5') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'manifest_v235', ok: !!manifest && manifest.includes('"version":  "2.3.5"')});
+report.checks.push({name:'sw_v235', ok: !!sw && sw.includes('v2.3.5')});
+report.checks.push({name:'docs_v235', ok: (!!qg && qg.includes('v2.3.5')) || (!!readme && readme.includes('v2.3.5'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1606,11 +1606,11 @@ report.checks.push({name:'install_banner_hidden_in_standalone_mode', ok: !!els.i
 delete ctx.window.matchMedia;
 report.checks.push({name:'install_isStandalone_false_without_matchMedia', ok: installApi.isStandalone() === false});
 
-// Version metadata is at v2.3.4 across all files.
-report.checks.push({name:'html_v234', ok: !!html && html.includes('v2.3.4')});
-report.checks.push({name:'manifest_v234', ok: !!manifest && manifest.includes('"version":  "2.3.4"')});
-report.checks.push({name:'sw_v234', ok: !!sw && sw.includes('v2.3.4')});
-report.checks.push({name:'docs_v234', ok: (!!qg && qg.includes('v2.3.4')) || (!!readme && readme.includes('v2.3.4'))});
+// Version metadata is at v2.3.5 across all files.
+report.checks.push({name:'html_v235', ok: !!html && html.includes('v2.3.5')});
+report.checks.push({name:'manifest_v235', ok: !!manifest && manifest.includes('"version":  "2.3.5"')});
+report.checks.push({name:'sw_v235', ok: !!sw && sw.includes('v2.3.5')});
+report.checks.push({name:'docs_v235', ok: (!!qg && qg.includes('v2.3.5')) || (!!readme && readme.includes('v2.3.5'))});
 
 // ---- v2.3.2: Background and unit asset regression tests ----
 // The generator (gen_assets.py) produces one themed background PNG per level
@@ -1628,6 +1628,7 @@ for (const name of assetNames) {
   if (!fs.existsSync(p)) { assetExists = false; console.log('MISSING ASSET:', p); }
 }
 report.checks.push({name:'assets_all_present', ok: assetExists});
+report.checks.push({name:'art_generator_exists', ok: exists(path.join(__dirname, 'generate_game_art.py'))});
 
 // The game exposes loadBg/loadUnit helpers that return Image objects.
 report.checks.push({name:'assets_loadBg_returns_image', ok: typeof ctx.__api.loadBg === 'function'});
@@ -1650,12 +1651,14 @@ try {
   report.checks.push({name:'assets_draw_with_assets_ok', ok: false, error: e.message});
 }
 
-// The header must stay on exactly one row even on the narrowest screens:
-// the title and stats shrink via clamp() and never wrap.
+// The header stays on one row where there is room and stacks its stats row on
+// narrow phones so currency and lives never disappear through flex shrinking.
 report.checks.push({name:'header_one_row', ok: !!css && css.includes('.header {') && css.includes('flex-wrap: nowrap') && css.includes('.header > div {') && css.includes('min-width: 0') && css.includes('overflow: hidden')});
 report.checks.push({name:'header_title_nowraps', ok: !!css && css.includes('white-space: nowrap') && css.includes('text-overflow: ellipsis') && css.includes('clamp(')});
-report.checks.push({name:'header_stats_nowraps', ok: !!css && css.includes('.stats {') && css.includes('white-space: nowrap') && css.includes('flex: 1 0 auto')});
-report.checks.push({name:'header_no_narrow_media_query', ok: !!css && !css.includes('@media (max-width: 380px)')});
+report.checks.push({name:'header_stats_nowraps', ok: !!css && css.includes('.stats {') && css.includes('white-space: nowrap') && css.includes('.stats span {')});
+report.checks.push({name:'header_mobile_stats_keep_values_visible', ok: !!css && css.includes('@media (max-width: 480px)') && css.includes('.header > div:first-child {') && css.includes('flex: 1 0 100%') && css.includes('.stats span {') && css.includes('flex: 0 0 auto') && css.includes('overflow: visible')});
+report.checks.push({name:'header_narrow_screen_stacks_rows', ok: !!css && css.includes('@media (max-width: 480px)') && css.includes('flex-wrap: wrap') && css.includes('justify-content: space-between') && css.includes('.stats .icon-btn {') && css.includes('width: 26px;') && css.includes('min-height: 26px;')});
+report.checks.push({name:'hidden_install_button_stays_hidden', ok: !!css && css.includes('.icon-btn[hidden] {') && css.includes('display: none;')});
 
 // v2.3.3: scheduleRedraw must trigger a redraw (draw()), not update(0), because
 // update() returns early when mode !== "playing". Calling draw() directly means

@@ -769,7 +769,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.4";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.5";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -1814,14 +1814,12 @@ function drawTowerIcon(x, y, type, selected) {
   const tower = getTowerType(type);
   const img = loadUnit("tower_" + type);
   if (img && img.complete && img.naturalWidth > 0) {
-    // Draw the icon centered at (x, y). The base platform sits slightly below
-    // the tower center so the tower looks grounded on the spot.
-    ctx.drawImage(img, x - 14, y - 16, 28, 28);
+    ctx.drawImage(img, x - 21, y - 24, 42, 46);
     if (selected) {
       ctx.strokeStyle = "#fef08a";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(x, y, 16, 0, Math.PI * 2);
+      ctx.arc(x, y, 23, 0, Math.PI * 2);
       ctx.stroke();
     }
     return;
@@ -1914,11 +1912,12 @@ function drawParticles() {
 }
 
 function drawEnemyIcon(enemy) {
-  // v2.3.2: Prefer the pre-rendered PNG for this enemy type, falling back to
-  // the procedural drawing when the asset is missing or still loading.
+  // Prefer the illustrated PNG for this enemy type; retain the procedural
+  // fallback for missing assets or while an image is still loading.
   const img = loadUnit(enemy.type === "boss" ? "enemy_boss" : "enemy_" + enemy.type);
   if (img && img.complete && img.naturalWidth > 0) {
-    ctx.drawImage(img, enemy.x - 14, enemy.y - 16, 28, 28);
+    const size = enemy.boss ? 46 : 38;
+    ctx.drawImage(img, enemy.x - size / 2, enemy.y - size / 2, size, size);
     return;
   }
 
@@ -2032,97 +2031,17 @@ function pointSegmentDistance(point, start, end) {
   return distance(point, { x: start.x + projection * dx, y: start.y + projection * dy });
 }
 
-function isNearPath(point, clearance) {
-  return path.slice(1).some((end, index) => pointSegmentDistance(point, path[index], end) < clearance);
-}
-
-function drawThemeGround() {
-  const palettes = {
-    jungle: ["#2d7650", "#55a96a", "#f9a8d4"],
-    ocean: ["#25839a", "#69c9c4", "#b9f3f0"],
-    meadow: ["#6b9850", "#a3bb58", "#f9a8d4"],
-    desert: ["#c39555", "#e4c477", "#f8e3a1"],
-    autumn: ["#9b623c", "#c27d45", "#e7b95f"],
-    snow: ["#83aebd", "#c4e3e8", "#f8fbff"],
-    swamp: ["#526d49", "#819452", "#b2c478"],
-    volcano: ["#815145", "#b06a4d", "#ed9b5a"],
-    ruins: ["#92916a", "#bab184", "#e1d3a0"],
-    crystal: ["#6e83bc", "#91b5dc", "#d6bbfa"],
-    moon: ["#586d9a", "#8495bd", "#e2d3ff"],
-    canyon: ["#b1744e", "#d19a64", "#efc482"]
-  };
-  const palette = palettes[currentLevelData.theme] || palettes.jungle;
-  const [primary, secondary, detail] = palette;
-  let index = 0;
-
-  for (let row = 0; row < 11; row++) {
-    for (let column = 0; column < 9; column++) {
-      const point = {
-        x: 18 + column * 34 + (row % 2) * 9,
-        y: 17 + row * 33
-      };
-      if (point.x > W - 10 || point.y > H - 10 || isNearPath(point, 23) ||
-          spots.some(spot => distance(point, spot) < 19)) continue;
-
-      const size = 3 + (index % 3);
-      ctx.fillStyle = index % 2 ? primary : secondary;
-      if (currentLevelData.theme === "ocean" || currentLevelData.theme === "snow" ||
-          currentLevelData.theme === "moon") {
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
-        ctx.fill();
-        if (currentLevelData.theme === "ocean") {
-          ctx.strokeStyle = detail;
-          ctx.beginPath();
-          ctx.arc(point.x, point.y, size + 2, Math.PI, Math.PI * 1.8);
-          ctx.stroke();
-        }
-      } else if (currentLevelData.theme === "desert" || currentLevelData.theme === "canyon" ||
-                 currentLevelData.theme === "volcano" || currentLevelData.theme === "ruins") {
-        drawPolygon([
-          [point.x - size, point.y + size],
-          [point.x - size / 2, point.y - size],
-          [point.x + size, point.y - size / 2],
-          [point.x + size, point.y + size]
-        ], primary, detail, 0.6);
-      } else if (currentLevelData.theme === "crystal") {
-        drawPolygon([
-          [point.x, point.y - size * 1.5],
-          [point.x + size, point.y],
-          [point.x, point.y + size],
-          [point.x - size, point.y]
-        ], primary, detail, 0.7);
-      } else {
-        drawPolygon([
-          [point.x - size, point.y + size],
-          [point.x, point.y - size],
-          [point.x + size, point.y + size]
-        ], primary);
-        if (currentLevelData.theme === "meadow" || currentLevelData.theme === "autumn") {
-          ctx.fillStyle = detail;
-          ctx.beginPath();
-          ctx.arc(point.x, point.y - size, 1.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-      index++;
-    }
-  }
-}
-
 function draw() {
   ctx.clearRect(0, 0, W, H);
 
-  // v2.3.2: Draw the pre-rendered themed background as the base layer, with
-  // the existing ground fill and procedural theme decorations drawn on top
-  // so the canvas never shows a blank frame while the PNG loads.
+  // Draw the illustrated biome as the base layer; the route and game objects
+  // are rendered above it so the background remains visible around the map.
   ctx.fillStyle = currentLevelData.ground;
   ctx.fillRect(0, 0, W, H);
   const bg = loadBg(currentLevelData.theme);
   if (bg && bg.complete && bg.naturalWidth > 0) {
     ctx.drawImage(bg, 0, 0, W, H);
   }
-  drawThemeGround();
 
   // v2.2.0: Boss spawn warning banner. When a boss is about to spawn (last
   // enemy of the final wave still queued) draw a pulsing banner at the top of

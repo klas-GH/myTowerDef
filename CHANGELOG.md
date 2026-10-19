@@ -1,5 +1,20 @@
 # myTowerDef Changelog
 
+## Version 2.3.5
+
+### Visual Improvements
+
+- Replaced the simple map-like backgrounds with 12 illustrated biome scenes, including jungle foliage, ocean ripples, meadow flowers, desert dunes, ruins, crystals, and other theme-specific scenery.
+- Replaced the tiny geometric unit icons with larger transparent cartoon characters and towers: a fox-like standard enemy, speedy runner, armored creature, crowned boss, archer keep, cannon, and magic tower.
+- The illustrated biome is now the canvas base layer; the route, build spots, towers, enemies, and combat effects are drawn over it.
+- Narrow phones now show the title and a separate full-width stats/action row so coin and life counts stay visible.
+- Added `generate_game_art.py` to regenerate the backgrounds and sprites with Pillow; bumped app metadata and the service-worker cache to refresh installed copies.
+
+### Validation
+
+- Regression checks and narrow-screen visual checks pass.
+- `git diff --check` is clean.
+
 ## Version 2.3.4
 
 ### Bug Fixes

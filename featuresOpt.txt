@@ -1,7 +1,13 @@
-﻿@version: 2.3.4
-@release: v2.3.4
+﻿@version: 2.3.5
+@release: v2.3.5
 @status: bugfix, responsive
 @scope: header, mobile, assets
+
+=== v 2.3.5 ===
+- Replaced the simple map-like PNGs with 12 illustrated biome backgrounds and seven larger colorful cartoon sprites for enemies and towers. The road and gameplay remain drawn above the background art.
+- Added generate_game_art.py so the backgrounds and transparent character/tower sprites can be regenerated with Pillow.
+- Fixed narrow-phone header clipping by stacking the title and status/action row and keeping coin/life values from shrinking away.
+- Bumped the app metadata and service-worker cache to v2.3.5 so updated artwork and layout are refreshed for installed apps.
 
 === v 2.3.4 ===
 - Bumped manifest, service-worker cache, README, quick_Guide, index.html, and game.js level title to v2.3.4.
