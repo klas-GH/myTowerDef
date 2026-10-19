@@ -1663,6 +1663,16 @@ report.checks.push({name:'header_no_narrow_media_query', ok: !!css && !css.inclu
 // screen, so the PNG background and unit icons appear instead of the fallback.
 report.checks.push({name:'scheduleRedraw_calls_draw', ok: !!js && js.includes('scheduleRedraw') && js.includes("if (typeof draw === \"function\") draw()")});
 report.checks.push({name:'scheduleRedraw_not_update', ok: !!js && !js.includes('if (typeof update === \"function\") update(0)')});
+const gameAssets = [
+  "assets/bg_autumn.png", "assets/bg_canyon.png", "assets/bg_crystal.png",
+  "assets/bg_desert.png", "assets/bg_jungle.png", "assets/bg_meadow.png",
+  "assets/bg_moon.png", "assets/bg_ocean.png", "assets/bg_ruins.png",
+  "assets/bg_snow.png", "assets/bg_swamp.png", "assets/bg_volcano.png",
+  "assets/enemy_armored.png", "assets/enemy_boss.png", "assets/enemy_runner.png",
+  "assets/enemy_standard.png", "assets/tower_archer.png", "assets/tower_cannon.png",
+  "assets/tower_magic.png"
+];
+report.checks.push({name:'service_worker_precaches_game_assets', ok: !!sw && gameAssets.every(asset => sw.includes('"' + asset + '"'))});
 
 if (failures > 0) {
   console.log('DETERMINISTIC_FAILURES ' + failures);
