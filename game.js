@@ -769,7 +769,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.6";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.7";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -2774,6 +2774,31 @@ function showInstallBanner() {
   if (installBannerDismissed) { banner.hidden = true; return; }
   banner.hidden = false;
 }
+function resetInstallBannerContent() {
+  const message = $("installMessage");
+  const button = $("installBtn");
+  if (message) message.textContent = "Add this game to your home screen for offline play and full-screen access.";
+  if (button) button.textContent = "Install";
+}
+function showManualInstallBanner() {
+  const message = $("installMessage");
+  const button = $("installBtn");
+  const userAgent = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
+  const isAppleMobile = /iPhone|iPad|iPod/i.test(userAgent) ||
+    (/Macintosh/i.test(userAgent) && typeof navigator !== "undefined" && navigator.maxTouchPoints > 1);
+
+  if (message) {
+    if (isAppleMobile) {
+      message.textContent = "To install: open in Safari, tap Share, then Add to Home Screen.";
+    } else if (/Android/i.test(userAgent)) {
+      message.textContent = "To install: open your browser menu (⋮), then choose Install app or Add to Home screen.";
+    } else {
+      message.textContent = "To install: use your browser menu or address bar and choose Install app or Add to Home screen.";
+    }
+  }
+  if (button) button.textContent = "Got it";
+  showInstallBanner();
+}
 function hideInstallBanner() {
   const banner = $("installBanner");
   if (banner) banner.hidden = true;
@@ -2781,14 +2806,9 @@ function hideInstallBanner() {
 function dismissInstallBanner() {
   installBannerDismissed = true;
   hideInstallBanner();
-  try { if (window && window.localStorage) window.localStorage.setItem("myTowerDef.installBannerDismissed", "1"); } catch (e) {}
 }
 function restoreInstallBannerState() {
-  try {
-    if (window && window.localStorage && window.localStorage.getItem("myTowerDef.installBannerDismissed") === "1") {
-      installBannerDismissed = true;
-    }
-  } catch (e) {}
+  installBannerDismissed = false;
 }
 function tryInstallPWA() {
   if (!installPrompt) return false;
@@ -2806,7 +2826,10 @@ function tryInstallPWA() {
 }
 
 const installBtn = $("installBtn");
-if (installBtn) installBtn.addEventListener("click", () => { tryInstallPWA(); });
+if (installBtn) installBtn.addEventListener("click", () => {
+  if (tryInstallPWA()) return;
+  dismissInstallBanner();
+});
 const installLaterBtn = $("installLater");
 if (installLaterBtn) installLaterBtn.addEventListener("click", dismissInstallBanner);
 
@@ -2827,6 +2850,7 @@ if (installHeaderBtn) {
       installHeaderBtn.hidden = true;
       return;
     }
+    showManualInstallBanner();
     // Desktop fallback: no prompt was captured yet. Ask the user to use the
     // browser's address-bar install control (Chrome/Edge show the icon in
     // the URL bar; Firefox/Safari have their own install affordances).
@@ -2845,6 +2869,7 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
     event.preventDefault();
     installPrompt = event;
     updateInstallHeaderBtn();
+    resetInstallBannerContent();
     showInstallBanner();
   });
   window.addEventListener("appinstalled", () => {
@@ -2861,7 +2886,7 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
     if (!installPrompt && !installBannerDismissed && !isStandalone()) {
       setTimeout(() => {
         if (!installPrompt && !installBannerDismissed && !isStandalone()) {
-          showInstallBanner();
+          showManualInstallBanner();
         }
       }, 4000);
     }

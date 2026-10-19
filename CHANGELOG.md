@@ -1,5 +1,19 @@
 # myTowerDef Changelog
 
+## Version 2.3.7
+
+### Mobile Install
+
+- Confirmed the install banner appears on phone-sized displays after a short delay for browsers without `beforeinstallprompt`, unless the app is installed or the banner was dismissed during the current page view.
+- Added platform-specific manual install instructions for iOS Safari, Android, and other browsers. The fallback button now dismisses the informational banner instead of appearing to do nothing.
+- Dismissal is no longer persisted, so the banner can be shown again after a page refresh.
+- Bumped app metadata and the service-worker cache to v2.3.7.
+
+### Validation
+
+- Regression checks cover iOS/Android fallback instructions and install-banner visibility.
+- `git diff --check` is clean.
+
 ## Version 2.3.6
 
 ### Gameplay Balance

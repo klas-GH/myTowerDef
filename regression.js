@@ -146,7 +146,7 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}, get CHALLENGE_DEFS(){return CHALLENGE_DEFS;}, get challengeMode(){return challengeMode;}, set challengeMode(v){challengeMode=v;}, get activeChallenge(){return activeChallenge;}, set activeChallenge(v){activeChallenge=v;}, get challengeState(){return challengeState;}, set challengeState(v){challengeState=v;}, get challengeRecords(){return challengeRecords;}, set challengeRecords(v){challengeRecords=v;}, isChallengeUnlocked, getChallenge, getChallengeRecord, startChallenge, endChallenge, evaluateChallengeObjective, finalizeChallengeResult, abandonChallenge, getChallengeMedalLabel, getChallengeMedalGlyph, describeChallengeObjective, loadBg, loadUnit}', ctx);
-vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;}}, installPrompt:{get(){return installPrompt;},set(v){installPrompt=v;}}, installBannerDismissed:{get(){return installBannerDismissed;},set(v){installBannerDismissed=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD, showInstallBanner, hideInstallBanner, dismissInstallBanner, tryInstallPWA, isStandalone, restoreInstallBannerState})', ctx);
+vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;}}, installPrompt:{get(){return installPrompt;},set(v){installPrompt=v;}}, installBannerDismissed:{get(){return installBannerDismissed;},set(v){installBannerDismissed=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD, showInstallBanner, showManualInstallBanner, resetInstallBannerContent, hideInstallBanner, dismissInstallBanner, tryInstallPWA, isStandalone, restoreInstallBannerState})', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -167,7 +167,7 @@ assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
 assertEq('init_enemyHp', ctx.__api.enemyHp, 52.5);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
-assert('live_heading_uses_v236', els.levelTitle.textContent.includes('v2.3.6'));
+assert('live_heading_uses_v237', els.levelTitle.textContent.includes('v2.3.7'));
 
 // Wave definitions used by spawning must match the previewed values.
 assertEq('wave1_hp', ctx.__api.WAVE_DEFS[0].enemyHp, 35);
@@ -498,12 +498,12 @@ for (const key of ['archer', 'cannon', 'magic']) {
   assert('purchase_records_type_' + key, ctx.__api.towers[0].type === key);
 }
 
-// Insufficient-funds rejection for the most expensive tower.
+// Insufficient-funds rejection just below the Cannon's 60-coin cost.
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
-ctx.__api.coins = 79;
+ctx.__api.coins = 59;
 ctx.__api.placeTower(100, 80);
-assert('cannon_insufficient_at_79', ctx.__api.towers.length === 0 && ctx.__api.coins === 79);
+assert('cannon_insufficient_at_59', ctx.__api.towers.length === 0 && ctx.__api.coins === 59);
 
 // Sell refunds are consistent across tower types and upgrade levels.
 for (const key of ['archer', 'cannon', 'magic']) {
@@ -587,9 +587,9 @@ for (const key of ['archer', 'cannon', 'magic']) {
 }
 ctx.__api.reset();
 ctx.__api.selectedTowerType = 'cannon';
-ctx.__api.coins = 79;
+ctx.__api.coins = 59;
 ctx.__api.placeTower(100, 80);
-check('cannon_insufficient_at_79', ctx.__api.towers.length === 0 && ctx.__api.coins === 79);
+check('cannon_insufficient_at_59', ctx.__api.towers.length === 0 && ctx.__api.coins === 59);
 for (const key of ['archer', 'cannon', 'magic']) {
   ctx.__api.reset();
   ctx.__api.selectedTowerType = key;
@@ -1046,11 +1046,11 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v236_round_modal', ok: !!html && html.includes('v2.3.6') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'html_v237_round_modal', ok: !!html && html.includes('v2.3.7') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
 report.checks.push({name:'tower_picker_shows_updated_prices_and_magic_feature', ok: !!html && html.includes('<span class="tcost">60 coins</span>') && html.includes('<span class="tfeature">Splash damage</span>')});
-report.checks.push({name:'manifest_v236', ok: !!manifest && manifest.includes('"version":  "2.3.6"')});
-report.checks.push({name:'sw_v236', ok: !!sw && sw.includes('v2.3.6')});
-report.checks.push({name:'docs_v236', ok: (!!qg && qg.includes('v2.3.6')) || (!!readme && readme.includes('v2.3.6'))});
+report.checks.push({name:'manifest_v237', ok: !!manifest && manifest.includes('"version":  "2.3.7"')});
+report.checks.push({name:'sw_v237', ok: !!sw && sw.includes('v2.3.7')});
+report.checks.push({name:'docs_v237', ok: (!!qg && qg.includes('v2.3.7')) || (!!readme && readme.includes('v2.3.7'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1596,21 +1596,25 @@ report.checks.push({name:'install_show_banner_reveals', ok: !!els.installBanner 
 installApi.hideInstallBanner();
 report.checks.push({name:'install_hide_banner_hides', ok: !!els.installBanner && els.installBanner.hidden});
 
-// dismissInstallBanner persists the dismissal and hides the banner.
+// dismissInstallBanner hides the banner for the current page.
 resetInstallState();
 installApi.showInstallBanner();
 installApi.dismissInstallBanner();
 report.checks.push({name:'install_dismiss_sets_flag', ok: installApi.installBannerDismissed === true});
-report.checks.push({name:'install_dismiss_persists_to_storage', ok: storageData.get('myTowerDef.installBannerDismissed') === '1'});
+report.checks.push({name:'install_dismiss_does_not_persist_to_storage', ok: !storageData.has('myTowerDef.installBannerDismissed')});
 report.checks.push({name:'install_dismiss_hides_banner', ok: !!els.installBanner && els.installBanner.hidden});
 
-// restoreInstallBannerState reads the persisted dismissal back. First persist
-// "1" via dismiss, then reset the in-memory flag and confirm restore re-reads it.
+// Dismissal lasts only for the current page; a new page load can show the banner again.
 resetInstallState();
 installApi.dismissInstallBanner();
-installApi.installBannerDismissed = false;
+report.checks.push({name:'install_dismiss_does_not_persist', ok: !storageData.has('myTowerDef.installBannerDismissed')});
 installApi.restoreInstallBannerState();
-report.checks.push({name:'install_restore_reads_persisted_flag', ok: installApi.installBannerDismissed === true});
+report.checks.push({name:'install_reload_clears_dismissal', ok: installApi.installBannerDismissed === false});
+ctx.navigator = {userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1'};
+ctx.window.dispatchEvent(new Event('load'));
+const installReloadTimer = nextTimerId - 1;
+scheduledTimers.get(installReloadTimer)();
+report.checks.push({name:'install_banner_reappears_after_reload', ok: !els.installBanner.hidden && els.installMessage.textContent.includes('Share')});
 
 // A fresh beforeinstallprompt event stores the prompt and shows the banner.
 resetInstallState();
@@ -1652,11 +1656,30 @@ report.checks.push({name:'install_banner_hidden_in_standalone_mode', ok: !!els.i
 delete ctx.window.matchMedia;
 report.checks.push({name:'install_isStandalone_false_without_matchMedia', ok: installApi.isStandalone() === false});
 
-// Version metadata is at v2.3.6 across all files.
-report.checks.push({name:'html_v236', ok: !!html && html.includes('v2.3.6')});
-report.checks.push({name:'manifest_v236', ok: !!manifest && manifest.includes('"version":  "2.3.6"')});
-report.checks.push({name:'sw_v236', ok: !!sw && sw.includes('v2.3.6')});
-report.checks.push({name:'docs_v236', ok: (!!qg && qg.includes('v2.3.6')) || (!!readme && readme.includes('v2.3.6'))});
+// Browsers without beforeinstallprompt receive platform-specific instructions.
+resetInstallState();
+ctx.navigator = {userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile Safari/604.1'};
+installApi.showManualInstallBanner();
+report.checks.push({name:'install_manual_instructions_for_ios', ok: !els.installBanner.hidden && els.installMessage.textContent.includes('Safari') && els.installMessage.textContent.includes('Share') && els.installBtn.textContent === 'Got it'});
+
+resetInstallState();
+ctx.navigator = {userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'};
+installApi.showManualInstallBanner();
+report.checks.push({name:'install_manual_instructions_for_android', ok: !els.installBanner.hidden && els.installMessage.textContent.includes('Install app or Add to Home screen') && els.installBtn.textContent === 'Got it'});
+
+// A native prompt restores the standard message and action after fallback text.
+resetInstallState();
+ctx.navigator = {userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1'};
+installApi.showManualInstallBanner();
+ctx.window.dispatchEvent(promptEvent);
+report.checks.push({name:'install_native_prompt_resets_fallback_copy', ok: els.installMessage.textContent === 'Add this game to your home screen for offline play and full-screen access.' && els.installBtn.textContent === 'Install'});
+delete ctx.navigator;
+
+// Version metadata is at v2.3.7 across all files.
+report.checks.push({name:'html_v237', ok: !!html && html.includes('v2.3.7')});
+report.checks.push({name:'manifest_v237', ok: !!manifest && manifest.includes('"version":  "2.3.7"')});
+report.checks.push({name:'sw_v237', ok: !!sw && sw.includes('v2.3.7')});
+report.checks.push({name:'docs_v237', ok: (!!qg && qg.includes('v2.3.7')) || (!!readme && readme.includes('v2.3.7'))});
 
 // ---- v2.3.2: Background and unit asset regression tests ----
 // The generator (gen_assets.py) produces one themed background PNG per level

@@ -1,7 +1,13 @@
-﻿@version: 2.3.6
-@release: v2.3.6
+﻿@version: 2.3.7
+@release: v2.3.7
 @status: bugfix, responsive
 @scope: header, mobile, assets
+
+=== v 2.3.7 ===
+- The install banner appears after a short delay on non-installed phones even when the browser does not provide beforeinstallprompt.
+- Added platform-specific manual install instructions for iOS Safari, Android browsers, and other browsers; the banner action now dismisses cleanly instead of doing nothing when no native prompt is available.
+- Dismissing the banner hides it only for the current page view; refreshing allows it to appear again.
+- Bumped app metadata and service-worker cache to v2.3.7.
 
 === v 2.3.6 ===
 - Reduced Cannon cost from 80 to 60 coins.
@@ -35,7 +41,7 @@
 
 === v 2.3.1 ===
 - Added a PWA install banner that appears when the browser fires `beforeinstallprompt` (Chrome/Edge/Opera). The banner is dismissible via "Install" or "Not now", and is hidden when the app is already running in standalone mode or after a successful install.
-- The banner's dismissal is persisted to localStorage so it does not reappear on every visit.
+- The banner's dismissal was initially persisted to localStorage; this persistence was removed in v2.3.7 so dismissing the banner does not suppress it after a page refresh.
 - `tryInstallPWA()` invokes the stored prompt and clears the stored prompt synchronously so the install flow is deterministic.
 - Bumped manifest, service-worker cache, README, quick_Guide, and index.html to v2.3.1.
 
