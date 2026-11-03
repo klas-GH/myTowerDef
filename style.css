@@ -25,6 +25,17 @@ body {
   overflow-x: hidden;
 }
 
+/* On wider desktops, let the game breathe without losing the mobile-first feel. */
+@media (min-width: 900px) {
+  .app {
+    max-width: 640px;
+  }
+  canvas {
+    /* Prefer a larger readable board on desktop while keeping 5:6 ratio. */
+    max-height: min(720px, calc(100dvh - 220px));
+  }
+}
+
 .header {
   display: flex;
   align-items: center;

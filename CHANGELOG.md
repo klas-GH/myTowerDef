@@ -1,5 +1,22 @@
 # myTowerDef Changelog
 
+## Version 2.3.9
+
+### Usability & Visual Polish
+
+- Added a central `CONFIG` object for layout and balance constants (splash radius/damage, sell-wave penalty, sprite sizes, particle/shot caps) so tuning no longer requires hunting magic numbers.
+- Selected-tower range rings now use a dashed stroke in the tower's type color; Magic also previews its splash radius when selected.
+- Placement ghost shows a dashed range ring (and Magic splash ring) colored by affordability.
+- Max-level towers draw a gold ring so players can see upgrades are finished without opening the panel.
+- Tower and enemy sprites render slightly larger on the board (still using the 128px source art).
+- Desktop: `.app` max-width expands to 640px on viewports ≥900px for a more comfortable board size.
+- README documents regenerating assets via `python generate_game_art.py` (Pillow required); pre-committed `assets/` remain the default.
+
+### Validation
+
+- Existing sell-refund labeling and placement/range previews preserved.
+- Bumped app metadata and the service-worker cache to v2.3.9.
+
 ## Version 2.3.8
 
 ### Avoiding Repeat Install Prompts

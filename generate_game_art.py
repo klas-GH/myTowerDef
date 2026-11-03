@@ -50,7 +50,7 @@ def make_background(theme, palette):
 
     draw = ImageDraw.Draw(image, "RGBA")
     # Soft ground patches give the level a continuous, illustrated terrain.
-    for _ in range(44):
+    for _ in range(56):
         x, y = rng.randrange(-30, width + 30), rng.randrange(-30, height + 30)
         radius = rng.randrange(9, 30)
         color = colors[rng.randrange(1, len(colors))]
@@ -59,7 +59,7 @@ def make_background(theme, palette):
                      fill=(*color, alpha))
 
     if theme == "jungle":
-        for _ in range(48):
+        for _ in range(64):
             x, y = rng.randrange(-10, 310), rng.randrange(-10, 370)
             length = rng.randrange(7, 17)
             color = colors[rng.randrange(2, 5)]
@@ -70,7 +70,7 @@ def make_background(theme, palette):
                               x + side * 3 + 3, y + length // 2 + 2),
                              fill=(*color, 180))
     elif theme == "ocean":
-        for _ in range(55):
+        for _ in range(70):
             x, y = rng.randrange(width), rng.randrange(height)
             r = rng.randrange(2, 9)
             draw.arc((x - r, y - r // 2, x + r, y + r // 2),
@@ -78,7 +78,7 @@ def make_background(theme, palette):
             if rng.random() < 0.18:
                 draw.ellipse((x - 2, y - 2, x + 2, y + 2), fill=(*colors[4], 120))
     elif theme in ("meadow", "autumn"):
-        for _ in range(60):
+        for _ in range(78):
             x, y = rng.randrange(width), rng.randrange(height)
             if theme == "meadow":
                 draw.line((x, y, x + rng.randrange(-2, 3), y - rng.randrange(4, 10)),
@@ -102,14 +102,14 @@ def make_background(theme, palette):
             x, y = rng.randrange(width), rng.randrange(height)
             draw.ellipse((x - 3, y - 2, x + 3, y + 2), fill=(*colors[4], 120))
     elif theme == "snow":
-        for _ in range(33):
+        for _ in range(48):
             x, y = rng.randrange(width), rng.randrange(height)
             r = rng.randrange(2, 7)
             draw.ellipse((x - r, y - r, x + r, y + r), fill=(239, 248, 239, 95))
             draw.ellipse((x - r // 2, y - r // 2, x + r // 2, y + r // 2),
                          fill=(255, 255, 255, 100))
     elif theme == "swamp":
-        for _ in range(30):
+        for _ in range(42):
             x, y = rng.randrange(width), rng.randrange(height)
             rx, ry = rng.randrange(5, 13), rng.randrange(3, 8)
             draw.ellipse((x - rx, y - ry, x + rx, y + ry),
@@ -120,7 +120,7 @@ def make_background(theme, palette):
             draw.line((x, y, x + rng.randrange(-2, 3), y - rng.randrange(5, 14)),
                       fill=(*colors[4], 125), width=1)
     elif theme == "volcano":
-        for _ in range(40):
+        for _ in range(55):
             x, y = rng.randrange(width), rng.randrange(height)
             r = rng.randrange(2, 7)
             draw.polygon(((x - r, y + r), (x - r // 2, y - r),
@@ -131,7 +131,7 @@ def make_background(theme, palette):
             draw.line((x, y, x + 4, y + 7, x + 1, y + 13),
                       fill=(*colors[4], 155), width=2)
     elif theme == "ruins":
-        for _ in range(38):
+        for _ in range(50):
             x, y = rng.randrange(width), rng.randrange(height)
             w, h = rng.randrange(10, 26), rng.randrange(6, 15)
             draw.rounded_rectangle((x, y, x + w, y + h), radius=2,
@@ -141,7 +141,7 @@ def make_background(theme, palette):
                 draw.line((x + 3, y + h - 2, x + w - 2, y + h - 2),
                           fill=(*colors[0], 90), width=1)
     elif theme == "crystal":
-        for _ in range(30):
+        for _ in range(42):
             x, y = rng.randrange(width), rng.randrange(height)
             h, w = rng.randrange(7, 19), rng.randrange(3, 8)
             color = colors[rng.randrange(2, 5)]
@@ -150,7 +150,7 @@ def make_background(theme, palette):
                          outline=(*colors[4], 130))
             draw.line((x, y - h + 2, x, y + h // 2), fill=(*colors[4], 150), width=1)
     elif theme == "moon":
-        for _ in range(40):
+        for _ in range(52):
             x, y = rng.randrange(width), rng.randrange(height)
             r = rng.randrange(3, 10)
             draw.ellipse((x - r, y - r // 2, x + r, y + r // 2),
@@ -159,7 +159,7 @@ def make_background(theme, palette):
             x, y = rng.randrange(width), rng.randrange(height)
             draw.ellipse((x, y, x + 2, y + 2), fill=(226, 234, 255, 170))
     elif theme == "canyon":
-        for _ in range(34):
+        for _ in range(46):
             x, y = rng.randrange(width), rng.randrange(height)
             w, h = rng.randrange(8, 24), rng.randrange(5, 14)
             draw.polygon(((x - w, y + h), (x - w // 2, y - h),
