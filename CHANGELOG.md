@@ -1,5 +1,16 @@
 # myTowerDef Changelog
 
+## Version 2.3.10
+
+### Download / Install
+
+- Added a visible **Download** button in the main controls row (alongside Start Wave, Pause, and Restart).
+- The Download button captures the browser's native `beforeinstallprompt` event and triggers the install UI on demand.
+- When no native prompt is available (e.g. iOS Safari), Download opens platform-specific manual install instructions.
+- The compact header ⬇ button remains as a backup after the install banner is dismissed.
+- Download controls hide automatically once the app is installed or running in standalone mode.
+- Bumped app metadata and the service-worker cache to v2.3.10.
+
 ## Version 2.3.9
 
 ### Usability & Visual Polish

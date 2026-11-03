@@ -787,7 +787,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.9";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.3.10";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -2823,13 +2823,16 @@ if (challengeContinueBtn) {
   });
 }
 
-// ---- v2.3.1: PWA install banner ----
-// Leaves native installation UI to the browser and shows manual instructions
-// only in browsers without `beforeinstallprompt`.
+// ---- v2.3.10: Download / install button ----
+// Captures the browser's native install prompt when available and exposes a
+// visible Download button. Falls back to platform-specific manual instructions
+// when the browser has no install prompt API (e.g. iOS Safari).
 let installBannerDismissed = false;
 let installConfirmed = false;
 let nativeInstallAvailable = false;
+let deferredInstallPrompt = null;
 const INSTALL_CONFIRMED_KEY = "myTowerDef.installConfirmed";
+
 function isStandalone() {
   if (typeof window === "undefined") return false;
   if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) return true;
@@ -2838,9 +2841,11 @@ function isStandalone() {
   } catch (e) {}
   return false;
 }
+
 function hasInstalledApp() {
   return installConfirmed || isStandalone();
 }
+
 function showInstallBanner() {
   const banner = $("installBanner");
   if (!banner) return;
@@ -2848,6 +2853,7 @@ function showInstallBanner() {
   if (installBannerDismissed) { banner.hidden = true; return; }
   banner.hidden = false;
 }
+
 function showManualInstallBanner() {
   const message = $("installMessage");
   const button = $("installBtn");
@@ -2857,38 +2863,45 @@ function showManualInstallBanner() {
 
   if (message) {
     if (isAppleMobile) {
-      message.textContent = "To install: open in Safari, tap Share, then Add to Home Screen.";
+      message.textContent = "To download: open in Safari, tap Share, then Add to Home Screen.";
     } else if (/Android/i.test(userAgent)) {
-      message.textContent = "To install: open your browser menu (⋮), then choose Install app or Add to Home screen.";
+      message.textContent = "To download: open your browser menu (⋮), then choose Install app or Add to Home screen.";
     } else {
-      message.textContent = "To install: use your browser menu or address bar and choose Install app or Add to Home screen.";
+      message.textContent = "To download: use your browser menu or address bar and choose Install app or Add to Home screen.";
     }
   }
   if (button) button.textContent = "Got it";
   showInstallBanner();
 }
+
 function hideInstallBanner() {
   const banner = $("installBanner");
   if (banner) banner.hidden = true;
 }
+
 function dismissInstallBanner() {
   installBannerDismissed = true;
   hideInstallBanner();
+  updateDownloadButtons();
 }
+
 function markInstallConfirmed() {
   installConfirmed = true;
   installBannerDismissed = true;
+  deferredInstallPrompt = null;
   hideInstallBanner();
   try {
     if (window && window.localStorage) window.localStorage.setItem(INSTALL_CONFIRMED_KEY, "1");
   } catch (error) {
     console.warn("Could not save the confirmed app installation state.", error);
   }
-  updateInstallHeaderBtn();
+  updateDownloadButtons();
 }
+
 function restoreInstallBannerState() {
   installBannerDismissed = false;
   nativeInstallAvailable = false;
+  deferredInstallPrompt = null;
   try {
     installConfirmed = !!(window && window.localStorage &&
       window.localStorage.getItem(INSTALL_CONFIRMED_KEY) === "1");
@@ -2898,59 +2911,107 @@ function restoreInstallBannerState() {
   }
 }
 
-const installBtn = $("installBtn");
-if (installBtn) installBtn.addEventListener("click", dismissInstallBanner);
-const installLaterBtn = $("installLater");
-if (installLaterBtn) installLaterBtn.addEventListener("click", dismissInstallBanner);
-
-// The header button opens manual instructions only when the browser has no
-// native installation UI.
-const installHeaderBtn = $("installHeaderBtn");
-function updateInstallHeaderBtn() {
-  if (!installHeaderBtn) return;
-  if (hasInstalledApp() || nativeInstallAvailable) { installHeaderBtn.hidden = true; return; }
-  installHeaderBtn.hidden = installBannerDismissed;
+function updateDownloadButtons() {
+  const installed = hasInstalledApp();
+  const downloadBtn = $("downloadBtn");
+  const headerBtn = $("installHeaderBtn");
+  // Visible Download control in the main button row.
+  if (downloadBtn) downloadBtn.hidden = installed;
+  // Compact header affordance: show only when not installed and the banner
+  // was dismissed (so the player still has a way back to install help).
+  if (headerBtn) {
+    headerBtn.hidden = installed || !installBannerDismissed;
+  }
 }
-if (installHeaderBtn) {
-  installHeaderBtn.addEventListener("click", () => {
-    showManualInstallBanner();
-    // Desktop fallback: no prompt was captured yet. Ask the user to use the
-    // browser's address-bar install control (Chrome/Edge show the icon in
-    // the URL bar; Firefox/Safari have their own install affordances).
-    if (typeof navigator !== "undefined" && navigator.userAgent) {
-      const isDesktop = /Windows|Macintosh|Linux|X11/.test(navigator.userAgent);
-      if (isDesktop) {
-        $("status").textContent = "Tip: use your browser's address-bar install button (⋮ → Install app) to add myTowerDef to your desktop.";
+
+async function tryInstallPWA() {
+  if (hasInstalledApp()) {
+    updateDownloadButtons();
+    return;
+  }
+  // Prefer the deferred native prompt when the browser offered one.
+  if (deferredInstallPrompt) {
+    try {
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      if (choice && choice.outcome === "accepted") {
+        markInstallConfirmed();
+      } else {
+        // User dismissed the native prompt; keep the Download button available.
+        updateDownloadButtons();
       }
+      return;
+    } catch (error) {
+      console.error("Native install prompt failed.", error);
+      deferredInstallPrompt = null;
+    }
+  }
+  // No native prompt available — show platform-specific manual instructions.
+  showManualInstallBanner();
+  if (typeof navigator !== "undefined" && navigator.userAgent) {
+    const isDesktop = /Windows|Macintosh|Linux|X11/.test(navigator.userAgent) &&
+      !(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    if (isDesktop) {
+      const status = $("status");
+      if (status) {
+        status.textContent = "Tip: use your browser's address-bar install control (⋮ → Install app) to download myTowerDef.";
+      }
+    }
+  }
+}
+
+const installBtn = $("installBtn");
+if (installBtn) {
+  installBtn.addEventListener("click", () => {
+    // "Got it" after manual instructions just dismisses; otherwise try install.
+    if (installBtn.textContent === "Got it") {
+      dismissInstallBanner();
+    } else {
+      tryInstallPWA();
     }
   });
 }
+const installLaterBtn = $("installLater");
+if (installLaterBtn) installLaterBtn.addEventListener("click", dismissInstallBanner);
+
+const downloadBtn = $("downloadBtn");
+if (downloadBtn) downloadBtn.addEventListener("click", tryInstallPWA);
+
+const installHeaderBtn = $("installHeaderBtn");
+if (installHeaderBtn) installHeaderBtn.addEventListener("click", tryInstallPWA);
 
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   restoreInstallBannerState();
+  updateDownloadButtons();
+
   window.addEventListener("beforeinstallprompt", event => {
     if (hasInstalledApp()) {
       event.preventDefault();
       return;
     }
+    // Capture the prompt so the Download button can trigger it on demand.
+    event.preventDefault();
+    deferredInstallPrompt = event;
     nativeInstallAvailable = true;
-    updateInstallHeaderBtn();
-    hideInstallBanner();
-    if (event.userChoice && typeof event.userChoice.then === "function") {
-      event.userChoice.then(choice => {
-        if (choice && choice.outcome === "accepted") markInstallConfirmed();
-      }, error => {
-        console.error("Could not determine the app installation result.", error);
-      });
+    updateDownloadButtons();
+    // Optional soft banner once a native prompt is available.
+    if (!installBannerDismissed) {
+      const message = $("installMessage");
+      const button = $("installBtn");
+      if (message) message.textContent = "Download myTowerDef for offline play and a full-screen experience.";
+      if (button) button.textContent = "Download";
+      showInstallBanner();
     }
   });
+
   window.addEventListener("appinstalled", () => {
     markInstallConfirmed();
   });
+
   window.addEventListener("load", () => {
-    updateInstallHeaderBtn();
-    // Fallback: some browsers (such as Safari on iOS) never fire beforeinstallprompt.
-    // Show manual instructions only where the browser has no native install UI.
+    updateDownloadButtons();
+    // Fallback: browsers without beforeinstallprompt (notably iOS Safari).
     if (!nativeInstallAvailable && !installBannerDismissed && !hasInstalledApp()) {
       setTimeout(() => {
         if (!nativeInstallAvailable && !installBannerDismissed && !hasInstalledApp()) {

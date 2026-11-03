@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101827">
-  <title>myTowerDef v2.3.9</title>
+  <title>myTowerDef v2.3.10</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
@@ -14,12 +14,12 @@
     <header class="header">
       <div>
         <h1>myTowerDef</h1>
-        <p id="levelTitle">ROUND #1 · LEVEL 01 · FIRST DEFENSE · v2.3.9</p>
+        <p id="levelTitle">ROUND #1 · LEVEL 01 · FIRST DEFENSE · v2.3.10</p>
       </div>
       <div class="stats">
         <span>💰 <b id="coins">80</b></span>
         <span>❤️ <b id="lives">6</b></span>
-        <button id="installHeaderBtn" class="icon-btn" aria-label="Install app" title="Install app" hidden>⬇</button>
+        <button id="installHeaderBtn" class="icon-btn download-header-btn" aria-label="Download app" title="Download app" hidden>⬇</button>
         <button id="campaignBtn" class="icon-btn" aria-label="Campaign" title="Campaign">🗺</button>
         <button id="challengeBtn" class="icon-btn" aria-label="Challenges" title="Challenges">🏆</button>
         <button id="settingsBtn" class="icon-btn" aria-label="Settings" title="Settings">⚙</button>
@@ -160,13 +160,13 @@
       <div class="install-banner-content">
         <div class="install-icon" aria-hidden="true">⚔️</div>
         <div class="install-text">
-          <h3 id="installTitle">Install myTowerDef</h3>
+          <h3 id="installTitle">Download myTowerDef</h3>
           <p id="installMessage">Add this game to your home screen for offline play and full-screen access.</p>
         </div>
       </div>
       <div class="install-actions">
         <button id="installLater" class="secondary" type="button">Not now</button>
-        <button id="installBtn" class="primary" type="button">Install</button>
+        <button id="installBtn" class="primary" type="button">Download</button>
       </div>
     </div>
 
@@ -174,6 +174,7 @@
       <button id="startBtn" disabled>▶ Start Wave</button>
       <button id="pauseBtn" class="secondary" disabled>⏸ Pause</button>
       <button id="restartBtn" class="secondary">↻ Restart</button>
+      <button id="downloadBtn" class="secondary download-btn" type="button" title="Download / install this app">⬇ Download</button>
     </section>
 
     <p class="hint">

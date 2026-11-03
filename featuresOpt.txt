@@ -1,7 +1,14 @@
-﻿@version: 2.3.9
-@release: v2.3.9
+﻿@version: 2.3.10
+@release: v2.3.10
 @status: bugfix, responsive
 @scope: header, mobile, assets
+
+=== v 2.3.10 ===
+- Added a visible Download button in the main controls row for installing the PWA.
+- Captures the browser's native install prompt and triggers it from Download (and the header ⬇ button).
+- Falls back to platform-specific manual install instructions when no native prompt is available.
+- Hides the Download control once the app is installed or running standalone.
+- Bumped app metadata and the service-worker cache to v2.3.10.
 
 === v 2.3.9 ===
 - Central CONFIG object for layout/balance constants (splash, sell penalty, sprite sizes, particle caps).
