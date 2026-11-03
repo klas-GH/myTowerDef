@@ -369,30 +369,9 @@ canvas {
 
 .controls {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-top: 12px;
-}
-
-@media (min-width: 420px) {
-  .controls {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.download-btn {
-  background: #1e3a5f;
-  border: 1px solid #3b82f6;
-  color: #dbeafe;
-}
-
-.download-btn:hover {
-  background: #2563eb;
-  color: white;
-}
-
-.download-btn[hidden] {
-  display: none;
 }
 
 .tower-picker {

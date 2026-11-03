@@ -1,7 +1,14 @@
-﻿@version: 2.3.10
-@release: v2.3.10
+﻿@version: 2.3.11
+@release: v2.3.11
 @status: bugfix, responsive
 @scope: header, mobile, assets
+
+=== v 2.3.11 ===
+- Removed the fourth Download button from the controls row; controls are back to Start Wave / Pause / Restart.
+- Install banner appears after a 3-second delay when the app is not installed.
+- "Not now" dismisses the banner for the current page view only; a reload shows it again if still not installed.
+- A successful install is persisted so the banner never returns after the app is installed.
+- Bumped app metadata and the service-worker cache to v2.3.11.
 
 === v 2.3.10 ===
 - Added a visible Download button in the main controls row for installing the PWA.

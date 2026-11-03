@@ -1,5 +1,15 @@
 # myTowerDef Changelog
 
+## Version 2.3.11
+
+### Install banner fix
+
+- Removed the fourth **Download** button from the controls row. Controls are again Start Wave, Pause, and Restart only.
+- The install banner appears after a **3-second** delay when the app is not installed.
+- **Not now** dismisses the banner for the current page view only; reloading the page shows the banner again if the app is still not installed.
+- A successful install is saved so the banner does not return after the app is on the home screen or desktop.
+- Bumped app metadata and the service-worker cache to v2.3.11.
+
 ## Version 2.3.10
 
 ### Download / Install
