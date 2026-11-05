@@ -2835,6 +2835,25 @@ let deferredInstallPrompt = null;
 const INSTALL_CONFIRMED_KEY = "myTowerDef.installConfirmed";
 const INSTALL_BANNER_DELAY_MS = 3000;
 
+// Compatibility helpers for the deterministic regression harness and the
+// install banner lifecycle. These aliases keep the app API stable even when
+// the banner is not yet shown or a later code path references the manual form.
+function showManualInstallBanner() {
+  showInstallBanner();
+}
+
+function restoreInstallBannerState() {
+  const headerBtn = $("installHeaderBtn");
+  if (headerBtn) {
+    headerBtn.hidden = hasInstalledApp() || !installBannerDismissed;
+  }
+  if (hasInstalledApp() || installBannerDismissed) {
+    hideInstallBanner();
+    return;
+  }
+  showInstallBanner();
+}
+
 function isStandalone() {
   if (typeof window === "undefined") return false;
   if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) return true;
