@@ -1,7 +1,12 @@
-@version: 2.14.0
-@release: v2.14.0
-@status: feature, balance, visual
-@scope: soundtrack, pixel-art, difficulty
+@version: 2.14.1
+@release: v2.14.1
+@status: audio fix
+@scope: soundtrack volume
+
+=== v 2.14.1 ===
+- Raised the synthesized soundtrack by an octave and increased its volume so the notes carry on small speakers.
+- Fixed base-destroyed and challenge-result messages to appear in a centered screen overlay.
+- Updated app metadata and the service-worker cache for v2.14.1.
 
 === v 2.14.0 ===
 - Added a synthesized ambient soundtrack with a separate persistent toggle; it begins only after a user gesture and requires no downloaded audio.

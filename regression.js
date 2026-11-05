@@ -168,7 +168,7 @@ assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
 assertEq('init_enemyHp', ctx.__api.enemyHp, 57.75);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
-assert('live_heading_uses_v2140', els.levelTitle.textContent.includes('v2.14.0'));
+assert('live_heading_uses_v2141', els.levelTitle.textContent.includes('v2.14.1'));
 
 // Wave definitions used by spawning must match the previewed values.
 assertEq('wave1_hp', ctx.__api.WAVE_DEFS[0].enemyHp, 35);
@@ -1048,11 +1048,12 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v2140_round_modal', ok: !!html && html.includes('v2.14.0') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'html_v2141_round_modal', ok: !!html && html.includes('v2.14.1') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="gameOverOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'all_result_overlays_are_centered_fixed_layers', ok: !!css && css.includes('.round-overlay {') && css.includes('position: fixed;') && css.includes('.round-overlay[hidden]') && html.includes('id="gameOverOverlay" class="round-overlay"') && html.includes('id="challengeOverlay" class="round-overlay"')});
 report.checks.push({name:'tower_picker_shows_updated_prices_and_magic_feature', ok: !!html && html.includes('<span class="tcost">60 coins</span>') && html.includes('<span class="tfeature">Splash damage</span>')});
-report.checks.push({name:'manifest_v2140', ok: !!manifest && manifest.includes('"version":  "2.14.0"')});
-report.checks.push({name:'sw_v2140', ok: !!sw && sw.includes('v2.14.0')});
-report.checks.push({name:'docs_v2140', ok: (!!qg && qg.includes('v2.14.0')) || (!!readme && readme.includes('2.14.0'))});
+report.checks.push({name:'manifest_v2141', ok: !!manifest && manifest.includes('"version":  "2.14.1"')});
+report.checks.push({name:'sw_v2141', ok: !!sw && sw.includes('v2.14.1')});
+report.checks.push({name:'docs_v2141', ok: (!!qg && qg.includes('v2.14.1')) || (!!readme && readme.includes('2.14.1'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1136,6 +1137,8 @@ api.reset();
 report.checks.push({name:'save_restore_campaign_settings_stats_and_achievements', ok: savedSuccessfully && restoredSuccessfully && api.currentRun === 7 && api.currentLevel === 4 && api.currentLevelData === api.LEVELS[3] && api.settings.soundEnabled === false && api.settings.musicEnabled === false && api.settings.reducedMotion === true && api.statsState.roundsCompleted === 3 && api.statsState.levelCoinsSpent === 125 && api.achievements.includes('first_defense')});
 report.checks.push({name:'background_music_setting_present_and_separate', ok: !!html && html.includes('id="musicToggle"') && jsSource.includes('settings.musicEnabled = musicToggleEl.checked')});
 let musicOscillatorStarts = 0;
+const musicGainTargets = [];
+const musicFrequencies = [];
 class TestAudioContext {
   constructor() {
     this.state = 'running';
@@ -1144,7 +1147,7 @@ class TestAudioContext {
   }
   createOscillator() {
     return {
-      frequency: { setValueAtTime() {} },
+      frequency: { setValueAtTime(value) { musicFrequencies.push(value); } },
       connect() {},
       start() { musicOscillatorStarts++; },
       stop() {}
@@ -1154,7 +1157,7 @@ class TestAudioContext {
     return {
       gain: {
         setValueAtTime() {},
-        exponentialRampToValueAtTime() {},
+        exponentialRampToValueAtTime(value, time) { musicGainTargets.push({value, time}); },
         cancelScheduledValues() {},
         setTargetAtTime() {}
       },
@@ -1170,6 +1173,7 @@ api.stopBackgroundMusic();
 api.settings.musicEnabled = false;
 api.startBackgroundMusic();
 report.checks.push({name:'background_music_starts_and_stops_cleanly', ok: musicStartsWithAudioContext && musicOscillatorStarts === 3});
+report.checks.push({name:'background_music_gain_and_pitch_are_audible', ok: musicGainTargets.length === 3 && musicGainTargets.every(target => target.value >= 0.05 && target.time === 1) && musicFrequencies.length === 3 && musicFrequencies.every(frequency => frequency >= 170)});
 delete ctx.window.AudioContext;
 report.checks.push({name:'reduced_motion_setting_applies_to_document', ok: rootClasses.has('reduced-motion') && !!css && css.includes('.reduced-motion') && jsSource.includes('if (!settings.reducedMotion)')});
 api.showSettings();
@@ -1731,11 +1735,11 @@ ctx.window.dispatchEvent(promptEvent);
 report.checks.push({name:'install_native_event_updates_banner_action', ok: installApi.nativeInstallAvailable && !els.installBanner.hidden && els.installBtn.textContent === 'Install'});
 delete ctx.navigator;
 
-// Version metadata is at v2.14.0 across all app entry points.
-report.checks.push({name:'html_v2140', ok: !!html && html.includes('v2.14.0')});
-report.checks.push({name:'manifest_v2140', ok: !!manifest && manifest.includes('"version":  "2.14.0"')});
-report.checks.push({name:'sw_v2140', ok: !!sw && sw.includes('v2.14.0')});
-report.checks.push({name:'docs_v2140', ok: (!!qg && qg.includes('v2.14.0')) || (!!readme && readme.includes('2.14.0'))});
+// Version metadata is at v2.14.1 across all app entry points.
+report.checks.push({name:'html_v2141', ok: !!html && html.includes('v2.14.1')});
+report.checks.push({name:'manifest_v2141', ok: !!manifest && manifest.includes('"version":  "2.14.1"')});
+report.checks.push({name:'sw_v2141', ok: !!sw && sw.includes('v2.14.1')});
+report.checks.push({name:'docs_v2141', ok: (!!qg && qg.includes('v2.14.1')) || (!!readme && readme.includes('2.14.1'))});
 
 // ---- Background and unit asset regression tests ----
 // The generator produces one themed background PNG per level

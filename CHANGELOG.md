@@ -1,5 +1,13 @@
 # myTowerDef Changelog
 
+## Version 2.14.1
+
+### Background music volume fix
+
+- Raised the synthesized soundtrack by an octave and increased its gain from 0.0035 to 0.06 so the notes carry on small speakers; the fade-in remains 1 second.
+- Fixed game-over and challenge-result dialogs so they appear centered over the screen instead of flowing below the map.
+- Added a regression check for the music output level and bumped app metadata and the service-worker cache.
+
 ## Version 2.14.0
 
 ### Soundtrack, Pixel Art & Balance

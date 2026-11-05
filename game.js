@@ -371,10 +371,10 @@ let musicTimer = null;
 let musicVoices = [];
 let musicChordIndex = 0;
 const MUSIC_CHORDS = [
-  [130.81, 164.81, 196.00],
-  [110.00, 130.81, 164.81],
-  [87.31, 110.00, 130.81],
-  [98.00, 123.47, 146.83]
+  [261.63, 329.63, 392.00],
+  [220.00, 261.63, 329.63],
+  [174.61, 220.00, 261.63],
+  [196.00, 246.94, 293.66]
 ];
 
 // ---- v2.3.0: Challenge Mode ----
@@ -797,7 +797,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.14.0";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.14.1";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -1181,8 +1181,8 @@ function playNextMusicChord() {
     const gain = soundContext.createGain();
     oscillator.type = "sine";
     oscillator.frequency.setValueAtTime(frequency, now);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.0035, now + 1.6);
+    gain.gain.setValueAtTime(0.0005, now);
+    gain.gain.exponentialRampToValueAtTime(0.06, now + 1);
     oscillator.connect(gain);
     gain.connect(soundContext.destination);
     oscillator.start(now);
