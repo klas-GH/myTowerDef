@@ -1,5 +1,19 @@
 # myTowerDef Changelog
 
+## Version 2.14.0
+
+### Soundtrack, Pixel Art & Balance
+
+- Added a quiet, synthesized ambient soundtrack with its own persistent Settings toggle. It starts only after a user gesture, uses the Web Audio API, and downloads no audio files.
+- Reworked all 12 biome backgrounds into a reduced-palette, nearest-neighbor pixel-art style; unit sprites and gameplay layers remain unchanged.
+- Increased the enemy HP scaling multiplier from 1.50 to 1.65 and raised Armored enemies' base HP from 70 to 78 for a modest difficulty increase.
+- Updated app metadata, service-worker cache, guides, and regression coverage for v2.14.0.
+
+### Validation
+
+- Regression suite and smoke tests pass.
+- Pixel-art backgrounds preserve the existing 300×360 canvas size and reduce the per-image download size.
+
 ## Version 2.3.11
 
 ### Install banner fix

@@ -166,7 +166,11 @@ def make_background(theme, palette):
                           (x + w, y - h // 2), (x + w // 2, y + h)),
                          fill=(*colors[2], 90), outline=(*colors[4], 100))
 
-    image.save(os.path.join(ASSET_DIR, "bg_" + theme + ".png"), optimize=True)
+    resampling = getattr(Image, "Resampling", Image)
+    pixel_art = image.resize((150, 180), resampling.BOX)
+    pixel_art = pixel_art.quantize(colors=48).convert("RGB")
+    pixel_art = pixel_art.resize((width, height), resampling.NEAREST)
+    pixel_art.save(os.path.join(ASSET_DIR, "bg_" + theme + ".png"), optimize=True)
 
 
 def make_sprite(draw_fn, name):

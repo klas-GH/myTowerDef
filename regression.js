@@ -20,6 +20,7 @@ const css = read('style.css');
 const qg = read('quick_Guide.txt');
 const readme = read('README.md');
 const panelHtml = read('index.html');
+const artGenerator = read('generate_game_art.py');
 
 report.checks.push({name:'html_has_ids', ok: !!html && ['coins','lives','startBtn','restartBtn','game','wavePreview'].every(id=>html.includes('id="'+id+'"')||html.includes("id='"+id+"'"))});
 report.checks.push({name:'html_utf8_emojis', ok: !!html && html.includes('💰') && html.includes('❤️') && html.includes('▶') && html.includes('↻')});
@@ -29,7 +30,7 @@ report.checks.push({name:'wave_info_lines_are_separate', ok: !!css && css.includ
 report.checks.push({name:'affordable_tower_buttons_disable', ok: !!js && js.includes('btn.disabled = !canAfford || mode === "won" || mode === "lost"')});
 report.checks.push({name:'build_menu_contains_tower_picker', ok: !!html && /id="buildPanel"[\s\S]*id="towerPicker"[\s\S]*data-type="archer"[\s\S]*data-type="cannon"[\s\S]*data-type="magic"/.test(html)});
 report.checks.push({name:'build_spot_opens_menu', ok: !!js && js.includes('showBuildMenu(buildSpot)') && js.includes('placeTower(buildSpot.x, buildSpot.y)')});
-report.checks.push({name:'short_display_layout', ok: !!css && css.includes('@media (max-height: 900px)') && css.includes('height: min(440px, max(180px, calc(102dvh - 295px)))')});
+report.checks.push({name:'short_display_layout', ok: !!css && css.includes('@media (max-height: 900px)') && css.includes('width: min(100%, 600px, max(150px, calc((100dvh - 300px) * 5 / 6)))') && css.includes('max-height: min(720px, calc(100dvh - 300px))')});
 report.checks.push({name:'short_display_compact_header', ok: !!css && css.includes('font-size: 9px;') && css.includes('font-size: 12px;')});
 
 
@@ -146,7 +147,7 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(jsSource + '\n;this.__api = {get WAVE_DEFS(){return WAVE_DEFS;}, get MAX_WAVE(){return MAX_WAVE;}, get LEVELS(){return LEVELS;}, get MAX_LEVEL(){return MAX_LEVEL;}, get MAX_RUN(){return MAX_RUN;}, get currentLevel(){return currentLevel;}, set currentLevel(v){currentLevel=v;}, get currentRun(){return currentRun;}, set currentRun(v){currentRun=v;}, get currentLevelData(){return currentLevelData;}, get path(){return path;}, get spots(){return spots;}, get currentWave(){return currentWave;}, set currentWave(v){currentWave=v;}, get mode(){return mode;}, set mode(v){mode=v;}, get waveActive(){return waveActive;}, set waveActive(v){waveActive=v;}, get buildMenuOpen(){return buildMenuOpen;}, get coins(){return coins;}, set coins(v){coins=v;}, get lives(){return lives;}, set lives(v){lives=v;}, get enemiesToSpawn(){return enemiesToSpawn;}, set enemiesToSpawn(v){enemiesToSpawn=v;}, get enemyHp(){return enemyHp;}, get enemySpeed(){return enemySpeed;}, get waveReward(){return waveReward;}, set waveReward(v){waveReward=v;}, get enemies(){return enemies;}, set enemies(v){enemies=v;}, get spawned(){return spawned;}, set spawned(v){spawned=v;}, get spawnQueue(){return spawnQueue;}, get towers(){return towers;}, set towers(v){towers=v;}, get selectedTower(){return selectedTower;}, set selectedTower(v){selectedTower=v;}, get selectedTowerType(){return selectedTowerType;}, set selectedTowerType(v){selectedTowerType=v;}, get TOWER_TYPES(){return TOWER_TYPES;}, get ENEMY_TYPES(){return ENEMY_TYPES;}, getTowerType, getEnemyType, getLevelWaveDef, getScaledEnemyType, advanceLevel, openNextRun, handleStartButton, addEnemy, placeTower, sellTower, upgradeTower, selectTowerType, pickTarget, getTargetingMode, selectTargetingMode, TARGET_MODES, getNextWaveDef, updateWaveInfo, updateWavePreview, startWave, reset, updateUI, updateUpgradePanel, update, showPanel, hidePanel, showBuildMenu, closeBuildMenu, get panelOpen(){return panelOpen;}, get CHALLENGE_DEFS(){return CHALLENGE_DEFS;}, get challengeMode(){return challengeMode;}, set challengeMode(v){challengeMode=v;}, get activeChallenge(){return activeChallenge;}, set activeChallenge(v){activeChallenge=v;}, get challengeState(){return challengeState;}, set challengeState(v){challengeState=v;}, get challengeRecords(){return challengeRecords;}, set challengeRecords(v){challengeRecords=v;}, isChallengeUnlocked, getChallenge, getChallengeRecord, startChallenge, endChallenge, evaluateChallengeObjective, finalizeChallengeResult, abandonChallenge, getChallengeMedalLabel, getChallengeMedalGlyph, describeChallengeObjective, loadBg, loadUnit}', ctx);
-vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;}}, installBannerDismissed:{get(){return installBannerDismissed;},set(v){installBannerDismissed=v;}}, installConfirmed:{get(){return installConfirmed;},set(v){installConfirmed=v;}}, nativeInstallAvailable:{get(){return nativeInstallAvailable;},set(v){nativeInstallAvailable=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD, showInstallBanner, showManualInstallBanner, hideInstallBanner, dismissInstallBanner, isStandalone, hasInstalledApp, markInstallConfirmed, restoreInstallBannerState})', ctx);
+vm.runInContext('Object.defineProperties(this.__api, { settings:{get(){return settings;}}, statsState:{get(){return statsState;}}, campaignState:{get(){return campaignState;}}, achievements:{get(){return achievements;},set(v){achievements=v;}}, shots:{get(){return shots;},set(v){shots=v;}}, particles:{get(){return particles;},set(v){particles=v;}}, paused:{get(){return paused;}}, installBannerDismissed:{get(){return installBannerDismissed;},set(v){installBannerDismissed=v;}}, installConfirmed:{get(){return installConfirmed;},set(v){installConfirmed=v;}}, nativeInstallAvailable:{get(){return nativeInstallAvailable;},set(v){nativeInstallAvailable=v;}} }); Object.assign(this.__api, {saveGame, loadSave, restoreSavedGame, resetSave, recordCoinSpend, applyMotionSetting, buildBossDef, checkAchievements, showSettings, hideSettings, togglePause, showBossNotice, draw, unlockSound, startBackgroundMusic, stopBackgroundMusic, showChallengePanel, hideChallengePanel, showChallengeResultOverlay, closeChallengeResult, updateChallengeHUD, showInstallBanner, showManualInstallBanner, hideInstallBanner, dismissInstallBanner, isStandalone, hasInstalledApp, markInstallConfirmed, restoreInstallBannerState})', ctx);
 
 let failures = 0;
 function assert(name, cond){
@@ -164,10 +165,10 @@ assertEq('init_waveActive', ctx.__api.waveActive, false);
 assertEq('init_coins', ctx.__api.coins, 80);
 assertEq('init_lives', ctx.__api.lives, 6);
 assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
-assertEq('init_enemyHp', ctx.__api.enemyHp, 52.5);
+assertEq('init_enemyHp', ctx.__api.enemyHp, 57.75);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
-assert('live_heading_uses_v238', els.levelTitle.textContent.includes('v2.3.8'));
+assert('live_heading_uses_v2140', els.levelTitle.textContent.includes('v2.14.0'));
 
 // Wave definitions used by spawning must match the previewed values.
 assertEq('wave1_hp', ctx.__api.WAVE_DEFS[0].enemyHp, 35);
@@ -190,7 +191,7 @@ assert('nextWaveDef_wave1', JSON.stringify(ctx.__api.getNextWaveDef()) === JSON.
 ctx.__api.updateWaveInfo();
 const previewEl = els.wavePreview;
 assert('preview_rendered_wave1', previewEl.innerHTML.includes('Next: Wave 1/3'));
-assert('preview_hp_wave1', previewEl.innerHTML.includes('52.5') && previewEl.innerHTML.includes('HP'));
+assert('preview_hp_wave1', previewEl.innerHTML.includes('57.8') && previewEl.innerHTML.includes('HP'));
 assert('preview_speed_wave1', previewEl.innerHTML.includes('30.8'));
 assert('preview_enemies_wave1', previewEl.innerHTML.includes('8'));
 assert('preview_reward_wave1', previewEl.innerHTML.includes('30'));
@@ -977,7 +978,7 @@ const restartClearsTowerState = ctx.__api.selectedTowerType === 'archer' && ctx.
 // post-restart baseline rather than leftover victory state.
 ctx.__api.reset();
 report.checks.push({name:'wave_defs_authoritative', ok: ctx.__api.WAVE_DEFS && ctx.__api.WAVE_DEFS.length === 3});
-report.checks.push({name:'preview_wave1', ok: els.wavePreview.innerHTML.includes('Next: Wave 1/3') && els.wavePreview.innerHTML.includes('52.5')});
+report.checks.push({name:'preview_wave1', ok: els.wavePreview.innerHTML.includes('Next: Wave 1/3') && els.wavePreview.innerHTML.includes('57.8')});
 report.checks.push({name:'preview_wave2_after_start', ok: true});
 report.checks.push({name:'preview_wave3', ok: wave3PreviewHtml.includes('Next: Wave 3/3') && wave3PreviewHtml.includes('Armored')});
 report.checks.push({name:'preview_victory_empty', ok: victoryPreviewEmpty});
@@ -1014,6 +1015,7 @@ report.checks.push({name:'restart_clears_tower_state', ok: restartClearsTowerSta
 // v1.8.0 enemy archetype and composition checks.
 report.checks.push({name:'enemy_types_valid', ok: ctx.__api.ENEMY_TYPES.standard.hp > 0 && ctx.__api.ENEMY_TYPES.runner.speed > ctx.__api.ENEMY_TYPES.standard.speed && ctx.__api.ENEMY_TYPES.armored.hp > ctx.__api.ENEMY_TYPES.standard.hp});
 report.checks.push({name:'enemy_baseline_preserved', ok: ctx.__api.ENEMY_TYPES.standard.hp === 35 && ctx.__api.ENEMY_TYPES.standard.speed === 28 && ctx.__api.ENEMY_TYPES.standard.reward === 10});
+report.checks.push({name:'armored_base_hp_increased', ok: ctx.__api.ENEMY_TYPES.armored.hp === 78});
 const baselineBoss = ctx.__api.buildBossDef(1, 1);
 report.checks.push({name:'boss_is_armored_high_hp_high_bounty_and_crowned', ok: baselineBoss.hp > ctx.__api.getScaledEnemyType('armored', 1, 1, 3).hp && baselineBoss.reward >= ctx.__api.getScaledEnemyType('armored', 1, 1, 3).reward * 5 && baselineBoss.speed < ctx.__api.getScaledEnemyType('armored', 1, 1, 3).speed && baselineBoss.color === '#a855f7' && baselineBoss.glyph === '👑' && baselineBoss.boss === true});
 report.checks.push({name:'enemy_unknown_falls_back', ok: ctx.__api.getEnemyType('nope') === ctx.__api.ENEMY_TYPES.standard});
@@ -1046,11 +1048,11 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v238_round_modal', ok: !!html && html.includes('v2.3.8') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'html_v2140_round_modal', ok: !!html && html.includes('v2.14.0') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="coins">80')});
 report.checks.push({name:'tower_picker_shows_updated_prices_and_magic_feature', ok: !!html && html.includes('<span class="tcost">60 coins</span>') && html.includes('<span class="tfeature">Splash damage</span>')});
-report.checks.push({name:'manifest_v238', ok: !!manifest && manifest.includes('"version":  "2.3.8"')});
-report.checks.push({name:'sw_v238', ok: !!sw && sw.includes('v2.3.8')});
-report.checks.push({name:'docs_v238', ok: (!!qg && qg.includes('v2.3.8')) || (!!readme && readme.includes('v2.3.8'))});
+report.checks.push({name:'manifest_v2140', ok: !!manifest && manifest.includes('"version":  "2.14.0"')});
+report.checks.push({name:'sw_v2140', ok: !!sw && sw.includes('v2.14.0')});
+report.checks.push({name:'docs_v2140', ok: (!!qg && qg.includes('v2.14.0')) || (!!readme && readme.includes('2.14.0'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1071,7 +1073,7 @@ const nextRoundEnemy = ctx.__api.getScaledEnemyType('standard', 1, 2, 1);
 const wave1Enemy = ctx.__api.getScaledEnemyType('standard', 1, 1, 1);
 const wave2Enemy = ctx.__api.getScaledEnemyType('standard', 1, 1, 2);
 const wave3Enemy = ctx.__api.getScaledEnemyType('standard', 1, 1, 3);
-report.checks.push({name:'base_difficulty_bonuses_applied', ok: baseRoundEnemy.hp === 52.5 && baseRoundEnemy.speed === 30.8});
+report.checks.push({name:'base_difficulty_bonuses_applied', ok: baseRoundEnemy.hp === 57.75 && baseRoundEnemy.speed === 30.8});
 report.checks.push({name:'speed_increases_each_wave', ok: wave1Enemy.speed < wave2Enemy.speed && wave2Enemy.speed < wave3Enemy.speed});
 report.checks.push({name:'enemy_stats_increase_each_round', ok: nextRoundEnemy.hp > baseRoundEnemy.hp && nextRoundEnemy.speed > baseRoundEnemy.speed});
 ctx.__api.reset();
@@ -1093,7 +1095,7 @@ ctx.__api.enemies = [];
 ctx.__api.waveReward = 50;
 ctx.__api.update(0);
 report.checks.push({name:'round_two_opens_with_notice', ok: ctx.__api.currentLevel === 1 && ctx.__api.currentRun === 2 && ctx.__api.mode === 'ready' && els.roundOverlay.hidden === false && !els.roundOverlay.classList.contains('campaign-complete') && els.roundTitle.textContent === 'Round #2 Opened!' && els.levelTitle.textContent.includes('ROUND #2')});
-report.checks.push({name:'round_two_difficulty_and_coins_reset', ok: ctx.__api.coins === 80 && ctx.__api.getScaledEnemyType('standard', 1, 2, 1).hp > 52.5 && ctx.__api.getScaledEnemyType('standard', 1, 2, 1).speed > 30.8});
+report.checks.push({name:'round_two_difficulty_and_coins_reset', ok: ctx.__api.coins === 80 && ctx.__api.getScaledEnemyType('standard', 1, 2, 1).hp > 57.75 && ctx.__api.getScaledEnemyType('standard', 1, 2, 1).speed > 30.8});
 ctx.__api.currentRun = ctx.__api.MAX_RUN;
 ctx.__api.currentLevel = ctx.__api.MAX_LEVEL;
 ctx.__api.reset();
@@ -1104,7 +1106,7 @@ ctx.__api.enemiesToSpawn = 0;
 ctx.__api.spawned = 0;
 ctx.__api.enemies = [];
 ctx.__api.update(0);
-report.checks.push({name:'round_50_resets_to_baseline_round_one', ok: ctx.__api.MAX_RUN === 50 && ctx.__api.currentRun === 1 && ctx.__api.currentLevel === 1 && ctx.__api.mode === 'ready' && ctx.__api.coins === 80 && ctx.__api.enemyHp === 52.5 && ctx.__api.enemySpeed === 30.8 && els.roundOverlay.classList.contains('campaign-complete') && els.roundTitle.textContent === '👑 LEGENDARY DEFENDER!' && els.roundMessage.textContent.includes('50 rounds conquered') && els.roundMessage.textContent.includes('Round #1')});
+report.checks.push({name:'round_50_resets_to_baseline_round_one', ok: ctx.__api.MAX_RUN === 50 && ctx.__api.currentRun === 1 && ctx.__api.currentLevel === 1 && ctx.__api.mode === 'ready' && ctx.__api.coins === 80 && ctx.__api.enemyHp === 57.75 && ctx.__api.enemySpeed === 30.8 && els.roundOverlay.classList.contains('campaign-complete') && els.roundTitle.textContent === '👑 LEGENDARY DEFENDER!' && els.roundMessage.textContent.includes('50 rounds conquered') && els.roundMessage.textContent.includes('Round #1')});
 report.checks.push({name:'panel_close_does_not_reopen', ok: true});
 report.checks.push({name:'wave_preview_side_border', ok: !!css && css.includes('border-left: 1px dashed #334155')});
 
@@ -1115,6 +1117,7 @@ api.currentLevel = 4;
 api.campaignState.highestRunReached = 7;
 api.campaignState.levelsCompleted = 3;
 api.settings.soundEnabled = false;
+api.settings.musicEnabled = false;
 api.settings.reducedMotion = true;
 api.statsState.roundsCompleted = 3;
 api.statsState.levelCoinsSpent = 125;
@@ -1123,13 +1126,51 @@ const savedSuccessfully = api.saveGame();
 api.currentRun = 1;
 api.currentLevel = 1;
 api.settings.soundEnabled = true;
+api.settings.musicEnabled = true;
 api.settings.reducedMotion = false;
 api.statsState.roundsCompleted = 0;
 api.statsState.levelCoinsSpent = 0;
 api.achievements = [];
 const restoredSuccessfully = api.restoreSavedGame();
 api.reset();
-report.checks.push({name:'save_restore_campaign_settings_stats_and_achievements', ok: savedSuccessfully && restoredSuccessfully && api.currentRun === 7 && api.currentLevel === 4 && api.currentLevelData === api.LEVELS[3] && api.settings.soundEnabled === false && api.settings.reducedMotion === true && api.statsState.roundsCompleted === 3 && api.statsState.levelCoinsSpent === 125 && api.achievements.includes('first_defense')});
+report.checks.push({name:'save_restore_campaign_settings_stats_and_achievements', ok: savedSuccessfully && restoredSuccessfully && api.currentRun === 7 && api.currentLevel === 4 && api.currentLevelData === api.LEVELS[3] && api.settings.soundEnabled === false && api.settings.musicEnabled === false && api.settings.reducedMotion === true && api.statsState.roundsCompleted === 3 && api.statsState.levelCoinsSpent === 125 && api.achievements.includes('first_defense')});
+report.checks.push({name:'background_music_setting_present_and_separate', ok: !!html && html.includes('id="musicToggle"') && jsSource.includes('settings.musicEnabled = musicToggleEl.checked')});
+let musicOscillatorStarts = 0;
+class TestAudioContext {
+  constructor() {
+    this.state = 'running';
+    this.currentTime = 0;
+    this.destination = {};
+  }
+  createOscillator() {
+    return {
+      frequency: { setValueAtTime() {} },
+      connect() {},
+      start() { musicOscillatorStarts++; },
+      stop() {}
+    };
+  }
+  createGain() {
+    return {
+      gain: {
+        setValueAtTime() {},
+        exponentialRampToValueAtTime() {},
+        cancelScheduledValues() {},
+        setTargetAtTime() {}
+      },
+      connect() {}
+    };
+  }
+}
+ctx.window.AudioContext = TestAudioContext;
+api.settings.musicEnabled = true;
+api.unlockSound();
+const musicStartsWithAudioContext = musicOscillatorStarts === 3;
+api.stopBackgroundMusic();
+api.settings.musicEnabled = false;
+api.startBackgroundMusic();
+report.checks.push({name:'background_music_starts_and_stops_cleanly', ok: musicStartsWithAudioContext && musicOscillatorStarts === 3});
+delete ctx.window.AudioContext;
 report.checks.push({name:'reduced_motion_setting_applies_to_document', ok: rootClasses.has('reduced-motion') && !!css && css.includes('.reduced-motion') && jsSource.includes('if (!settings.reducedMotion)')});
 api.showSettings();
 const settingsPanelOpened = !els.panelOverlay.hidden && !els.settingsPanel.hidden && els.buildPanel.hidden && els.upgradePanel.hidden;
@@ -1511,7 +1552,7 @@ storageData.set('myTowerDef.save.v2', JSON.stringify({
 const migrated = challengeApi.loadSave();
 const migratedSave = JSON.parse(storageData.get('myTowerDef.save.v3'));
 report.checks.push({name:'v2_legacy_key_migrates_to_v3', ok: migrated && challengeApi.campaignState.currentRun === 3 && challengeApi.campaignState.currentLevel === 4 && migratedSave.version === 3 && !storageData.has('myTowerDef.save.v2')});
-report.checks.push({name:'v2_migration_preserves_settings_stats_and_achievements', ok: challengeApi.settings.soundEnabled === false && challengeApi.settings.reducedMotion === true && challengeApi.statsState.enemiesDefeated === 12 && challengeApi.achievements.includes('first_defense')});
+report.checks.push({name:'v2_migration_preserves_settings_stats_and_achievements', ok: challengeApi.settings.soundEnabled === false && challengeApi.settings.musicEnabled === true && challengeApi.settings.reducedMotion === true && challengeApi.statsState.enemiesDefeated === 12 && challengeApi.achievements.includes('first_defense')});
 challengeApi.resetSave();
 
 // The challenge panel renders a card per defined challenge and can be toggled.
@@ -1629,9 +1670,11 @@ const promptEvent = {
 ctx.window.dispatchEvent(promptEvent);
 const timerCountBeforeNativeLoad = nextTimerId;
 ctx.window.dispatchEvent(new Event('load'));
-report.checks.push({name:'install_native_prompt_not_intercepted', ok: !nativeInstallPromptPrevented});
+report.checks.push({name:'install_native_prompt_is_deferred', ok: nativeInstallPromptPrevented && installApi.nativeInstallAvailable});
 report.checks.push({name:'install_native_browser_hides_custom_header', ok: installApi.nativeInstallAvailable && els.installHeaderBtn.hidden});
-report.checks.push({name:'install_native_browser_skips_manual_banner', ok: nextTimerId === timerCountBeforeNativeLoad && els.installBanner.hidden});
+const nativeInstallTimer = nextTimerId - 1;
+scheduledTimers.get(nativeInstallTimer)();
+report.checks.push({name:'install_native_banner_uses_native_prompt', ok: nextTimerId > timerCountBeforeNativeLoad && !els.installBanner.hidden && els.installBtn.textContent === 'Install'});
 
 // An accepted browser prompt marks the app as installed without an app-owned prompt.
 resetInstallState();
@@ -1640,7 +1683,7 @@ ctx.window.dispatchEvent({
   preventDefault: () => {},
   userChoice: {then: resolve => resolve({outcome: 'accepted'})}
 });
-report.checks.push({name:'install_native_acceptance_persists_confirmation', ok: installApi.installConfirmed && storageData.get('myTowerDef.installConfirmed') === '1'});
+report.checks.push({name:'install_native_prompt_does_not_claim_install_before_acceptance', ok: installApi.nativeInstallAvailable && !installApi.installConfirmed && !storageData.has('myTowerDef.installConfirmed')});
 
 // appinstalled persists the confirmed installation and suppresses later offers.
 resetInstallState();
@@ -1685,17 +1728,17 @@ resetInstallState();
 ctx.navigator = {userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1'};
 installApi.showManualInstallBanner();
 ctx.window.dispatchEvent(promptEvent);
-report.checks.push({name:'install_native_event_hides_fallback_banner', ok: installApi.nativeInstallAvailable && els.installBanner.hidden});
+report.checks.push({name:'install_native_event_updates_banner_action', ok: installApi.nativeInstallAvailable && !els.installBanner.hidden && els.installBtn.textContent === 'Install'});
 delete ctx.navigator;
 
-// Version metadata is at v2.3.8 across all files.
-report.checks.push({name:'html_v238', ok: !!html && html.includes('v2.3.8')});
-report.checks.push({name:'manifest_v238', ok: !!manifest && manifest.includes('"version":  "2.3.8"')});
-report.checks.push({name:'sw_v238', ok: !!sw && sw.includes('v2.3.8')});
-report.checks.push({name:'docs_v238', ok: (!!qg && qg.includes('v2.3.8')) || (!!readme && readme.includes('v2.3.8'))});
+// Version metadata is at v2.14.0 across all app entry points.
+report.checks.push({name:'html_v2140', ok: !!html && html.includes('v2.14.0')});
+report.checks.push({name:'manifest_v2140', ok: !!manifest && manifest.includes('"version":  "2.14.0"')});
+report.checks.push({name:'sw_v2140', ok: !!sw && sw.includes('v2.14.0')});
+report.checks.push({name:'docs_v2140', ok: (!!qg && qg.includes('v2.14.0')) || (!!readme && readme.includes('2.14.0'))});
 
-// ---- v2.3.2: Background and unit asset regression tests ----
-// The generator (gen_assets.py) produces one themed background PNG per level
+// ---- Background and unit asset regression tests ----
+// The generator produces one themed background PNG per level
 // and one unit icon PNG per enemy/tower type. The game loads them lazily and
 // falls back to procedural drawing when an asset is missing.
 const assetNames = [
@@ -1710,7 +1753,21 @@ for (const name of assetNames) {
   if (!fs.existsSync(p)) { assetExists = false; console.log('MISSING ASSET:', p); }
 }
 report.checks.push({name:'assets_all_present', ok: assetExists});
+const backgrounds = assetNames.filter(name => name.startsWith('bg_'));
+const pixelBackgroundsValid = backgrounds.every(name => {
+  const imagePath = path.join(__dirname, 'assets', name + '.png');
+  if (!exists(imagePath)) return false;
+  const image = fs.readFileSync(imagePath);
+  return image.readUInt32BE(16) === 300 && image.readUInt32BE(20) === 360;
+});
+const pixelBackgroundsCompact = backgrounds.every(name => {
+  const imagePath = path.join(__dirname, 'assets', name + '.png');
+  return exists(imagePath) && fs.statSync(imagePath).size < 60000;
+});
+report.checks.push({name:'pixel_backgrounds_keep_canvas_dimensions', ok: pixelBackgroundsValid});
+report.checks.push({name:'pixel_backgrounds_are_compact', ok: pixelBackgroundsCompact});
 report.checks.push({name:'art_generator_exists', ok: exists(path.join(__dirname, 'generate_game_art.py'))});
+report.checks.push({name:'art_generator_makes_pixel_art_backgrounds', ok: !!artGenerator && artGenerator.includes('quantize(colors=48)') && artGenerator.includes('resampling.NEAREST')});
 
 // The game exposes loadBg/loadUnit helpers that return Image objects.
 report.checks.push({name:'assets_loadBg_returns_image', ok: typeof ctx.__api.loadBg === 'function'});
@@ -1771,3 +1828,4 @@ report.summary = {allOk, total: report.checks.length, passed: report.checks.filt
 console.log(JSON.stringify(report,null,2));
 fs.writeFileSync('regression_report.json', JSON.stringify(report,null,2));
 console.log('written regression_report.json');
+if (!allOk) process.exitCode = 1;

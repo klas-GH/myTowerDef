@@ -18,7 +18,7 @@ const ctx = {
   calls: [],
   clearRect() { this.calls.push(['clearRect']); },
   fillRect() { this.calls.push(['fillRect']); },
-  drawImage(img) { this.calls.push(['drawImage', img]); },
+  drawImage(img) { this.calls.push(['drawImage', String((img && (img._src || img.src)) || '')]); },
   fillText() {}, strokeText() {}, beginPath() {}, closePath() {}, moveTo() {}, lineTo() {},
   stroke() {}, fill() {}, arc() {}, ellipse() {}, rect() {}, roundRect() {}, polygon() {},
   createRadialGradient() { return { addColorStop() {} }; },
@@ -58,7 +58,7 @@ const win = {
   addEventListener() {},
   localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
   navigator: { userAgent: 'node', standalone: false },
-  requestAnimationFrame: (cb) => setTimeout(() => cb(), 0),
+  requestAnimationFrame: () => 0,
   setTimeout, clearTimeout, performance: { now: () => Date.now() }
 };
 
@@ -83,7 +83,7 @@ sandbox.reset();
 sandbox.draw();
 const afterReset = ctx.calls.filter(c => c[0] === 'drawImage');
 console.log('drawImage after reset+draw:', afterReset.length);
-afterReset.forEach(c => console.log('  ', c[1] && c[1]._src ? c[1]._src : '(no img)'));
+afterReset.forEach(c => console.log('  ', c[1] || '(no img)'));
 
 const spots = vm.runInContext('spots', sandbox);
 console.log('spots:', JSON.stringify(spots));
@@ -95,7 +95,7 @@ sandbox.placeTower(spot.x, spot.y);
 sandbox.draw();
 const afterPlace = ctx.calls.filter(c => c[0] === 'drawImage');
 console.log('drawImage after placeTower+draw:', afterPlace.length);
-afterPlace.slice(afterReset.length).forEach(c => console.log('  ', c[1] && c[1]._src ? c[1]._src : '(no img)'));
+afterPlace.slice(afterReset.length).forEach(c => console.log('  ', c[1] || '(no img)'));
 
 sandbox.addEnemy();
 sandbox.startWave();
@@ -103,18 +103,14 @@ sandbox.update(0.016);
 sandbox.draw();
 const afterPlay = ctx.calls.filter(c => c[0] === 'drawImage');
 console.log('drawImage after play:', afterPlay.length);
-afterPlay.slice(afterPlace.length).forEach(c => console.log('  ', c[1] && c[1]._src ? c[1]._src : '(no img)'));
+afterPlay.slice(afterPlace.length).forEach(c => console.log('  ', c[1] || '(no img)'));
 
-function srcOf(c) {
-  const img = c && c[1];
-  const value = img && (img._src || img.src);
-  return String(value || '');
-}
-const bgDrawn = afterReset.length > 0 && srcOf(afterReset[0]).includes('bg_');
-const towerDrawn = afterPlace.length > 0 && srcOf(afterPlace[0]).includes('tower_');
-const enemyDrawn = afterPlay.length > 0 && srcOf(afterPlay[0]).includes('enemy_');
+const bgDrawn = afterReset.some(c => c[1].includes('bg_'));
+const towerDrawn = afterPlace.some(c => c[1].includes('tower_'));
+const enemyDrawn = afterPlay.some(c => c[1].includes('enemy_'));
 console.log('RESULT background=' + bgDrawn + ' tower=' + towerDrawn + ' enemy=' + enemyDrawn);
 if (!bgDrawn || !towerDrawn || !enemyDrawn) {
-  console.log('WARN: asset smoke check is valid but the VM harness only confirms the first rendered frame for each asset family.');
+  process.exitCode = 1;
+} else {
+  console.log('PASS');
 }
-console.log('PASS');

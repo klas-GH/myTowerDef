@@ -1,4 +1,4 @@
-﻿Quick Guide - myTowerDef v2.3.11
+Quick Guide - myTowerDef v2.14.0
 
 1. Run it
 Save files in same folder. Open index.html in browser.
@@ -13,8 +13,8 @@ If local files blocked, use VS Code Live Server.
 - Enemy types: Standard (red), Runner (fast, low HP), Armored (slow, high HP).
 - Defend base with 6 starting lives. Survive all waves to win (+coins per wave).
 - Clear all 3 waves to move to the next level. There are 12 maps, and enemy strength increases with each level.
-- Tower firing sounds are enabled after you start the first wave.
-- Enemies begin with 50% more HP and 10% more speed; speed increases another 5% each wave.
+- A gentle synthesized soundtrack and tower firing sounds begin after your first tap. Toggle background music and sound effects separately in Settings.
+- Enemies begin with 65% more HP, Armored enemies have extra base HP, and speed increases another 5% each wave.
 - Finish all 12 levels to open a new round. Enemy HP and speed increase by 1% each round, with a popup announcing the change. After 50 rounds, a special victory popup celebrates your run and announces the restart at Round #1.
 - Restart to play again.
 
@@ -27,3 +27,4 @@ If local files blocked, use VS Code Live Server.
 - Mobile-first responsive layout with touch input.
 - Offline-capable via service worker.
 - Towers can be upgraded up to level 3.
+- Pixel-art biome backgrounds are generated locally; no external art or audio downloads are needed.

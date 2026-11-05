@@ -1,7 +1,13 @@
-﻿@version: 2.3.11
-@release: v2.3.11
-@status: bugfix, responsive
-@scope: header, mobile, assets
+@version: 2.14.0
+@release: v2.14.0
+@status: feature, balance, visual
+@scope: soundtrack, pixel-art, difficulty
+
+=== v 2.14.0 ===
+- Added a synthesized ambient soundtrack with a separate persistent toggle; it begins only after a user gesture and requires no downloaded audio.
+- Converted all 12 biome backgrounds to a reduced-palette, nearest-neighbor pixel-art style.
+- Increased the enemy HP scaling multiplier from 1.50 to 1.65 and raised Armored base HP from 70 to 78.
+- Updated the settings, docs, app metadata, service-worker cache, and regression coverage.
 
 === v 2.3.11 ===
 - Removed the fourth Download button from the controls row; controls are back to Start Wave / Pause / Restart.
