@@ -168,7 +168,7 @@ assertEq('init_enemiesToSpawn', ctx.__api.enemiesToSpawn, 8);
 assertEq('init_enemyHp', ctx.__api.enemyHp, 57.75);
 assertEq('init_enemySpeed', ctx.__api.enemySpeed, 30.8);
 assertEq('init_waveReward', ctx.__api.waveReward, 30);
-assert('live_heading_uses_v2141', els.levelTitle.textContent.includes('v2.14.1'));
+assert('live_heading_uses_v2142', els.levelTitle.textContent.includes('v2.14.2'));
 
 // Wave definitions used by spawning must match the previewed values.
 assertEq('wave1_hp', ctx.__api.WAVE_DEFS[0].enemyHp, 35);
@@ -1048,12 +1048,12 @@ report.checks.push({name:'victory_defeat_reject_targeting', ok: true});
 report.checks.push({name:'wave_preview_unchanged', ok: true});
 
 report.checks.push({name:'lives_baseline_v192', ok: ctx.__api.lives === 6});
-report.checks.push({name:'html_v2141_round_modal', ok: !!html && html.includes('v2.14.1') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="gameOverOverlay"') && html.includes('id="coins">80')});
+report.checks.push({name:'html_v2142_round_modal', ok: !!html && html.includes('v2.14.2') && html.includes('id="levelTitle"') && html.includes('id="roundOverlay"') && html.includes('id="gameOverOverlay"') && html.includes('id="coins">80')});
 report.checks.push({name:'all_result_overlays_are_centered_fixed_layers', ok: !!css && css.includes('.round-overlay {') && css.includes('position: fixed;') && css.includes('.round-overlay[hidden]') && html.includes('id="gameOverOverlay" class="round-overlay"') && html.includes('id="challengeOverlay" class="round-overlay"')});
 report.checks.push({name:'tower_picker_shows_updated_prices_and_magic_feature', ok: !!html && html.includes('<span class="tcost">60 coins</span>') && html.includes('<span class="tfeature">Splash damage</span>')});
-report.checks.push({name:'manifest_v2141', ok: !!manifest && manifest.includes('"version":  "2.14.1"')});
-report.checks.push({name:'sw_v2141', ok: !!sw && sw.includes('v2.14.1')});
-report.checks.push({name:'docs_v2141', ok: (!!qg && qg.includes('v2.14.1')) || (!!readme && readme.includes('2.14.1'))});
+report.checks.push({name:'manifest_v2142', ok: !!manifest && manifest.includes('"version":  "2.14.2"')});
+report.checks.push({name:'sw_v2142', ok: !!sw && sw.includes('v2.14.2')});
+report.checks.push({name:'docs_v2142', ok: (!!qg && qg.includes('v2.14.2')) || (!!readme && readme.includes('2.14.2'))});
 report.checks.push({name:'twelve_unique_level_maps', ok: ctx.__api.LEVELS.length === 12 && new Set(ctx.__api.LEVELS.map(level => JSON.stringify(level.path))).size === 12 && new Set(ctx.__api.LEVELS.map(level => level.theme)).size === 12});
 const coralBay = ctx.__api.LEVELS[1];
 const coralBaySpotClearance = coralBay.spots.every(spot => coralBay.path.slice(1).every((end, index) => {
@@ -1139,6 +1139,7 @@ report.checks.push({name:'background_music_setting_present_and_separate', ok: !!
 let musicOscillatorStarts = 0;
 const musicGainTargets = [];
 const musicFrequencies = [];
+const musicFilters = [];
 class TestAudioContext {
   constructor() {
     this.state = 'running';
@@ -1150,8 +1151,20 @@ class TestAudioContext {
       frequency: { setValueAtTime(value) { musicFrequencies.push(value); } },
       connect() {},
       start() { musicOscillatorStarts++; },
-      stop() {}
+      stop() {},
+      disconnect() {}
     };
+  }
+  createBiquadFilter() {
+    const filter = {
+      type: '',
+      frequency: { setValueAtTime(value) { filter.frequencyValue = value; } },
+      Q: { setValueAtTime(value) { filter.qValue = value; } },
+      connect() {},
+      disconnect() {}
+    };
+    musicFilters.push(filter);
+    return filter;
   }
   createGain() {
     return {
@@ -1161,19 +1174,20 @@ class TestAudioContext {
         cancelScheduledValues() {},
         setTargetAtTime() {}
       },
-      connect() {}
+      connect() {},
+      disconnect() {}
     };
   }
 }
 ctx.window.AudioContext = TestAudioContext;
 api.settings.musicEnabled = true;
 api.unlockSound();
-const musicStartsWithAudioContext = musicOscillatorStarts === 3;
+const musicStartsWithAudioContext = musicOscillatorStarts === 1;
 api.stopBackgroundMusic();
 api.settings.musicEnabled = false;
 api.startBackgroundMusic();
-report.checks.push({name:'background_music_starts_and_stops_cleanly', ok: musicStartsWithAudioContext && musicOscillatorStarts === 3});
-report.checks.push({name:'background_music_gain_and_pitch_are_audible', ok: musicGainTargets.length === 3 && musicGainTargets.every(target => target.value >= 0.05 && target.time === 1) && musicFrequencies.length === 3 && musicFrequencies.every(frequency => frequency >= 170)});
+report.checks.push({name:'background_melody_starts_and_stops_cleanly', ok: musicStartsWithAudioContext && musicOscillatorStarts === 1});
+report.checks.push({name:'background_melody_uses_short_midrange_filtered_notes', ok: musicFrequencies.length === 1 && musicFrequencies[0] >= 500 && musicGainTargets.length === 2 && musicGainTargets[0].value === 0.022 && musicGainTargets[0].time === 0.025 && musicGainTargets[1].value === 0.0001 && musicGainTargets[1].time === 0.38 && musicFilters.length === 1 && musicFilters[0].type === 'lowpass' && musicFilters[0].frequencyValue === 1800});
 delete ctx.window.AudioContext;
 report.checks.push({name:'reduced_motion_setting_applies_to_document', ok: rootClasses.has('reduced-motion') && !!css && css.includes('.reduced-motion') && jsSource.includes('if (!settings.reducedMotion)')});
 api.showSettings();
@@ -1735,11 +1749,11 @@ ctx.window.dispatchEvent(promptEvent);
 report.checks.push({name:'install_native_event_updates_banner_action', ok: installApi.nativeInstallAvailable && !els.installBanner.hidden && els.installBtn.textContent === 'Install'});
 delete ctx.navigator;
 
-// Version metadata is at v2.14.1 across all app entry points.
-report.checks.push({name:'html_v2141', ok: !!html && html.includes('v2.14.1')});
-report.checks.push({name:'manifest_v2141', ok: !!manifest && manifest.includes('"version":  "2.14.1"')});
-report.checks.push({name:'sw_v2141', ok: !!sw && sw.includes('v2.14.1')});
-report.checks.push({name:'docs_v2141', ok: (!!qg && qg.includes('v2.14.1')) || (!!readme && readme.includes('2.14.1'))});
+// Version metadata is at v2.14.2 across all app entry points.
+report.checks.push({name:'html_v2142', ok: !!html && html.includes('v2.14.2')});
+report.checks.push({name:'manifest_v2142', ok: !!manifest && manifest.includes('"version":  "2.14.2"')});
+report.checks.push({name:'sw_v2142', ok: !!sw && sw.includes('v2.14.2')});
+report.checks.push({name:'docs_v2142', ok: (!!qg && qg.includes('v2.14.2')) || (!!readme && readme.includes('2.14.2'))});
 
 // ---- Background and unit asset regression tests ----
 // The generator produces one themed background PNG per level

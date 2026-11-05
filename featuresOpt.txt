@@ -1,7 +1,11 @@
-@version: 2.14.1
-@release: v2.14.1
-@status: audio fix
-@scope: soundtrack volume
+@version: 2.14.2
+@release: v2.14.2
+@status: audio redesign
+@scope: melodic soundtrack
+
+=== v 2.14.2 ===
+- Replaced sustained chords with a filtered, higher-register plucked melody to remove the bass drone and buzzing quality.
+- Updated regression tests, app metadata, and the service-worker cache for v2.14.2.
 
 === v 2.14.1 ===
 - Raised the synthesized soundtrack by an octave and increased its volume so the notes carry on small speakers.

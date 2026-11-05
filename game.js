@@ -369,12 +369,10 @@ let lastPreviewWave = -1; // cached next-wave number rendered in the preview
 let soundContext = null;
 let musicTimer = null;
 let musicVoices = [];
-let musicChordIndex = 0;
-const MUSIC_CHORDS = [
-  [261.63, 329.63, 392.00],
-  [220.00, 261.63, 329.63],
-  [174.61, 220.00, 261.63],
-  [196.00, 246.94, 293.66]
+let musicNoteIndex = 0;
+const MUSIC_MELODY = [
+  523.25, 659.25, 783.99, 659.25, 587.33, 783.99, 880.00, 0,
+  783.99, 659.25, 523.25, 587.33, 659.25, 783.99, 659.25, 0
 ];
 
 // ---- v2.3.0: Challenge Mode ----
@@ -797,7 +795,7 @@ function updateLevelHeading() {
   const heading = $("levelTitle");
   if (!heading) return;
   const number = String(currentLevel).padStart(2, "0");
-  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.14.1";
+  heading.textContent = "ROUND #" + currentRun + " · LEVEL " + number + " · " + currentLevelData.name.toUpperCase() + " · v2.14.2";
 }
 
 // ---- v2.0.0 Persistence ----
@@ -1162,49 +1160,63 @@ function unlockSound() {
 function fadeMusicVoices(voices, now, stopAfter) {
   for (const voice of voices) {
     voice.gain.gain.cancelScheduledValues(now);
-    voice.gain.gain.setTargetAtTime(0, now, 0.8);
+    voice.gain.gain.setTargetAtTime(0, now, 0.025);
     voice.oscillator.stop(now + stopAfter);
   }
 }
 
-function playNextMusicChord() {
+function playNextMusicNote() {
   if (!settings.musicEnabled || !soundContext || soundContext.state !== "running") {
     musicTimer = null;
     return;
   }
 
-  const now = soundContext.currentTime;
-  fadeMusicVoices(musicVoices, now, 2.5);
-  const chord = MUSIC_CHORDS[musicChordIndex];
-  musicVoices = chord.map(frequency => {
+  const frequency = MUSIC_MELODY[musicNoteIndex];
+  if (frequency > 0) {
+    const now = soundContext.currentTime;
     const oscillator = soundContext.createOscillator();
     const gain = soundContext.createGain();
-    oscillator.type = "sine";
+    const filter = soundContext.createBiquadFilter();
+    oscillator.type = "triangle";
     oscillator.frequency.setValueAtTime(frequency, now);
-    gain.gain.setValueAtTime(0.0005, now);
-    gain.gain.exponentialRampToValueAtTime(0.06, now + 1);
-    oscillator.connect(gain);
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(1800, now);
+    filter.Q.setValueAtTime(0.5, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.022, now + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+    oscillator.connect(filter);
+    filter.connect(gain);
     gain.connect(soundContext.destination);
     oscillator.start(now);
-    return { oscillator, gain };
-  });
-  musicChordIndex = (musicChordIndex + 1) % MUSIC_CHORDS.length;
-  musicTimer = setTimeout(playNextMusicChord, 7000);
+    const voice = { oscillator, gain };
+    musicVoices.push(voice);
+    oscillator.onended = () => {
+      const voiceIndex = musicVoices.indexOf(voice);
+      if (voiceIndex !== -1) musicVoices.splice(voiceIndex, 1);
+      oscillator.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+    };
+    oscillator.stop(now + 0.4);
+  }
+
+  musicNoteIndex = (musicNoteIndex + 1) % MUSIC_MELODY.length;
+  musicTimer = setTimeout(playNextMusicNote, 420);
 }
 
 function startBackgroundMusic() {
   if (!settings.musicEnabled || !soundContext || soundContext.state !== "running" || musicTimer !== null) return;
-  playNextMusicChord();
+  playNextMusicNote();
 }
 
 function stopBackgroundMusic() {
   if (musicTimer !== null) clearTimeout(musicTimer);
   musicTimer = null;
   if (soundContext && musicVoices.length > 0) {
-    fadeMusicVoices(musicVoices, soundContext.currentTime, 2.5);
+    fadeMusicVoices(musicVoices.slice(), soundContext.currentTime, 0.15);
   }
-  musicVoices = [];
-  musicChordIndex = 0;
+  musicNoteIndex = 0;
 }
 
 function playFireSound(towerType) {

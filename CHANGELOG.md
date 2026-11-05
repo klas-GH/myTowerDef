@@ -1,5 +1,12 @@
 # myTowerDef Changelog
 
+## Version 2.14.2
+
+### Background music redesign
+
+- Replaced sustained chords with a filtered, higher-register plucked melody. Short notes and rests remove the continuous low drone and buzzing quality.
+- Added regression coverage for note range, filtering, and the short decay envelope; updated app metadata and service-worker cache.
+
 ## Version 2.14.1
 
 ### Background music volume fix
